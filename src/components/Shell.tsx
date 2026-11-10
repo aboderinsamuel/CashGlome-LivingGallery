@@ -4,7 +4,7 @@ import { ROMAN } from '../lib/analytics';
 import { monthLabel } from '../lib/format';
 import { useWindow } from './Desktop';
 
-export type View = 'chapter' | 'shelf' | 'ledger' | 'plans' | 'collection';
+export type View = 'chapter' | 'shelf' | 'ledger' | 'plans' | 'memory' | 'collection';
 
 const isDesktop = !!window.glome?.isDesktop;
 const isMacDesktop = isDesktop && window.glome?.platform === 'darwin';
@@ -54,6 +54,7 @@ export function Sidebar(p: SidebarProps) {
         <div className="side-label">Money</div>
         <Item v="ledger" icon={<Icon.list size={17} />} label="Ledger" count={p.counts.ledger} />
         <Item v="plans" icon={<Icon.flag size={17} />} label="Plans" />
+        <Item v="memory" icon={<Icon.quill size={17} />} label="Memory" />
         <Item v="collection" icon={<Icon.seal size={17} />} label="Gallery" count={p.counts.stickers} />
         <div className="side-label">Contents</div>
         {p.chapters.map((c) => (
@@ -84,6 +85,7 @@ export function TabBar({ view, setView, onEdition }: { view: View; setView: (v: 
       <B v="ledger" icon={<Icon.list />} label="Ledger" />
       <button onClick={onEdition}><Icon.play />Edition</button>
       <B v="plans" icon={<Icon.flag />} label="Plans" />
+      <B v="memory" icon={<Icon.quill />} label="Memory" />
       <B v="collection" icon={<Icon.seal />} label="Gallery" />
     </nav>
   );

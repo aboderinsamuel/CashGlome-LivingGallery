@@ -1,7 +1,7 @@
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { cat } from '../lib/categories';
-import { chapterOf, computeStats, momentsOf, projection, recurringOf, type Chapter as Ch, type Stats } from '../lib/analytics';
+import { chapterOf, computeStats, momentsOf, projection, recurringOf, spaceSegs, type Chapter as Ch, type Stats } from '../lib/analytics';
 import { candleOf, dayCardOf, paintingOf, restorationOf, PATCHES, type Restoration } from '../lib/art';
 import { money, monthLabel, shiftMonth, todayISO } from '../lib/format';
 import { useInView, useStages } from '../lib/inview';
@@ -28,19 +28,20 @@ interface Props {
   onGallery: () => void;
   onSay: () => void;
   onSnap: () => void;
+  onShare: () => void;
 }
 
 const ease = [0.2, 0.8, 0.2, 1] as const;
 const reveal = { initial: { opacity: 0, y: 12 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true, margin: '0px 0px 120px 0px' }, transition: { duration: 0.4, ease } };
 
-export function Chapter({ state, dispatch, museChapter, onOpenCategory, onEdition, onWrite, onPlans, onGallery, onSay, onSnap }: Props) {
+export function Chapter({ state, dispatch, museChapter, onOpenCategory, onEdition, onWrite, onPlans, onGallery, onSay, onSnap, onShare }: Props) {
   const canSay = useMemo(() => voiceSupport() !== null, []);
   const cur = state.profile.currency;
   const calm = state.settings.calm;
   const s = useMemo(() => computeStats(state.entries, state.month), [state.entries, state.month]);
   const prev = useMemo(() => computeStats(state.entries, shiftMonth(state.month, -1)), [state.entries, state.month]);
   const local = chapterOf(state, s);
-  const ch = museChapter ? { ...local, title: museChapter.title, lede: museChapter.lede } : local;
+  const ch = museChapter ? { ...local, title: spaceSegs(museChapter.title), lede: museChapter.lede } : local;
   const pageRef = useRef<HTMLDivElement>(null);
   const empty = !s.entries.length;
   const top = s.byCat.filter((c) => c.id !== 'savings');
@@ -95,6 +96,11 @@ export function Chapter({ state, dispatch, museChapter, onOpenCategory, onEditio
             <RestorationPlate painting={painting} r={r} seen={shownSeen} calm={calm} />
           </button>
           <PlateLabel painting={painting} r={r} reason={r.complete ? 'Fully restored. It hangs in your gallery.' : s.isCurrent ? 'Cleaned a patch at a time as you write.' : undefined} />
+          {!empty && (
+            <button className="btn" onClick={onShare} style={{ marginTop: 14 }}>
+              <Icon.share size={15} /> {r.complete ? 'Share the restored painting' : 'Share this chapter'}
+            </button>
+          )}
         </motion.figure>
       </header>
 

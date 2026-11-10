@@ -12,9 +12,11 @@ export interface Entry {
   feeling?: Feeling;
   date: string; // YYYY-MM-DD
   createdAt: number;
-  source: 'oracle' | 'muse' | 'manual';
+  source: 'oracle' | 'muse' | 'manual' | 'routine';
   confidence: number; // 0..1
   photo?: string; // picture id in IndexedDB (this device only)
+  routine?: string; // the memory it was logged from, when a routine logged it
+  updatedAt?: number; // last edit, for sync
 }
 
 export interface Goal {
@@ -22,7 +24,38 @@ export interface Goal {
   name: string;
   amount: number;
   emoji: string;
+  updatedAt?: number;
 }
+
+/** Something CashGlome remembers about the person, in their own words.
+ *  routine: money that goes out (or comes in) on set days, logged for them or confirmed with one tap.
+ *  balance: what they had at a moment; today's figure is that plus everything written since.
+ *  income:  pay that arrives on a day of the month; it ends the "until payday" horizon.
+ *  note:    anything else Muse should know ("I'm saving for a laptop", "I don't drive"). */
+export type MemoryKind = 'routine' | 'balance' | 'income' | 'note';
+export interface Memory {
+  id: string;
+  kind: MemoryKind;
+  text: string; // the person's own words
+  label?: string;
+  amount?: number;
+  category?: string;
+  dir?: Dir;
+  days?: number[]; // routine: 0 = Sunday … 6 = Saturday
+  monthDay?: number; // routine that happens monthly instead (rent on the 1st), 1–31
+  time?: string; // routine: HH:MM, when to log or ask
+  mode?: 'ask' | 'auto'; // routine: ask with one tap, or log it automatically
+  since?: string; // routine: first day it applies (YYYY-MM-DD)
+  asOf?: number; // balance: when it was true (ms)
+  payDay?: number; // income: day of the month, 1–31
+  createdAt: number;
+  updatedAt: number;
+  deletedAt?: number; // forgotten: kept 30 days so it can be restored
+  history?: { at: number; was: Partial<Memory> }[]; // earlier versions, newest first
+}
+
+/** What happened to a routine on a day: logged, skipped, or waiting for an answer. */
+export type RoutineMark = 'done' | 'skipped' | 'pending';
 
 export type AiProvider = 'local' | 'meta';
 
@@ -60,6 +93,10 @@ export interface State {
   seenBadges: string[];
   month: string; // YYYY-MM being viewed
   seenRestored: Record<string, number>; // patches already shown being cleaned, per month
+  memories: Memory[];
+  routineLog: Record<string, RoutineMark>; // "<memory id>@<YYYY-MM-DD>"
+  /** Entries and goals deleted on this device, so a sync can delete them everywhere. */
+  gone: { kind: 'entry' | 'goal'; id: string; at: number }[];
 }
 
 export interface Parsed {

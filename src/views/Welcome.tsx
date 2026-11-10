@@ -6,6 +6,8 @@ import { Icon } from '../components/Icons';
 import { AppIcon } from '../components/Logo';
 import { TrafficLights } from '../components/Shell';
 import { LivingArt } from '../components/LivingArt';
+import { Account } from '../components/Account';
+import { cloudConfigured } from '../lib/cloud';
 
 const ease = [0.2, 0.8, 0.2, 1] as const;
 const BONE = '#F6EEDC';
@@ -15,6 +17,7 @@ export function Welcome({ initialCurrency, onDone }: { initialCurrency: string; 
   const [step, setStep] = useState(0);
   const [name, setName] = useState('');
   const [currency, setCurrency] = useState(initialCurrency);
+  const [returning, setReturning] = useState(false);
   const art = step === 0 ? 'moneylender' : 'goldsmith';
 
   return (
@@ -66,6 +69,9 @@ export function Welcome({ initialCurrency, onDone }: { initialCurrency: string; 
                 <button className="btn lg gold" disabled={!name.trim()} onClick={() => onDone(name.trim(), currency, false)}>Start <Icon.right size={14} /></button>
               </div>
               <button className="welcome-sample" onClick={() => onDone(name.trim() || 'Friend', currency, true)}>Or look around an example month first</button>
+              {cloudConfigured && (returning
+                ? <div className="welcome-acct"><Account compact /></div>
+                : <button className="welcome-sample" style={{ marginTop: 6 }} onClick={() => setReturning(true)}>I already have an account</button>)}
             </motion.div>
           </motion.div>
         )}

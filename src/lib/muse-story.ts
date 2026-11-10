@@ -1,6 +1,7 @@
 import { chat, extractJSON } from './ai';
-import { computeStats, projection, statsDigest, type Seg } from './analytics';
-import { findAmounts } from './parser';
+import { computeStats, projection, spaceSegs, statsDigest, type Seg } from './analytics';
+import { affordability, memoryDigest } from './memory';
+import { findAmounts, parseOne } from './parser';
 import { money } from './format';
 import type { State } from './types';
 
@@ -22,14 +23,14 @@ notes: 3 surprising, specific observations a bank app would never make (max 20 w
   const j = extractJSON<{ title?: { before?: string; emphasis?: string; after?: string }; lede?: string; notes?: string[] }>(out);
   if (!j.title?.emphasis || !j.lede) throw new Error('Muse returned an incomplete chapter');
   return {
-    title: [{ t: j.title.before ?? '' }, { t: j.title.emphasis, em: true }, { t: j.title.after ?? '.' }],
+    title: spaceSegs([{ t: j.title.before ?? '' }, { t: j.title.emphasis, em: true }, { t: j.title.after ?? '.' }]),
     lede: j.lede,
     notes: (j.notes ?? []).map(String).slice(0, 3),
   };
 }
 
 export async function museAsk(state: State, question: string): Promise<string> {
-  const sys = `You answer questions inside CashGlome, a personal money app. ${VOICE} Start with a clear answer ("Yes, if…" / "Not yet."), then 2-4 short sentences with numbers in ${state.profile.currency}. You are not a licensed financial adviser: for investment questions give general education, not personal buy or sell picks.\nDATA: ${JSON.stringify(statsDigest(state))}`;
+  const sys = `You answer questions inside CashGlome, a personal money app. ${VOICE} Start with a clear answer ("Yes, if…" / "Not yet."), then 2-4 short sentences with numbers in ${state.profile.currency}. You are not a licensed financial adviser: for investment questions give general education, not personal buy or sell picks.\nDATA: ${JSON.stringify(statsDigest(state))}\n${memoryDigest(state)}\nThe app's own until-payday check for this question (use its numbers, never your own sums): ${affordabilityHint(state, question)}`;
   return (await chat(state.settings, state.settings.ai.storyModel, [{ role: 'system', content: sys }, { role: 'user', content: question }], { temperature: 0.5, max_tokens: 400, timeoutMs: 35000 })).trim();
 }
 
@@ -76,4 +77,10 @@ export function chapterIsStale(saved: SavedChapter | undefined, o: { month: stri
   if (!saved || saved.first !== o.first || o.count < saved.count) return true;
   if (saved.step !== chapterStep(o.month, o.count, o.model)) return true;
   return o.current && saved.day !== o.today && saved.count !== o.count;
+}
+
+/** The device's own until-payday answer for a question that names a price, so Muse never has to do the sums. */
+function affordabilityHint(state: State, q: string) {
+  const amount = /\bafford|\bcan i (buy|get|spend)|payday|pay day\b/i.test(q) ? parseOne(q)?.amount ?? 0 : 0;
+  return affordability(state, amount)?.text ?? 'no balance remembered';
 }

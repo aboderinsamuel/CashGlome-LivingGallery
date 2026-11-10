@@ -1,7 +1,7 @@
 import { useEffect, useReducer } from 'react';
 import { DEFAULT_BASE } from './ai';
 import { guessCurrency, monthOf, todayISO, uid } from './format';
-import type { Entry, Goal, Parsed, Settings, State } from './types';
+import type { Entry, Goal, Memory, Parsed, RoutineMark, Settings, State } from './types';
 
 const KEY = 'cashglome.v1';
 
@@ -18,6 +18,7 @@ export function initialState(): State {
   return {
     profile: { name: '', currency: guessCurrency(), onboarded: false, createdAt: Date.now() },
     entries: [], goals: [], settings: defaultSettings, seenBadges: [], month: monthOf(todayISO()), seenRestored: {},
+    memories: [], routineLog: {}, gone: [],
   };
 }
 
@@ -27,10 +28,19 @@ function load(): State {
     if (!raw) return initialState();
     const s = JSON.parse(raw) as State;
     const base = initialState();
-    return { ...base, ...s, seenRestored: s.seenRestored ?? {}, settings: { ...base.settings, ...s.settings, ai: { ...base.settings.ai, ...s.settings?.ai }, reminder: { ...base.settings.reminder, ...s.settings?.reminder } }, month: monthOf(todayISO()) };
+    // Forgotten memories wait 30 days to be restored, then only an empty marker stays (so sync deletes them everywhere).
+    const memories = (s.memories ?? []).map((m) => ((m.deletedAt ?? 0) > 0 && Date.now() - m.deletedAt! > 30 * 864e5 ? { id: m.id, kind: m.kind, text: '', createdAt: m.createdAt, updatedAt: Date.now(), deletedAt: -1 } : m));
+    return { ...base, ...s, seenRestored: s.seenRestored ?? {}, memories, routineLog: s.routineLog ?? {}, gone: s.gone ?? [], settings: { ...base.settings, ...s.settings, ai: { ...base.settings.ai, ...s.settings?.ai }, reminder: { ...base.settings.reminder, ...s.settings?.reminder } }, month: monthOf(todayISO()) };
   } catch {
     return initialState();
   }
+}
+
+/** What a pull from the cloud brings back. */
+export interface Remote {
+  entries: Entry[]; goals: Goal[]; memories: Memory[];
+  dropEntries: string[]; dropGoals: string[];
+  profile?: { profile: Partial<State['profile']>; settings: Partial<Settings>; seenBadges?: string[]; seenRestored?: Record<string, number>; routineLog?: State['routineLog'] };
 }
 
 export type Action =
@@ -46,25 +56,83 @@ export type Action =
   | { type: 'removeGoal'; id: string }
   | { type: 'seenBadges'; ids: string[] }
   | { type: 'seenRestored'; month: string; n: number }
+  | { type: 'remember'; memory: Memory } // add, or edit (the old version goes into its history)
+  | { type: 'forget'; id: string }
+  | { type: 'restoreMemory'; id: string }
+  | { type: 'revertMemory'; id: string; at: number }
+  | { type: 'purgeMemory'; id: string }
+  | { type: 'mark'; key: string; mark: RoutineMark | null }
+  | { type: 'merge'; remote: Remote } // changes pulled from the cloud; newest edit wins
   | { type: 'replace'; state: State }
   | { type: 'reset' };
 
 export const toEntry = (p: Parsed): Entry => ({ id: uid(), text: p.text, label: p.label, amount: p.amount, dir: p.dir, category: p.category, feeling: p.feeling, date: p.date, createdAt: Date.now(), source: p.source, confidence: p.confidence });
 
-function reducer(s: State, a: Action): State {
+export function reducer(s: State, a: Action): State {
   switch (a.type) {
     case 'onboard': return { ...s, profile: { ...s.profile, name: a.name, currency: a.currency, onboarded: true } };
     case 'addEntries': return { ...s, entries: [...s.entries, ...a.entries] };
-    case 'update': return { ...s, entries: s.entries.map((e) => (e.id === a.id ? { ...e, ...a.patch, source: a.patch.category || a.patch.dir ? 'manual' : e.source } : e)) };
-    case 'remove': return { ...s, entries: s.entries.filter((e) => e.id !== a.id) };
+    case 'update': return { ...s, entries: s.entries.map((e) => (e.id === a.id ? { ...e, ...a.patch, source: a.patch.category || a.patch.dir ? 'manual' : e.source, updatedAt: Date.now() } : e)) };
+    case 'remove': return { ...s, entries: s.entries.filter((e) => e.id !== a.id), gone: [...s.gone, { kind: 'entry' as const, id: a.id, at: Date.now() }].slice(-500) };
     case 'settings': return { ...s, settings: { ...s.settings, ...a.patch } };
     case 'ai': return { ...s, settings: { ...s.settings, ai: { ...s.settings.ai, ...a.patch } } };
     case 'profile': return { ...s, profile: { ...s.profile, ...a.patch } };
     case 'month': return { ...s, month: a.month };
-    case 'goal': return { ...s, goals: [...s.goals.filter((g) => g.id !== a.goal.id), a.goal] };
-    case 'removeGoal': return { ...s, goals: s.goals.filter((g) => g.id !== a.id) };
+    case 'goal': return { ...s, goals: [...s.goals.filter((g) => g.id !== a.goal.id), { ...a.goal, updatedAt: Date.now() }] };
+    case 'removeGoal': return { ...s, goals: s.goals.filter((g) => g.id !== a.id), gone: [...s.gone, { kind: 'goal' as const, id: a.id, at: Date.now() }].slice(-500) };
+    case 'remember': {
+      const old = s.memories.find((m) => m.id === a.memory.id);
+      const now = Date.now();
+      if (!old) return { ...s, memories: [...s.memories, { ...a.memory, createdAt: a.memory.createdAt || now, updatedAt: now }] };
+      const { history: _h, ...was } = old;
+      return { ...s, memories: s.memories.map((m) => (m.id === old.id ? { ...a.memory, createdAt: old.createdAt, updatedAt: now, deletedAt: undefined, history: [{ at: old.updatedAt, was }, ...(old.history ?? [])].slice(0, 8) } : m)) };
+    }
+    case 'forget': return { ...s, memories: s.memories.map((m) => (m.id === a.id ? { ...m, deletedAt: Date.now(), updatedAt: Date.now() } : m)) };
+    case 'restoreMemory': return { ...s, memories: s.memories.map((m) => (m.id === a.id ? { ...m, deletedAt: undefined, updatedAt: Date.now() } : m)) };
+    case 'revertMemory': {
+      const old = s.memories.find((m) => m.id === a.id);
+      const v = old?.history?.find((h) => h.at === a.at);
+      if (!old || !v) return s;
+      return reducer(s, { type: 'remember', memory: { ...(v.was as Memory), id: old.id, kind: old.kind } });
+    }
+    case 'purgeMemory': return { ...s, memories: s.memories.map((m) => (m.id === a.id ? { id: m.id, kind: m.kind, text: '', createdAt: m.createdAt, updatedAt: Date.now(), deletedAt: -1 } : m)) };
+    case 'mark': {
+      const log = { ...s.routineLog };
+      if (a.mark) log[a.key] = a.mark; else delete log[a.key];
+      // Keep about two months of marks.
+      const cutoff = todayISO(new Date(Date.now() - 62 * 864e5));
+      for (const k of Object.keys(log)) if (k.split('@')[1] < cutoff) delete log[k];
+      return { ...s, routineLog: log };
+    }
     case 'seenBadges': return { ...s, seenBadges: Array.from(new Set([...s.seenBadges, ...a.ids])) };
     case 'seenRestored': return { ...s, seenRestored: { ...s.seenRestored, [a.month]: a.n } };
+    case 'merge': {
+      const r = a.remote;
+      const stamp = (x: { updatedAt?: number; createdAt?: number }) => x.updatedAt ?? x.createdAt ?? 0;
+      const mergeList = <T extends { id: string }>(local: T[], incoming: T[], drop: string[], time: (x: T) => number) => {
+        const by = new Map(local.map((x) => [x.id, x]));
+        for (const id of drop) by.delete(id);
+        for (const x of incoming) { const mine = by.get(x.id); if (!mine || time(x) >= time(mine)) by.set(x.id, x); }
+        return [...by.values()];
+      };
+      return {
+        ...s,
+        entries: mergeList(s.entries, r.entries, r.dropEntries, stamp),
+        goals: mergeList(s.goals, r.goals, r.dropGoals, (g) => g.updatedAt ?? 0),
+        memories: mergeList(s.memories, r.memories, [], (m) => m.updatedAt),
+        ...(r.profile ? {
+          profile: { ...s.profile, ...r.profile.profile, onboarded: true },
+          settings: { ...s.settings, ...r.profile.settings, ai: s.settings.ai },
+          seenBadges: Array.from(new Set([...s.seenBadges, ...(r.profile.seenBadges ?? [])])),
+          seenRestored: { ...r.profile.seenRestored, ...s.seenRestored },
+          // An answer on any device (done or skipped) beats a question still waiting on this one.
+          routineLog: Object.fromEntries([...new Set([...Object.keys(r.profile.routineLog ?? {}), ...Object.keys(s.routineLog)])].map((k) => {
+            const mine = s.routineLog[k], theirs = r.profile!.routineLog?.[k];
+            return [k, mine && mine !== 'pending' ? mine : theirs ?? mine];
+          })),
+        } : {}),
+      };
+    }
     case 'replace': return a.state;
     case 'reset': return initialState();
   }

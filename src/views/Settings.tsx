@@ -6,13 +6,15 @@ import { demoEntries } from '../lib/demo';
 import { exportState, importState, type Action } from '../lib/store';
 import type { State } from '../lib/types';
 import { Icon } from '../components/Icons';
+import { Account } from '../components/Account';
 import { AppIcon } from '../components/Logo';
 import { artSrc, PAINTINGS, seasonalWallpaper, WALLPAPERS } from '../lib/art';
 import { canLinkSpotify, linkSpotify, MUSIC_PICKS, myPlaylists, parseSpotify, spotifyLinked, unlinkSpotify, type MyPlaylist } from '../lib/spotify';
 
-export type Pane = 'general' | 'appearance' | 'music' | 'muse' | 'data' | 'about';
+export type Pane = 'general' | 'account' | 'appearance' | 'music' | 'muse' | 'data' | 'about';
 const PANES: { id: Pane; label: string; icon: ReactNode; tint: string }[] = [
   { id: 'general', label: 'General', icon: <Icon.person size={14} />, tint: '#7A6A52' },
+  { id: 'account', label: 'Account & sync', icon: <Icon.cloud size={14} />, tint: '#3D6FB6' },
   { id: 'appearance', label: 'Appearance', icon: <Icon.sun size={14} />, tint: '#2B3FA8' },
   { id: 'music', label: 'Music', icon: <Icon.music size={14} />, tint: '#1DB954' },
   { id: 'muse', label: 'Meta Muse', icon: <Icon.bolt size={14} />, tint: '#6A3FA0' },
@@ -41,6 +43,7 @@ export function SettingsSheet({ state, dispatch, close, initial = 'general' }: {
         <div style={{ overflowY: 'auto', padding: '22px 28px 30px', minWidth: 0 }}>
           <div style={{ font: '600 20px var(--ui)', letterSpacing: '-0.02em', marginBottom: 18 }}>{P.label}</div>
           {pane === 'general' && <General state={state} dispatch={dispatch} />}
+          {pane === 'account' && <Group><div style={{ padding: 16 }}><Account /></div></Group>}
           {pane === 'appearance' && <Appearance state={state} dispatch={dispatch} />}
           {pane === 'music' && <Music state={state} dispatch={dispatch} />}
           {pane === 'muse' && <Muse state={state} dispatch={dispatch} />}

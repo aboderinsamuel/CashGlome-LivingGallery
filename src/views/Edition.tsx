@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { cat } from '../lib/categories';
-import { chapterOf, computeStats, momentsOf, paceOf, projection, ROMAN, tipsOf } from '../lib/analytics';
+import { chapterOf, computeStats, momentsOf, paceOf, projection, ROMAN, spaceSegs, tipsOf } from '../lib/analytics';
 import { paintingOf, PAINTINGS } from '../lib/art';
 import { money, monthLabel } from '../lib/format';
 import type { State } from '../lib/types';
@@ -14,12 +14,12 @@ const DUR = 7500;
 const ease = [0.2, 0.8, 0.2, 1] as const;
 
 /** The month as an illustrated book: one painting to a page, read like a short film. */
-export function Edition({ state, muse, close }: { state: State; muse: MuseChapter | null; close: () => void }) {
+export function Edition({ state, muse, close, onShare }: { state: State; muse: MuseChapter | null; close: () => void; onShare?: () => void }) {
   const cur = state.profile.currency;
   const calm = state.settings.calm;
   const s = useMemo(() => computeStats(state.entries, state.month), [state]);
   const ch = chapterOf(state, s);
-  const title = muse?.title ?? ch.title;
+  const title = spaceSegs(muse?.title ?? ch.title);
   const lede = muse?.lede ?? ch.lede;
   const moments = momentsOf(state, s);
   const top = s.byCat.filter((c) => c.id !== 'savings').slice(0, 6);
@@ -179,7 +179,8 @@ export function Edition({ state, muse, close }: { state: State; muse: MuseChapte
                 <motion.div key={`${j}-${i}-${paused}`} initial={{ width: j < i ? '100%' : '0%' }} animate={{ width: j < i ? '100%' : j === i ? (paused ? undefined : '100%') : '0%' }} transition={{ duration: j === i && !paused ? DUR / 1000 : 0, ease: 'linear' }} style={{ height: '100%', background: 'var(--gold-2)' }} />
               </div>
             ))}
-            <button className="nodrag" onClick={close} aria-label="Close" style={{ marginLeft: 14, width: 30, height: 30, borderRadius: 15, display: 'grid', placeItems: 'center', background: 'rgba(246,238,220,.12)', color: BONE }}><Icon.close size={14} /></button>
+            {onShare && <button className="nodrag" onClick={() => { setPaused(true); onShare(); }} style={{ marginLeft: 14, height: 30, padding: '0 12px', borderRadius: 15, display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(246,238,220,.12)', color: BONE, font: '500 13px var(--grot)' }}><Icon.share size={14} /> Share</button>}
+            <button className="nodrag" onClick={close} aria-label="Close" style={{ marginLeft: onShare ? 8 : 14, width: 30, height: 30, borderRadius: 15, display: 'grid', placeItems: 'center', background: 'rgba(246,238,220,.12)', color: BONE }}><Icon.close size={14} /></button>
           </div>
           <div className="tap" style={{ flex: 1, position: 'relative', padding: 'clamp(28px, 6vw, 80px)', display: 'flex', alignItems: 'center' }} onClick={(e) => { const r = e.currentTarget.getBoundingClientRect(); if ((e.target as HTMLElement).closest('button')) return; setI((x) => (e.clientX - r.left < r.width / 3 ? Math.max(0, x - 1) : Math.min(slides.length - 1, x + 1))); }}>
             <AnimatePresence mode="wait">

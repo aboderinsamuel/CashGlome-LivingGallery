@@ -29,12 +29,17 @@ import { Plans } from './views/Plans';
 import { Collection } from './views/Collection';
 import { SettingsSheet } from './views/Settings';
 import { Edition } from './views/Edition';
+import { ShareSheet } from './components/ShareSheet';
 import { Welcome } from './views/Welcome';
+import { MemoryView } from './views/Memory';
+import { CheckIns, type CheckIn } from './components/CheckIns';
+import { describeMemory, dueRoutines, pendingRoutines, readMemory, routineEntry } from './lib/memory';
+import { useCloudSync, useSyncStatus } from './lib/useCloud';
 
-const TITLES: Record<View, string> = { chapter: 'Chapter', shelf: 'All chapters', ledger: 'Ledger', plans: 'Plans', collection: 'Gallery' };
+const TITLES: Record<View, string> = { chapter: 'Chapter', shelf: 'All chapters', ledger: 'Ledger', plans: 'Plans', memory: 'Memory', collection: 'Gallery' };
 const isMac = /Mac|iPhone|iPad/.test(navigator.platform) || window.glome?.platform === 'darwin';
 const kbd = (k: string) => (isMac ? `⌘${k}` : `Ctrl+${k}`);
-type Pane = 'general' | 'appearance' | 'music' | 'muse' | 'data' | 'about';
+type Pane = 'general' | 'account' | 'appearance' | 'music' | 'muse' | 'data' | 'about';
 
 export default function App() {
   const [state, dispatch] = useGlomeStore();
@@ -43,6 +48,7 @@ export default function App() {
   const [query, setQuery] = useState('');
   const [settings, setSettingsPane] = useState<Pane | null>(null);
   const [edition, setEdition] = useState(false);
+  const [sharing, setSharing] = useState(false);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<Notice | null>(null);
   const [capture, setCapture] = useState<{ file: Blob | null; attach?: Entry } | null>(null);
@@ -57,6 +63,11 @@ export default function App() {
   const ai = aiEnabled(state.settings);
   const desk = useDesktopMode();
   const openSettings = useCallback((p: Pane = 'general') => setSettingsPane(p), []);
+
+  // ——— Account & sync: in the background while signed in ———
+  useCloudSync(state, dispatch);
+  const sync = useSyncStatus();
+  useEffect(() => { if (sync.recovering) setSettingsPane('account'); }, [sync.recovering]);
 
   // ——— Theme & sound ———
   const [systemDark, setSystemDark] = useState(() => window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false);
@@ -152,6 +163,46 @@ export default function App() {
     return () => clearInterval(t);
   }, [state.settings.reminder, candle.litToday, candle.streak]);
 
+  // ——— Routines: written down for you, or asked about with one tap ———
+  const latest = useRef(state);
+  latest.current = state;
+  const handled = useRef(new Set<string>());
+  useEffect(() => {
+    const tick = () => {
+      const s = latest.current;
+      const due = dueRoutines(s).filter((d) => !handled.current.has(d.key));
+      if (!due.length) return;
+      due.forEach((d) => handled.current.add(d.key));
+      const auto = due.filter((d) => d.m.mode === 'auto'), ask = due.filter((d) => d.m.mode !== 'auto');
+      const c = s.profile.currency;
+      if (auto.length) {
+        const entries = auto.map((d) => routineEntry(d.m, d.date));
+        auto.forEach((d) => dispatch({ type: 'mark', key: d.key, mark: 'done' }));
+        dispatch({ type: 'addEntries', entries });
+        const total = entries.reduce((a, e) => a + (e.dir === 'out' ? e.amount : 0), 0);
+        setNotice({
+          text: <>Wrote down <b>{auto.length === 1 ? auto[0].m.label : `${auto.length} routines`}</b> for you{total ? <span className="num" style={{ color: 'var(--ink-3)' }}> −{money(total, c)}</span> : null}</>,
+          undo: () => { entries.forEach((e) => dispatch({ type: 'remove', id: e.id })); auto.forEach((d) => dispatch({ type: 'mark', key: d.key, mark: 'skipped' })); setNotice(null); },
+        });
+      }
+      ask.forEach((d) => dispatch({ type: 'mark', key: d.key, mark: 'pending' }));
+      // A system notification for today's, when CashGlome isn't in front of you.
+      const today = due.filter((d) => d.date === todayISO());
+      if (today.length && typeof Notification !== 'undefined' && Notification.permission === 'granted' && document.visibilityState !== 'visible') {
+        const d = today[0], a = money(d.m.amount ?? 0, c);
+        const n = new Notification(d.m.mode === 'auto' ? `Wrote down ${d.m.label}: ${a}` : d.m.dir === 'in' ? `Did ${d.m.label} come in today? ${a}` : `${d.m.label} today? ${a}`, {
+          body: d.m.mode === 'auto' ? 'From your routine. Open CashGlome to undo it.' : today.length > 1 ? `And ${today.length - 1} more. One tap in CashGlome writes them down.` : 'One tap in CashGlome writes it down.',
+          icon: './icon.png', tag: 'cg-routine', silent: false,
+        });
+        n.onclick = () => { window.focus(); n.close(); };
+      }
+    };
+    tick();
+    const t = setInterval(tick, 30000);
+    return () => clearInterval(t);
+  }, [dispatch]);
+  const checkins = useMemo(() => pendingRoutines(state), [state]);
+
   // ——— Writing entries ———
   /** Adds entries, plays the right sound and says what changed in one line (with Undo). */
   const commit = useCallback((entries: Entry[], opts: { error?: string; art?: string; hung?: boolean } = {}) => {
@@ -193,6 +244,26 @@ export default function App() {
     } finally { setBusy(false); }
   }, [state.settings, cur, commit]);
 
+  const answerCheckIn = useCallback((c: CheckIn, yes: boolean, amount?: number) => {
+    dispatch({ type: 'mark', key: c.key, mark: yes ? 'done' : 'skipped' });
+    if (yes) commit([routineEntry(c.m, c.date, amount ?? c.m.amount)]);
+  }, [commit, dispatch]);
+  const allYes = useCallback(() => {
+    checkins.forEach((c) => dispatch({ type: 'mark', key: c.key, mark: 'done' }));
+    if (checkins.length) commit(checkins.map((c) => routineEntry(c.m, c.date)));
+  }, [checkins, commit, dispatch]);
+
+  /** "Remember I spend 4k on transport every weekday", typed or said in the composer. */
+  const remember = useCallback((text: string) => {
+    const m = readMemory(text);
+    dispatch({ type: 'remember', memory: m });
+    if (m.kind === 'routine' && typeof Notification !== 'undefined' && Notification.permission === 'default') Notification.requestPermission().catch(() => {});
+    setNotice({
+      text: <>Remembered: <b>{describeMemory(m, cur)}</b>. <button className="notice-undo" style={{ display: 'inline' }} onClick={() => { setView('memory'); setNotice(null); }}>Change it</button></>,
+      undo: () => { dispatch({ type: 'purgeMemory', id: m.id }); setNotice(null); },
+    });
+  }, [cur, dispatch]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // One tap to write the same thing again (today), for the things you buy all the time.
   const usual = useMemo(() => usuals(state.entries, todayISO()), [state.entries]);
   const repeat = useCallback((e: Entry) => {
@@ -233,7 +304,7 @@ export default function App() {
     const k = (e: KeyboardEvent) => {
       const mod = e.metaKey || e.ctrlKey;
       if (!mod || edition) return;
-      const map: Record<string, View> = { '1': 'chapter', '2': 'shelf', '3': 'ledger', '4': 'plans', '5': 'collection' };
+      const map: Record<string, View> = { '1': 'chapter', '2': 'shelf', '3': 'ledger', '4': 'plans', '5': 'collection', '6': 'memory' };
       if (map[e.key]) { e.preventDefault(); setView(map[e.key]); }
       else if (e.key === 'n') { e.preventDefault(); composer.current?.focus(); }
       else if (e.key === 'k') { e.preventDefault(); setAsk({ first: null }); }
@@ -276,10 +347,11 @@ export default function App() {
       <main className="main" ref={main}>
         {/* The new page is on screen in the same frame as the tap; it only settles in, like iOS. No waiting for the old one to leave. */}
         <motion.div key={`${view}:${state.month}`} initial={{ opacity: 0.4, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18, ease: [0.2, 0.8, 0.2, 1] }}>
-            {view === 'chapter' && <Chapter state={state} dispatch={dispatch} museChapter={muse[state.month] ?? null} onOpenCategory={(id) => { setFilter(id); setView('ledger'); }} onEdition={() => setEdition(true)} onWrite={(h) => composer.current?.fill(h ?? '')} onPlans={goView('plans')} onGallery={goView('collection')} onSay={() => composer.current?.speak()} onSnap={() => setCapture({ file: null })} />}
+            {view === 'chapter' && <Chapter state={state} dispatch={dispatch} museChapter={muse[state.month] ?? null} onOpenCategory={(id) => { setFilter(id); setView('ledger'); }} onEdition={() => setEdition(true)} onWrite={(h) => composer.current?.fill(h ?? '')} onPlans={goView('plans')} onGallery={goView('collection')} onSay={() => composer.current?.speak()} onSnap={() => setCapture({ file: null })} onShare={() => setSharing(true)} />}
             {view === 'shelf' && <Shelf state={state} months={months} onOpen={(m) => { setMonth(m); setView('chapter'); }} />}
             {view === 'ledger' && <Ledger state={state} dispatch={dispatch} filter={filter} setFilter={setFilter} query={query} onAttach={(e) => setCapture({ file: null, attach: e })} />}
             {view === 'plans' && <Plans state={state} dispatch={dispatch} />}
+            {view === 'memory' && <MemoryView state={state} dispatch={dispatch} notify={(text, undo) => setNotice({ text, undo: undo ? () => { undo(); setNotice(null); } : undefined })} />}
             {view === 'collection' && <Collection state={state} onOpen={(m) => { setMonth(m); setView('chapter'); }} onCamera={() => setCapture({ file: null })} />}
         </motion.div>
       </main>
@@ -318,7 +390,8 @@ export default function App() {
       </TitleBar>
 
       <MusicDock state={state} open={music} onClose={closeMusic} onChange={() => { setMusic(false); openSettings('music'); }} />
-      <Composer ref={composer} currency={cur} aiOn={ai} busy={busy} notice={notice} onSubmit={submit} onCamera={(file) => setCapture({ file: file ?? null })} onAsk={(q) => setAsk({ first: q })} usuals={usual} onRepeat={repeat} />
+      <Composer ref={composer} currency={cur} aiOn={ai} busy={busy} notice={notice} onSubmit={submit} onCamera={(file) => setCapture({ file: file ?? null })} onAsk={(q) => setAsk({ first: q })} usuals={usual} onRepeat={repeat} onRemember={remember}
+        above={<CheckIns list={checkins} cur={cur} onYes={(c, a) => answerCheckIn(c, true, a)} onNo={(c) => answerCheckIn(c, false)} onAllYes={allYes} />} />
       <TabBar view={view} setView={setView} onEdition={() => setEdition(true)} />
     </div>
   );
@@ -357,6 +430,7 @@ export default function App() {
       { label: 'Ledger', kbd: kbd('3'), checked: view === 'ledger', action: goView('ledger') },
       { label: 'Plans', kbd: kbd('4'), checked: view === 'plans', action: goView('plans') },
       { label: 'Gallery', kbd: kbd('5'), checked: view === 'collection', action: goView('collection') },
+      { label: 'Memory', kbd: kbd('6'), checked: view === 'memory', action: goView('memory') },
       'sep',
       ...(['auto', 'light', 'dark'] as const).map((t) => ({ label: t === 'auto' ? 'Match system' : t === 'light' ? 'Light' : 'Dark', checked: (state.settings.theme ?? 'auto') === t, action: () => dispatch({ type: 'settings', patch: { theme: t } }) })),
     ] },
@@ -392,7 +466,8 @@ export default function App() {
         {settings && <SettingsSheet key="settings" state={state} dispatch={dispatch} initial={settings} close={() => setSettingsPane(null)} />}
         {capture && <CaptureSheet key="capture" file={capture.file} attachTo={capture.attach?.label} settings={state.settings} currency={cur} onDone={captured} onClose={() => setCapture(null)} />}
         {ask && <AskPanel key="ask" state={state} dispatch={dispatch} aiOn={ai} turns={turns} setTurns={setTurns} first={ask.first} onClose={() => setAsk(null)} />}
-        {edition && <Edition key="edition" state={state} muse={muse[state.month] ?? null} close={() => setEdition(false)} />}
+        {edition && <Edition key="edition" state={state} muse={muse[state.month] ?? null} close={() => setEdition(false)} onShare={() => setSharing(true)} />}
+        {sharing && <ShareSheet key="share" state={state} title={muse[state.month]?.title} onClose={() => setSharing(false)} />}
       </AnimatePresence>
     </MotionConfig>
   );

@@ -6,6 +6,9 @@ import { dayLabel, money } from '../lib/format';
 import type { Action } from '../lib/store';
 import type { State } from '../lib/types';
 import { Icon } from './Icons';
+import { Runway } from './Runway';
+import { describeMemory } from '../lib/memory';
+import type { Memory } from '../lib/types';
 
 interface Props {
   state: State;
@@ -28,6 +31,8 @@ export function AskPanel({ state, dispatch, aiOn, turns, setTurns, first, onClos
   const end = useRef<HTMLDivElement>(null);
   const cur = state.profile.currency;
   const asked = useRef<string | null>(null);
+  const [kept, setKept] = useState<Set<string>>(new Set());
+  const keep = (m: Memory) => { dispatch({ type: 'remember', memory: m }); setKept((k) => new Set(k).add(m.id)); };
 
   const ask = async (q: string, allowMuse = state.settings.askMuse) => {
     q = q.trim();
@@ -84,7 +89,7 @@ export function AskPanel({ state, dispatch, aiOn, turns, setTurns, first, onClos
               </div>
             </div>
           )}
-          {turns.map((t, i) => <TurnView key={i} t={t} cur={cur} step={i === turns.length - 1 ? step : ''} />)}
+          {turns.map((t, i) => <TurnView key={i} t={t} cur={cur} step={i === turns.length - 1 ? step : ''} kept={kept} onKeep={keep} />)}
           {consent && (
             <div className="ask-consent">
               <p><b>Let Muse answer any question?</b> Muse reads your question and asks this app to search your entries. Your question, your monthly totals and the entries each search finds (names, amounts, dates, categories) are sent to Meta Muse. The adding up happens here, and photos are never sent.</p>
@@ -123,7 +128,7 @@ function Rich({ text }: { text: string }) {
   return <>{blocks}</>;
 }
 
-function TurnView({ t, cur, step }: { t: Turn; cur: string; step: string }) {
+function TurnView({ t, cur, step, kept, onKeep }: { t: Turn; cur: string; step: string; kept: Set<string>; onKeep: (m: Memory) => void }) {
   const a = t.a;
   const loading = a.by === 'muse' && !a.text;
   return (
@@ -131,6 +136,14 @@ function TurnView({ t, cur, step }: { t: Turn; cur: string; step: string }) {
       <div className="ask-q">{t.q}</div>
       <div className="ask-a">
         {loading ? <div className="ask-thinking"><span className="ask-dots" aria-hidden><i /><i /><i /></span><span className="small" aria-live="polite">{step || 'Thinking…'}</span></div> : <Rich text={a.text} />}
+        {!loading && a.runway && a.runway.days.length > 1 && <div className="ask-runway"><Runway a={a.runway} cur={cur} compact /></div>}
+        {!loading && a.remember?.map((m) => (
+          <div key={m.id} className="ask-remember">
+            <Icon.quill size={15} />
+            <span>Remember that <b>{describeMemory(m, cur)}</b>?</span>
+            {kept.has(m.id) ? <span className="small" style={{ color: 'var(--green)' }}>Kept in Memory</span> : <button className="btn" onClick={() => onKeep(m)}>Keep</button>}
+          </div>
+        ))}
         {(a.figures?.length || a.rows?.length) ? (
           <details className="ask-work">
             <summary>Show the numbers</summary>

@@ -128,6 +128,14 @@ export function characterOf(s: Stats): Character {
 export interface Seg { t: string; em?: boolean }
 export interface Chapter { numeral: string; title: Seg[]; lede: string; character: Character }
 
+/** Puts back a missing space between title parts ("mostly" + "at home" → "mostly at home"). */
+export function spaceSegs(segs: Seg[]): Seg[] {
+  return segs.map((seg, i) => {
+    const prev = segs[i - 1]?.t ?? '';
+    return i > 0 && /[\p{L}\p{N},;:]$/u.test(prev) && /^[\p{L}\p{N}]/u.test(seg.t) ? { ...seg, t: ' ' + seg.t } : seg;
+  });
+}
+
 export const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
 const TITLES: Record<string, [string, string, string]> = {
   dining: ['A month of ', 'full tables', '.'],

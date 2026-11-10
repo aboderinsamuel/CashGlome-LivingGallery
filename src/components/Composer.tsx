@@ -22,13 +22,17 @@ interface Props {
   /** Things you buy all the time, offered as one-tap repeats while the box is empty. */
   usuals?: Entry[];
   onRepeat?: (e: Entry) => void;
+  /** Shown above the box: routine check-ins waiting for an answer. */
+  above?: ReactNode;
+  /** "Remember I spend 4k on transport every weekday" goes to Memory instead of the ledger. */
+  onRemember?: (text: string) => void;
 }
 
 const HINTS_NG = ['Spent 4,500 on suya', 'Got paid 350k', 'Bolt 6k, data 3k', 'Sent mum 20k'];
 const HINTS = ['Lunch 14', 'Got paid 3,200', 'Uber 18, coffee 6.50', 'Netflix 15.49'];
 const touch = typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches;
 
-export const Composer = forwardRef<ComposerHandle, Props>(function Composer({ currency, aiOn, busy, notice, onSubmit, onCamera, onAsk, usuals = [], onRepeat }, ref) {
+export const Composer = forwardRef<ComposerHandle, Props>(function Composer({ currency, aiOn, busy, notice, onSubmit, onCamera, onAsk, usuals = [], onRepeat, above, onRemember }, ref) {
   const [focused, setFocused] = useState(false);
   const [text, setText] = useState('');
   const [over, setOver] = useState<Record<number, Partial<Parsed>>>({});
@@ -63,10 +67,12 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer({ cu
   useEffect(() => { setOver({}); setMenu(null); }, [text]);
   useEffect(() => { const el = ta.current; if (!el) return; el.style.height = 'auto'; el.style.height = Math.min(120, el.scrollHeight) + 'px'; }, [text]);
 
-  const question = useMemo(() => isQuestion(text), [text]);
-  const items = useMemo(() => question ? [] : splitStory(text).map(parseOne).filter((p): p is Parsed => !!p).map((p, i) => ({ ...p, ...over[i] })), [text, over, question]);
+  const memo = !!onRemember && /^(please\s+)?(remember|keep in mind|note that|fyi)\b/i.test(text.trim());
+  const question = useMemo(() => !memo && isQuestion(text), [text, memo]);
+  const items = useMemo(() => question || memo ? [] : splitStory(text).map(parseOne).filter((p): p is Parsed => !!p).map((p, i) => ({ ...p, ...over[i] })), [text, over, question, memo]);
   const submit = () => {
     if (!text.trim() || busy) return;
+    if (memo) { session.current?.stop(); onRemember!(text.trim()); setText(''); return; }
     if (question) { session.current?.stop(); onAsk(text.trim()); setText(''); return; } session.current?.stop(); onSubmit(text.trim(), over); setText(''); };
   const camera = () => (touch ? fileIn.current?.click() : onCamera());
   const narrow = typeof window !== 'undefined' && window.innerWidth < 640;
@@ -76,6 +82,7 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer({ cu
 
   return (
     <div className="composer-wrap">
+      {above}
       <AnimatePresence mode="popLayout">
         {shown && !text && !listening && (
           <motion.div key={note ? 'note' : 'n'} className="notice glass" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 6 }} transition={{ type: 'spring', stiffness: 420, damping: 32 }}>
@@ -91,6 +98,11 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer({ cu
                 <Icon.repeat size={13} /> {e.label} <b>{money(e.amount, currency)}</b>
               </button>
             ))}
+          </motion.div>
+        )}
+        {memo && (
+          <motion.div key="m" className="preview" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }}>
+            <div className="pchip glass asking"><Icon.quill size={14} /> Something to remember. Press Enter to keep it in Memory</div>
           </motion.div>
         )}
         {question && (
