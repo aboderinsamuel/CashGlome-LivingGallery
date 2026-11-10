@@ -31,8 +31,56 @@ Right under the month's painting, the chapter lays the month out as **100 coins 
 
 Next to each category is a translation into something you actually buy. That is **your own usual purchase**, measured from entries you wrote at least three times ("296 × Keke to work"). Until you have one, it uses a marked estimate ("≈ plates of jollof at about ₦2,500", or coffees elsewhere).
 
-## How it reads
+## Ask about your money
 
+Type or say a question in the same box (or press `Ctrl/⌘ K`, or **Ask** in the toolbar): "Where did my money go this month?", "How much did I spend on food last week?", "When did I last buy suya?", "Am I spending more than last month?", "Can I afford 40k?".
+
+- **Counted, not guessed.** Questions about totals, top categories, comparisons, counts, dates and "can I afford" are worked out on this device from your entries. **Show the numbers** lists the exact entries and figures behind every answer. When nothing you wrote matches a word ("pizza"), it says so instead of inventing a number.
+- **Muse only with your OK.** Questions it can't count (advice, "why", open questions) can go to Meta Muse. The first time, it says exactly what would be sent (your entries from the last two months and six months of totals, never photos) and asks. Change it any time in **Settings → Meta Muse**.
+
+## Music
+
+**♪** in the toolbar plays Spotify while you write: any playlist, album, song or podcast link, or one of the quiet picks (Classical Essentials, Peaceful Piano, lofi beats), from **Settings → Music**. It is Spotify's own player, so it keeps playing as you move around the app. Without being signed in to Spotify in that browser it plays 30-second previews; **Open in Spotify** plays everything in the Spotify app.
+
+**Linking a Spotify account** (choose from your own playlists) needs a Spotify app registered once for CashGlome:
+
+1. Create an app at developer.spotify.com/dashboard (Web API).
+2. Add redirect URIs: `http://127.0.0.1:43821/callback` for the desktop app, and the exact address you serve the web app from (Spotify accepts `http://127.0.0.1:<port>/` for local testing, not `localhost`).
+3. Build with the Client ID: put `VITE_SPOTIFY_CLIENT_ID=<your client id>` in `.env.local`, then build.
+
+Sign-in uses Spotify's PKCE flow, so no secret is stored in the app. CashGlome asks only to read playlist names. The token stays on the device and is never exported. Without a Client ID the link option simply doesn't appear; links and picks still work.
+
+## Fast on ordinary laptops
+
+Tested on Intel UHD 620 integrated graphics:
+- Switching pages draws the new page in the same frame (no fade-out wait).
+- Changing month draws in about 60–90 ms, down from about 800 ms.
+- Typing stays at 60 fps.
+
+What made the difference:
+- **Paintings under varnish are drawn once.** A background worker draws them into an ordinary image, where they used to be live SVG noise and blur filters.
+- **Effects stop behind glass.** Nothing moves behind frosted glass while the window covers it, film grain is a still texture, and paintings pause when scrolled away.
+- **Smaller pictures.** Each painting comes in three sizes (`public/art`, `art/md`, `art/sm`), and each place loads the smallest that is sharp.
+- **CSS animations instead of JavaScript springs.** The 100 coins and the daily bars animate in CSS.
+- **Less work at once.** Long pages render in stages, and off-screen ledger days are skipped until you scroll to them.
+
+Regenerate the smaller paintings after adding one with `npx electron scripts/make-art-sizes.cjs`.
+
+## Built against the usual complaints
+
+What people dislike in money apps, and what CashGlome does instead:
+
+| Complaint | CashGlome |
+|---|---|
+| Bank sync breaks silently | No bank connection to break. You write it, say it or snap the receipt; Muse failures are said out loud and the offline reader takes over. |
+| Typing everything in is tedious | One line for many entries ("bolt 6k, data 3k"), voice, receipt photos, and one-tap repeats of your usual buys. |
+| Categories are wrong and never learn | Fix one once and it's remembered for that thing from then on. |
+| The AI assistant gets numbers wrong | Answers are counted on the device, and every one can show its working. |
+| My data goes to a third-party AI | Nothing leaves the device unless you turn Muse on, and asking asks first. |
+| Apple-only / phone-only / subscription | Web, Windows and Mac; free; no account. |
+| Can't add things offline | Fully offline. |
+
+## How it reads
 CashGlome is dressed as a Renaissance edition. It uses sixteen public-domain paintings bundled in `public/art`, by Bruegel, Van Eyck, Matsys, Holbein, Caravaggio, Raphael, Botticelli and Dürer. The palette is pigment-based: lapis, gold leaf, vermilion and terre verte on warm paper. Type is Newsreader with Schibsted Grotesk. The paintings are alive: a slow camera drift, a shaft of light, gold dust in the air, and film grain. *Reduce motion* holds them still. There are no scrollbars anywhere, and light, dark and auto themes are included.
 
 On a wide screen in a browser, CashGlome draws a whole Mac desktop around itself:
@@ -50,8 +98,8 @@ The Electron app is the window itself, with the painting showing through its gla
 | **All chapters** | Every month bound as an oxblood book with its painting set into the cover. The less restored the painting, the more faded it looks. |
 | **The Edition** | The month as an illustrated book read like a short film. The cover swings open. Each of the seven pages has its own living painting, and each painting is credited. |
 | **Gallery** | A salon wall of every month's painting in gilt frames, plus the candle, wax seals, guild ranks (Apprentice to Medici) and the sticker book. |
-| **Ledger / Plans** | Unchanged in purpose: every entry, editable, and goals, *Ask anything* and habits. |
-| **Composer** | One plain line at the bottom. Chips under it let you flip in/out or change the category before adding. After adding, a single line says what was added and which patch of the painting it cleaned, with Undo. |
+| **Ledger / Plans** | Every entry, editable (a category you correct is remembered), and goals and habits. |
+| **Composer** | One plain line at the bottom. Chips let you flip in/out or change the category before adding. When it's empty, your usual buys appear as one-tap repeats. Type a question instead and it's answered. After adding, a single line says what was added and which patch it cleaned, with Undo. |
 
 ### Why people come back (and why it's on their side)
 
@@ -70,7 +118,7 @@ CashGlome works fully offline with its own parser. It understands `5k`, `2.5m`, 
 To use Meta's models, open **Settings → Meta Muse**, turn it on and paste a Meta Model API key:
 
 - **Muse Spark 1.1** (`muse-spark-1.1`) reads your entries.
-- **Muse Wonder 1.0** (`muse-wonder-1.0`) writes each chapter's headline, lede and notes, and answers *Ask anything*.
+- **Muse Wonder 1.0** (`muse-wonder-1.0`) writes each chapter's headline, lede and notes, and answers the questions CashGlome can't count itself (with your OK).
 
 The API is OpenAI-compatible. The default base URL is `https://api.meta.ai/v1` and can be changed in Settings. If Muse can't be reached, the local parser takes over. Your key stays on your device and is left out of exports. On desktop, requests go from the Electron main process; on the web, they go through the bundled `/__ai` proxy.
 
@@ -93,7 +141,7 @@ npm run dist:mac                  # macOS .dmg (must run on a Mac)
 
 ## Shortcuts
 
-`Ctrl/⌘ N` write · `Ctrl/⌘ 1–5` Chapter, All chapters, Ledger, Plans, Gallery · `Ctrl/⌘ [ ]` previous / next month · `Ctrl/⌘ E` the Edition · `Ctrl/⌘ ,` Settings · `← →` and `Esc` inside the Edition
+`Ctrl/⌘ N` write · `Ctrl/⌘ K` ask · `Ctrl/⌘ 1–5` Chapter, All chapters, Ledger, Plans, Gallery · `Ctrl/⌘ [ ]` previous / next month · `Ctrl/⌘ E` the Edition · `Ctrl/⌘ ,` Settings · `← →` and `Esc` inside the Edition
 
 ## The icon
 
@@ -111,7 +159,7 @@ This writes `build/icon.png` (1024), `public/icon.png` (512) and `public/icon-64
 
 ```
 electron/        desktop shell (frameless window, IPC for AI calls, screenshot dev aid)
-scripts/         AI proxy, desktop dev runner, icon renderer
+scripts/         AI proxy, desktop dev runner, icon renderer, painting sizes
 server.mjs       production web server
 src/lib/         parser, Muse client, analytics and chapter copy, art (paintings, restoration, candle, daily card), store, demo data, sounds,
                  speech (voice), receipt (OCR + Muse vision), paint (oil-painting and vellum filters), images (IndexedDB), coins

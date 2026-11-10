@@ -25,6 +25,8 @@ export const Icon = {
   stop: I(<rect x="5.5" y="5.5" width="9" height="9" rx="2" fill="currentColor" stroke="none" />),
   image: I(<><rect x="3" y="3.8" width="14" height="12.4" rx="2.4" /><circle cx="7.3" cy="8" r="1.4" /><path d="m3.4 14.6 4.1-3.8 3 2.6 2.4-2 3.7 3.2" /></>),
   receipt: I(<><path d="M5 2.8h10v14.4l-1.7-1.1-1.6 1.1-1.7-1.1-1.7 1.1-1.6-1.1L5 17.2Z" /><path d="M7.6 6.6h4.8M7.6 9.4h4.8M7.6 12.2h2.6" /></>),
+  ask: I(<><path d="M4 4.5h12a1.5 1.5 0 0 1 1.5 1.5v7a1.5 1.5 0 0 1-1.5 1.5H9l-3.5 3v-3H4A1.5 1.5 0 0 1 2.5 13V6A1.5 1.5 0 0 1 4 4.5Z" /><path d="M8.4 8a1.7 1.7 0 1 1 2.4 1.5c-.5.2-.8.6-.8 1.1M10 12.4v.1" /></>),
+  music: I(<><path d="M7.5 15V4.8l9-1.8v10" /><circle cx="5.5" cy="15" r="2" /><circle cx="14.5" cy="13" r="2" /></>),
   mic: I(<><rect x="7.5" y="2.8" width="5" height="9" rx="2.5" /><path d="M4.8 9.6a5.2 5.2 0 0 0 10.4 0M10 14.8v2.4" /></>),
   trash: I(<><path d="M4 6h12M8 6V4.5h4V6M5.5 6l.8 10h7.4l.8-10" /></>),
   check: I(<path d="m4.5 10.5 3.5 3.5 7.5-8" />),

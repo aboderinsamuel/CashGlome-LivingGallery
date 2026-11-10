@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useMemo, useState } from 'react';
 import { CATEGORIES, cat } from '../lib/categories';
+import { learn } from '../lib/learn';
 import { computeStats } from '../lib/analytics';
 import { dayLabel, money, monthLabel } from '../lib/format';
 import type { Entry, Feeling, State } from '../lib/types';
@@ -58,7 +59,7 @@ export function Ledger({ state, dispatch, filter, setFilter, query, onAttach }: 
           {groups.map(([date, items]) => {
             const dayOut = items.filter((e) => e.dir === 'out').reduce((a, e) => a + e.amount, 0);
             return (
-              <section key={date} style={{ marginBottom: 22 }}>
+              <section key={date} className="day-group" style={{ marginBottom: 22 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '0 10px 8px', borderBottom: '1px solid var(--ink)' }}>
                   <span style={{ font: '400 20px var(--serif)', letterSpacing: '-0.015em' }}>{dayLabel(date)}</span>
                   <span className="small num">{dayOut ? `−${money(dayOut, cur)}` : ''}</span>
@@ -67,7 +68,7 @@ export function Ledger({ state, dispatch, filter, setFilter, query, onAttach }: 
                   {items.map((e) => {
                     const c = cat(e.category);
                     return (
-                      <motion.button layout key={e.id} className={'row' + (sel === e.id ? ' on' : '')} onClick={() => setSel(sel === e.id ? null : e.id)}>
+                      <button key={e.id} className={'row' + (sel === e.id ? ' on' : '')} onClick={() => setSel(sel === e.id ? null : e.id)}>
                         {e.photo
                           ? <Photo id={e.photo} className="row-photo" />
                           : <span style={{ width: 38, height: 38, borderRadius: 11, background: c.color, display: 'grid', placeItems: 'center', flex: 'none', boxShadow: 'inset 0 0 0 1px rgba(23,23,28,.12)' }}><Sticker name={c.sticker} size={30} /></span>}
@@ -76,7 +77,7 @@ export function Ledger({ state, dispatch, filter, setFilter, query, onAttach }: 
                           <span className="small" style={{ display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.name}{e.feeling === 'joy' ? ' · worth it' : e.feeling === 'regret' ? ' · regret' : ''}{e.text && e.text.toLowerCase() !== e.label.toLowerCase() ? ` · “${e.text}”` : ''}</span>
                         </span>
                         <span className="num" style={{ fontWeight: 600, fontSize: 14, color: e.dir === 'in' ? 'var(--green)' : undefined }}>{e.dir === 'in' ? '+' : '−'}{money(e.amount, cur)}</span>
-                      </motion.button>
+                      </button>
                     );
                   })}
                 </div>
@@ -136,7 +137,7 @@ function Inspector({ e, cur, dispatch, close, onAttach }: { e: Entry; cur: strin
         </div>
         <Field label="Amount"><input className="field num" type="number" value={e.amount} min={0} onChange={(ev) => up({ amount: Math.max(0, Number(ev.target.value) || 0) })} /></Field>
         <Field label="Category">
-          <select className="field" value={e.category} onChange={(ev) => up({ category: ev.target.value })}>
+          <select className="field" value={e.category} onChange={(ev) => { up({ category: ev.target.value }); learn(e.label, ev.target.value); }}>
             {CATEGORIES.filter((x) => x.dir === e.dir).map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
           </select>
         </Field>

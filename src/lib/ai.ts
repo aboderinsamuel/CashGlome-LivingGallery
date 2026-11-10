@@ -15,6 +15,8 @@ declare global {
       zoom: () => void;
       onState: (cb: (s: string) => void) => void;
       aiChat: (p: { base: string; key: string; body: unknown }) => Promise<{ ok: boolean; status: number; text: string }>;
+      spotifyAuth?: (url: string) => Promise<{ code?: string | null; state?: string | null; error?: string | null }>;
+      spotifyToken?: (body: string) => Promise<string>;
       speech?: { start: () => Promise<boolean>; stop: () => Promise<void>; on: (cb: (e: { type: string; value?: string | number }) => void) => () => void };
     };
   }

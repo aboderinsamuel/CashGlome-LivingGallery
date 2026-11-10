@@ -39,6 +39,10 @@ export interface Settings {
   theme: 'auto' | 'light' | 'dark';
   wallpaper: string; // painting id, or 'season'
   reminder: { on: boolean; time: string };
+  /** Questions the app can't count itself may go to Muse: undefined until the person decides. */
+  askMuse?: boolean;
+  /** Background music: a Spotify playlist, album or track link, and whether it plays. */
+  music?: { url: string; on: boolean };
 }
 
 export interface Profile {

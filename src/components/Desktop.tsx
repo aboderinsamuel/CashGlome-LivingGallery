@@ -67,7 +67,8 @@ export function Desktop({ state, menus, aiOn, onDock, active, children }: Props)
 
   return (
     <div className="desk">
-      <LivingArt id={wall} dust light parallax calm={calm} className="desk-wall" style={{ position: 'absolute', inset: 0 }} shade="linear-gradient(rgba(14,10,6,.25), transparent 18%, transparent 75%, rgba(14,10,6,.3))" />
+      {/* Still while the window covers it: anything moving behind frosted glass makes the blur redraw every frame. */}
+      <LivingArt id={wall} sizes="100vw" drift={mode !== 'open'} dust={mode !== 'open'} light={mode !== 'open'} calm={calm} className="desk-wall" style={{ position: 'absolute', inset: 0 }} shade="linear-gradient(rgba(14,10,6,.25), transparent 18%, transparent 75%, rgba(14,10,6,.3))" />
 
       <MenuBar aiOn={aiOn} state={state} onOpen={reopen} menus={(() => {
         const win: Menu = { title: 'Window', items: [
@@ -193,7 +194,7 @@ function DockIcon({ id, painting }: { id: DockTarget; painting: string }) {
   if (id === 'gallery') return (
     <span style={{ ...base, background: 'linear-gradient(160deg, #5A2A26, #2E1A18)' }}>
       <span style={{ width: '62%', height: '72%', padding: '5%', background: 'linear-gradient(135deg, #F3D98B, #B08A3A 45%, #7A5413 75%, #E2C27A)', boxShadow: '0 4px 8px rgba(0,0,0,.5)' }}>
-        <span style={{ display: 'block', width: '100%', height: '100%', backgroundImage: `url(${artSrc(painting)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+        <span style={{ display: 'block', width: '100%', height: '100%', backgroundImage: `url(${artSrc(painting, 'sm')})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
       </span>
     </span>
   );

@@ -25,7 +25,10 @@ export const PAINTINGS: Record<string, Painting> = {
   arnolfini: P('arnolfini', 'The Arnolfini Portrait', 'Jan van Eyck', '1434', 'The National Gallery, London', '50% 40%', 'Home, kept carefully.'),
   hare: P('hare', 'Young Hare', 'Albrecht Dürer', '1502', 'Albertina, Vienna', '50% 50%', 'The first study, before the great works.'),
 };
-export const artSrc = (id: string) => `./art/${id}.jpg`;
+/** Paintings come in three sizes: 'sm' 320px (thumbnails), 'md' 960px, 'lg' 1800px. */
+export const artSrc = (id: string, size: 'sm' | 'md' | 'lg' = 'lg') => (size === 'lg' ? `./art/${id}.jpg` : `./art/${size}/${id}.jpg`);
+/** For <img srcSet>: the browser picks the smallest file that is sharp at the size shown. */
+export const artSet = (id: string) => `./art/md/${id}.jpg 960w, ./art/${id}.jpg 1800w`;
 
 const BY_CHARACTER: Record<string, string> = {
   beginner: 'hare', saver: 'moneylender', overreacher: 'icarus', host: 'wedding', giver: 'magi', homebody: 'arnolfini',

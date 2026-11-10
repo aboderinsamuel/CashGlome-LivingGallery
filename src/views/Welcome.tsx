@@ -21,7 +21,7 @@ export function Welcome({ initialCurrency, onDone }: { initialCurrency: string; 
     <div style={{ position: 'fixed', inset: 0, zIndex: 100, overflow: 'hidden', background: '#0E0A06', color: BONE }}>
       <AnimatePresence initial={false}>
         <motion.div key={art} style={{ position: 'absolute', inset: 0 }} initial={{ opacity: 0, scale: 1.05 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 1.6, ease }}>
-          <LivingArt id={art} dust light parallax style={{ position: 'absolute', inset: 0 }}
+          <LivingArt id={art} sizes="100vw" dust light parallax style={{ position: 'absolute', inset: 0 }}
             shade={step === 0 ? 'linear-gradient(0deg, rgba(14,10,6,.92) 0%, rgba(14,10,6,.55) 38%, rgba(14,10,6,.1) 70%), linear-gradient(rgba(14,10,6,.5), transparent 20%)' : 'rgba(14,10,6,.45)'} />
         </motion.div>
       </AnimatePresence>

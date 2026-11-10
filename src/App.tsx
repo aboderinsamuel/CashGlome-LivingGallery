@@ -7,7 +7,7 @@ import { chapterIsStale, chapterStep, loadChapters, museChapter, saveChapters, v
 import { cat } from './lib/categories';
 import { demoEntries } from './lib/demo';
 import { artSrc, candleOf, isGilded, paintingOf, restorationOf, seasonalWallpaper } from './lib/art';
-import { money, monthLabel, monthOf, shiftMonth, todayISO } from './lib/format';
+import { money, monthLabel, monthOf, shiftMonth, todayISO, uid } from './lib/format';
 import { setSound, sfx } from './lib/sound';
 import type { Entry, Parsed } from './lib/types';
 import { prunePictures, savePicture, pictureURL } from './lib/images';
@@ -16,6 +16,11 @@ import { Composer, type ComposerHandle, type Notice } from './components/Compose
 import { Desktop, useDesktopMode, useWindow, type DockTarget, type Menu } from './components/Desktop';
 import { StickerDefs } from './components/Stickers';
 import { CaptureSheet, type CaptureDone } from './components/CaptureSheet';
+import { AskPanel } from './components/AskPanel';
+import { MusicDock } from './components/Music';
+import { finishSpotifyLink } from './lib/spotify';
+import { learn, recall, usuals } from './lib/learn';
+import type { Turn } from './lib/ask';
 import { Icon } from './components/Icons';
 import { Chapter } from './views/Chapter';
 import { Shelf } from './views/Shelf';
@@ -29,7 +34,7 @@ import { Welcome } from './views/Welcome';
 const TITLES: Record<View, string> = { chapter: 'Chapter', shelf: 'All chapters', ledger: 'Ledger', plans: 'Plans', collection: 'Gallery' };
 const isMac = /Mac|iPhone|iPad/.test(navigator.platform) || window.glome?.platform === 'darwin';
 const kbd = (k: string) => (isMac ? `⌘${k}` : `Ctrl+${k}`);
-type Pane = 'general' | 'appearance' | 'muse' | 'data' | 'about';
+type Pane = 'general' | 'appearance' | 'music' | 'muse' | 'data' | 'about';
 
 export default function App() {
   const [state, dispatch] = useGlomeStore();
@@ -42,6 +47,10 @@ export default function App() {
   const [notice, setNotice] = useState<Notice | null>(null);
   const [capture, setCapture] = useState<{ file: Blob | null; attach?: Entry } | null>(null);
   const [saved, setSaved] = useState<Record<string, SavedChapter>>(loadChapters);
+  const [ask, setAsk] = useState<{ first: string | null } | null>(null);
+  const [turns, setTurns] = useState<Turn[]>([]);
+  const [music, setMusic] = useState(false);
+  const closeMusic = useCallback(() => setMusic(false), []);
   const composer = useRef<ComposerHandle>(null);
   const main = useRef<HTMLDivElement>(null);
   const cur = state.profile.currency;
@@ -63,6 +72,8 @@ export default function App() {
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'dark' ? '#14110D' : '#F6F2E8');
   }, [theme]);
   useEffect(() => setSound(state.settings.sound), [state.settings.sound]);
+  // Back from Spotify's sign-in page (web): finish linking, then show the Music pane.
+  useEffect(() => { finishSpotifyLink().then((ok) => ok && setSettingsPane('music')).catch(() => setSettingsPane('music')); }, []);
 
   const setView = useCallback((v: View) => { setViewRaw(v); if (v !== 'ledger') setQuery(''); }, []);
   const setMonth = useCallback((m: string) => dispatch({ type: 'month', month: m }), [dispatch]);
@@ -157,7 +168,7 @@ export default function App() {
     const inSum = entries.filter((e) => e.dir === 'in').reduce((a, e) => a + e.amount, 0);
     const elsewhere = entries.every((e) => monthOf(e.date) !== state.month) ? m0 : null;
     setNotice({
-      art: opts.art ?? (gained > 0 ? artSrc(painting.id) : undefined),
+      art: opts.art ?? (gained > 0 ? artSrc(painting.id, 'sm') : undefined),
       text: <>
         {entries.length === 1 ? <>Added <b>{first.label}</b></> : <>Added {entries.length} entries</>}
         <span className="num" style={{ color: 'var(--ink-3)' }}> {[inSum ? `+${money(inSum, cur)}` : '', outSum ? `−${money(outSum, cur)}` : ''].filter(Boolean).join(' ')}</span>
@@ -174,11 +185,19 @@ export default function App() {
     setBusy(true);
     try {
       const res = await readMoney(state.settings, text, cur);
-      const items = res.items.map((p, i) => ({ ...p, ...(res.engine === 'oracle' ? overrides[i] : overrides[i]?.dir || overrides[i]?.category ? overrides[i] : {}) }));
+      // Your own corrections win: first what you changed just now, then what you taught it before.
+      const items = res.items.map((p, i) => ({ ...recall(p), ...(res.engine === 'oracle' ? overrides[i] : overrides[i]?.dir || overrides[i]?.category ? overrides[i] : {}) }));
+      items.forEach((p, i) => { if (overrides[i]?.category) learn(p.label, p.category); });
       if (!items.length) { setNotice({ text: 'No amount in that. Try “Lunch 14” or “Got paid 3,200”.' }); return; }
       commit(items.map(toEntry), { error: res.error });
     } finally { setBusy(false); }
   }, [state.settings, cur, commit]);
+
+  // One tap to write the same thing again (today), for the things you buy all the time.
+  const usual = useMemo(() => usuals(state.entries, todayISO()), [state.entries]);
+  const repeat = useCallback((e: Entry) => {
+    commit([{ id: uid(), text: e.text, label: e.label, amount: e.amount, dir: e.dir, category: e.category, date: todayISO(), createdAt: Date.now(), source: 'manual', confidence: 1 }]);
+  }, [commit]);
 
   const captured = useCallback(async ({ parsed, picture }: CaptureDone) => {
     const attach = capture?.attach;
@@ -217,6 +236,7 @@ export default function App() {
       const map: Record<string, View> = { '1': 'chapter', '2': 'shelf', '3': 'ledger', '4': 'plans', '5': 'collection' };
       if (map[e.key]) { e.preventDefault(); setView(map[e.key]); }
       else if (e.key === 'n') { e.preventDefault(); composer.current?.focus(); }
+      else if (e.key === 'k') { e.preventDefault(); setAsk({ first: null }); }
       else if (e.key === ',') { e.preventDefault(); openSettings(); }
       else if (e.key === 'e') { e.preventDefault(); setEdition(true); }
       else if (e.key === '[') { e.preventDefault(); setMonth(shiftMonth(state.month, -1)); }
@@ -250,19 +270,18 @@ export default function App() {
         view={view} setView={setView} month={state.month} setMonth={setMonth} chapters={chapters}
         counts={{ ledger: monthCount, stickers: `${months.length}` }}
         name={state.profile.name} rank={lv.title} streak={candle.streak}
-        onEdition={() => setEdition(true)} onSettings={() => openSettings()} wall={artSrc(wall)}
+        onEdition={() => setEdition(true)} onSettings={() => openSettings()} wall={artSrc(wall, 'sm')}
       />
 
       <main className="main" ref={main}>
-        <AnimatePresence mode="wait">
-          <motion.div key={`${view}:${state.month}`} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.35, ease: [0.2, 0.8, 0.2, 1] }}>
+        {/* The new page is on screen in the same frame as the tap; it only settles in, like iOS. No waiting for the old one to leave. */}
+        <motion.div key={`${view}:${state.month}`} initial={{ opacity: 0.4, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18, ease: [0.2, 0.8, 0.2, 1] }}>
             {view === 'chapter' && <Chapter state={state} dispatch={dispatch} museChapter={muse[state.month] ?? null} onOpenCategory={(id) => { setFilter(id); setView('ledger'); }} onEdition={() => setEdition(true)} onWrite={(h) => composer.current?.fill(h ?? '')} onPlans={goView('plans')} onGallery={goView('collection')} onSay={() => composer.current?.speak()} onSnap={() => setCapture({ file: null })} />}
             {view === 'shelf' && <Shelf state={state} months={months} onOpen={(m) => { setMonth(m); setView('chapter'); }} />}
             {view === 'ledger' && <Ledger state={state} dispatch={dispatch} filter={filter} setFilter={setFilter} query={query} onAttach={(e) => setCapture({ file: null, attach: e })} />}
             {view === 'plans' && <Plans state={state} dispatch={dispatch} />}
             {view === 'collection' && <Collection state={state} onOpen={(m) => { setMonth(m); setView('chapter'); }} onCamera={() => setCapture({ file: null })} />}
-          </motion.div>
-        </AnimatePresence>
+        </motion.div>
       </main>
 
       <div className="edge drag" />
@@ -287,6 +306,10 @@ export default function App() {
           </div>
         )}
         <div className="capsule glass nodrag">
+          <button className={'tbtn' + (music ? ' on' : '')} onClick={() => setMusic((x) => !x)} aria-label="Music" aria-expanded={music} title="Music"><Icon.music size={15} />{state.settings.music?.on && <span className="music-live" aria-hidden />}</button>
+          <span className="sep" />
+          <button className="tbtn" onClick={() => setAsk({ first: null })} title={`Ask about your money (${kbd('K')})`}><Icon.ask size={15} /><span className="hide-sm"> Ask</span></button>
+          <span className="sep" />
           <button className="tbtn hide-sm" onClick={() => setEdition(true)} title={`Open the Edition (${kbd('E')})`}><Icon.play size={13} /> Edition</button>
           <span className="sep hide-sm" />
           <button className="tbtn" onClick={() => openSettings()} aria-label="Settings" title={`Settings (${kbd(',')})`}><Icon.gear size={16} /></button>
@@ -294,7 +317,8 @@ export default function App() {
         </div>
       </TitleBar>
 
-      <Composer ref={composer} currency={cur} aiOn={ai} busy={busy} notice={notice} onSubmit={submit} onCamera={(file) => setCapture({ file: file ?? null })} />
+      <MusicDock state={state} open={music} onClose={closeMusic} onChange={() => { setMusic(false); openSettings('music'); }} />
+      <Composer ref={composer} currency={cur} aiOn={ai} busy={busy} notice={notice} onSubmit={submit} onCamera={(file) => setCapture({ file: file ?? null })} onAsk={(q) => setAsk({ first: q })} usuals={usual} onRepeat={repeat} />
       <TabBar view={view} setView={setView} onEdition={() => setEdition(true)} />
     </div>
   );
@@ -304,6 +328,7 @@ export default function App() {
       { label: 'About CashGlome', action: () => openSettings('about') },
       'sep',
       { label: 'Change wallpaper…', action: () => openSettings('appearance') },
+      { label: 'Music…', action: () => openSettings('music') },
       { label: 'Reduce motion', checked: state.settings.calm, action: () => dispatch({ type: 'settings', patch: { calm: !state.settings.calm } }) },
     ] },
     { title: 'CashGlome', items: [
@@ -316,6 +341,7 @@ export default function App() {
     ] },
     { title: 'File', items: [
       { label: 'New entry', kbd: kbd('N'), action: () => setTimeout(() => composer.current?.focus(), 50) },
+      { label: 'Ask about your money…', kbd: kbd('K'), action: () => setAsk({ first: null }) },
       'sep',
       { label: 'Export…', action: () => openSettings('data') },
       { label: 'Import…', action: () => openSettings('data') },
@@ -365,6 +391,7 @@ export default function App() {
       <AnimatePresence>
         {settings && <SettingsSheet key="settings" state={state} dispatch={dispatch} initial={settings} close={() => setSettingsPane(null)} />}
         {capture && <CaptureSheet key="capture" file={capture.file} attachTo={capture.attach?.label} settings={state.settings} currency={cur} onDone={captured} onClose={() => setCapture(null)} />}
+        {ask && <AskPanel key="ask" state={state} dispatch={dispatch} aiOn={ai} turns={turns} setTurns={setTurns} first={ask.first} onClose={() => setAsk(null)} />}
         {edition && <Edition key="edition" state={state} muse={muse[state.month] ?? null} close={() => setEdition(false)} />}
       </AnimatePresence>
     </MotionConfig>

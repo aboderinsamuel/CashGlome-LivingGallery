@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
-import { useId } from 'react';
-import { artSrc, COLS, ROWS, type Painting, type Restoration } from '../lib/art';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { artSet, artSrc, COLS, PATCHES, ROWS, type Painting, type Restoration } from '../lib/art';
+import { cellMask, varnish, varnishNow } from '../lib/varnish';
 
 /**
  * A painting under old varnish. Restored patches show the true colours;
@@ -9,63 +10,53 @@ import { artSrc, COLS, ROWS, type Painting, type Restoration } from '../lib/art'
 /** Seconds the reveal takes, so callers know when to mark patches as seen. */
 export const revealTime = (fresh: number) => (fresh ? 0.6 + (fresh - 1) * Math.min(0.35, 6 / fresh) + 1.4 : 0);
 
-export function RestorationPlate({ painting, r, seen, ratio = 4 / 5, drift = true, calm }: { painting: Painting; r: Restoration; seen: number; ratio?: number; drift?: boolean; calm?: boolean }) {
-  const uid = useId().replace(/:/g, '');
-  const W = 1000, H = Math.round(W / ratio);
-  const cw = W / COLS, chh = H / ROWS;
+/** Gets a plate ready before it is shown (decode + varnish), so changing month draws at once. */
+export function warmPlate(painting: Painting, ratio = 4 / 5) {
+  const W = 900, H = Math.round(W / ratio);
   const [fx, fy] = painting.focus.split(' ').map((v) => parseFloat(v));
-  const align = `x${fx < 35 ? 'Min' : fx > 65 ? 'Max' : 'Mid'}Y${fy < 35 ? 'Min' : fy > 65 ? 'Max' : 'Mid'}`;
-  const restoredSet = new Set(r.order.slice(0, r.restored));
-  const fresh = new Set(r.order.slice(Math.min(seen, r.restored), r.restored));
-  const step = Math.min(0.35, 6 / Math.max(1, fresh.size)); // a big catch-up still finishes in a few seconds
+  const ax = fx < 35 ? 0 : fx > 65 ? 1 : 0.5, ay = fy < 35 ? 0 : fy > 65 ? 1 : 0.5;
+  const img = new Image(); img.src = artSrc(painting.id, 'md'); img.decode().catch(() => {});
+  varnish(painting.id, W, H, ax, ay).catch(() => {});
+}
+
+export function RestorationPlate({ painting, r, seen, ratio = 4 / 5, drift = true, calm }: { painting: Painting; r: Restoration; seen: number; ratio?: number; drift?: boolean; calm?: boolean }) {
+  const W = 900, H = Math.round(W / ratio);
+  const [fx, fy] = painting.focus.split(' ').map((v) => parseFloat(v));
+  const ax = fx < 35 ? 0 : fx > 65 ? 1 : 0.5, ay = fy < 35 ? 0 : fy > 65 ? 1 : 0.5;
+  const [grime, setGrime] = useState(() => varnishNow(painting.id, W, H, ax, ay));
+  useEffect(() => {
+    let live = true;
+    setGrime(varnishNow(painting.id, W, H, ax, ay));
+    varnish(painting.id, W, H, ax, ay).then((u) => live && setGrime(u), () => { /* the CSS stand-in stays */ });
+    return () => { live = false; };
+  }, [painting.id, W, H, ax, ay]);
+
+  const fresh = useMemo(() => r.order.slice(Math.min(seen, r.restored), r.restored), [r.order, r.restored, seen]);
+  // The base layer already has the fresh patches cleaned; each fresh patch gets its own varnish layer that fades away.
+  const dirty = useMemo(() => cellMask(r.order.slice(r.restored)), [r.order, r.restored]);
+  const step = Math.min(0.35, 6 / Math.max(1, fresh.length)); // a big catch-up still finishes in a few seconds
+  const pos = `${ax * 100}% ${ay * 100}%`;
+  const src = artSrc(painting.id, 'md');
+  const layer = (mask: string): CSSProperties => ({ objectPosition: pos, WebkitMaskImage: `url(${mask})`, maskImage: `url(${mask})` });
+  const varnishImg = (mask: string) => grime
+    ? <img src={grime} alt="" className="plate-img" style={layer(mask)} draggable={false} />
+    : <img src={src} alt="" className="plate-img plate-standin" style={layer(mask)} draggable={false} />;
+
   return (
-    <div className="plate" style={{ aspectRatio: `${ratio}` }}>
-      <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className={drift && !calm ? 'plate-svg drift-soft' : 'plate-svg'} aria-label={`${painting.title}, ${r.restored} of ${COLS * ROWS} patches restored`}>
-        <defs>
-          <filter id={`v${uid}`} colorInterpolationFilters="sRGB">
-            <feColorMatrix type="matrix" values="0.34 0.55 0.13 0 -0.02  0.27 0.45 0.10 0 -0.04  0.15 0.30 0.07 0 -0.06  0 0 0 1 0" />
-            <feGaussianBlur stdDeviation="1.6" />
-          </filter>
-          <filter id={`g${uid}`}>
-            <feTurbulence type="fractalNoise" baseFrequency="0.012 0.02" numOctaves="3" seed="7" />
-            <feColorMatrix type="matrix" values="0 0 0 0 0.18  0 0 0 0 0.11  0 0 0 0 0.04  0 0 0 -2.2 1.35" />
-          </filter>
-          <filter id={`c${uid}`}>
-            <feTurbulence type="turbulence" baseFrequency="0.045" numOctaves="2" seed="3" />
-            <feColorMatrix type="matrix" values="0 0 0 0 0.08  0 0 0 0 0.05  0 0 0 0 0.02  0 0 0 -9 1.2" />
-          </filter>
-          <filter id={`f${uid}`}><feGaussianBlur stdDeviation="14" /></filter>
-          <mask id={`m${uid}`} maskUnits="userSpaceOnUse" x="0" y="0" width={W} height={H}>
-            <rect width={W} height={H} fill="black" />
-            <g filter={`url(#f${uid})`}>
-              {Array.from({ length: COLS * ROWS }, (_, i) => {
-                if (restoredSet.has(i) && !fresh.has(i)) return null;
-                const x = (i % COLS) * cw - 10, y = Math.floor(i / COLS) * chh - 10;
-                const k = fresh.has(i) ? [...fresh].indexOf(i) : 0;
-                return fresh.has(i)
-                  ? <motion.rect key={i} x={x} y={y} width={cw + 20} height={chh + 20} fill="white" initial={{ opacity: 1 }} animate={{ opacity: 0 }} transition={{ delay: 0.6 + k * step, duration: 1.1, ease: 'easeInOut' }} />
-                  : <rect key={i} x={x} y={y} width={cw + 20} height={chh + 20} fill="white" />;
-              })}
-            </g>
-          </mask>
-          <linearGradient id={`s${uid}`} x1="0" x2="1" y1="0" y2="1">
-            <stop offset="0" stopColor="#fff2c8" stopOpacity="0" />
-            <stop offset="0.5" stopColor="#fff2c8" stopOpacity="0.55" />
-            <stop offset="1" stopColor="#fff2c8" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        <image href={artSrc(painting.id)} x="0" y="0" width={W} height={H} preserveAspectRatio={`${align} slice`} />
-        <g mask={`url(#m${uid})`}>
-          <image href={artSrc(painting.id)} x="0" y="0" width={W} height={H} preserveAspectRatio={`${align} slice`} filter={`url(#v${uid})`} />
-          <rect width={W} height={H} filter={`url(#g${uid})`} opacity="0.75" />
-          <rect width={W} height={H} filter={`url(#c${uid})`} opacity="0.5" />
-          <rect width={W} height={H} fill="#3a2a12" opacity="0.18" />
-        </g>
-        {[...fresh].map((i, k) => (
-          <motion.rect key={'s' + i} x={(i % COLS) * cw} y={Math.floor(i / COLS) * chh} width={cw} height={chh} fill={`url(#s${uid})`}
+    <div className="plate" style={{ aspectRatio: `${ratio}` }} role="img" aria-label={`${painting.title}, ${r.restored} of ${PATCHES} patches restored`}>
+      <div className={drift && !calm ? 'plate-canvas drift-soft' : 'plate-canvas'}>
+        <img src={src} srcSet={artSet(painting.id)} sizes="(max-width: 860px) 100vw, 40vw" alt="" className="plate-img" style={{ objectPosition: pos }} decoding="async" draggable={false} />
+        {r.restored < PATCHES && varnishImg(dirty)}
+        {fresh.map((i, k) => (
+          <motion.div key={'v' + i} className="plate-layer" initial={{ opacity: 1 }} animate={{ opacity: 0 }} transition={{ delay: 0.6 + k * step, duration: 1.1, ease: 'easeInOut' }}>
+            {varnishImg(cellMask([i]))}
+          </motion.div>
+        ))}
+        {fresh.map((i, k) => (
+          <motion.div key={'s' + i} className="plate-shine" style={{ left: `${(i % COLS) * (100 / COLS)}%`, top: `${Math.floor(i / COLS) * (100 / ROWS)}%`, width: `${100 / COLS}%`, height: `${100 / ROWS}%` }}
             initial={{ opacity: 0 }} animate={{ opacity: [0, 1, 0] }} transition={{ delay: 0.6 + k * step, duration: 1.4 }} />
         ))}
-      </svg>
+      </div>
     </div>
   );
 }

@@ -3,8 +3,9 @@ import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState, 
 import { CATEGORIES, cat } from '../lib/categories';
 import { money, todayISO } from '../lib/format';
 import { parseOne, splitStory } from '../lib/parser';
+import { isQuestion } from '../lib/ask';
 import { listen, voiceSupport, type Listening } from '../lib/speech';
-import type { Parsed } from '../lib/types';
+import type { Entry, Parsed } from '../lib/types';
 import { Icon } from './Icons';
 
 export interface ComposerHandle { focus: () => void; fill: (t: string) => void; speak: () => void }
@@ -16,13 +17,19 @@ interface Props {
   notice: Notice | null;
   onSubmit: (text: string, overrides: Record<number, Partial<Parsed>>) => void;
   onCamera: (file?: Blob) => void;
+  /** A question typed or said here is answered instead of added. */
+  onAsk: (q: string) => void;
+  /** Things you buy all the time, offered as one-tap repeats while the box is empty. */
+  usuals?: Entry[];
+  onRepeat?: (e: Entry) => void;
 }
 
 const HINTS_NG = ['Spent 4,500 on suya', 'Got paid 350k', 'Bolt 6k, data 3k', 'Sent mum 20k'];
 const HINTS = ['Lunch 14', 'Got paid 3,200', 'Uber 18, coffee 6.50', 'Netflix 15.49'];
 const touch = typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches;
 
-export const Composer = forwardRef<ComposerHandle, Props>(function Composer({ currency, aiOn, busy, notice, onSubmit, onCamera }, ref) {
+export const Composer = forwardRef<ComposerHandle, Props>(function Composer({ currency, aiOn, busy, notice, onSubmit, onCamera, onAsk, usuals = [], onRepeat }, ref) {
+  const [focused, setFocused] = useState(false);
   const [text, setText] = useState('');
   const [over, setOver] = useState<Record<number, Partial<Parsed>>>({});
   const [menu, setMenu] = useState<number | null>(null);
@@ -56,8 +63,11 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer({ cu
   useEffect(() => { setOver({}); setMenu(null); }, [text]);
   useEffect(() => { const el = ta.current; if (!el) return; el.style.height = 'auto'; el.style.height = Math.min(120, el.scrollHeight) + 'px'; }, [text]);
 
-  const items = useMemo(() => splitStory(text).map(parseOne).filter((p): p is Parsed => !!p).map((p, i) => ({ ...p, ...over[i] })), [text, over]);
-  const submit = () => { if (!text.trim() || busy) return; session.current?.stop(); onSubmit(text.trim(), over); setText(''); };
+  const question = useMemo(() => isQuestion(text), [text]);
+  const items = useMemo(() => question ? [] : splitStory(text).map(parseOne).filter((p): p is Parsed => !!p).map((p, i) => ({ ...p, ...over[i] })), [text, over, question]);
+  const submit = () => {
+    if (!text.trim() || busy) return;
+    if (question) { session.current?.stop(); onAsk(text.trim()); setText(''); return; } session.current?.stop(); onSubmit(text.trim(), over); setText(''); };
   const camera = () => (touch ? fileIn.current?.click() : onCamera());
   const narrow = typeof window !== 'undefined' && window.innerWidth < 640;
   const listening = voice !== 'off';
@@ -72,6 +82,20 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer({ cu
             {'art' in shown && shown.art && <img src={shown.art} alt="" className="notice-art" />}
             <span>{shown.text}</span>
             {'undo' in shown && shown.undo && <button className="notice-undo" onClick={shown.undo}>Undo</button>}
+          </motion.div>
+        )}
+        {focused && !text && !listening && usuals.length > 0 && onRepeat && (
+          <motion.div key="u" className="preview" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }}>
+            {usuals.map((e) => (
+              <button key={e.id} className="pchip glass again" onMouseDown={(ev) => ev.preventDefault()} onClick={() => onRepeat(e)} title={`Add ${e.label} again, for today`}>
+                <Icon.repeat size={13} /> {e.label} <b>{money(e.amount, currency)}</b>
+              </button>
+            ))}
+          </motion.div>
+        )}
+        {question && (
+          <motion.div key="q" className="preview" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }}>
+            <div className="pchip glass asking"><Icon.ask size={14} /> A question. Press Enter to get the answer</div>
           </motion.div>
         )}
         {items.length > 0 && (
@@ -111,6 +135,8 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer({ cu
           placeholder={placeholder}
           aria-label="Write what came in or went out"
           onChange={(e) => setText(e.target.value)}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
           onPaste={(e) => { const f = [...e.clipboardData.files].find((x) => x.type.startsWith('image/')); if (f) { e.preventDefault(); onCamera(f); } }}
           onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(); } if (e.key === 'Escape') { session.current?.stop(); setText(''); ta.current?.blur(); } }}
         />
@@ -120,7 +146,7 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer({ cu
             {listening ? <Icon.stop size={16} /> : <Icon.mic size={18} />}
           </button>
         )}
-        <button className="send" disabled={!text.trim() || busy} onClick={submit} aria-label="Add">
+        <button className="send" disabled={!text.trim() || busy} onClick={submit} aria-label={question ? 'Ask' : 'Add'}>
           {busy ? <motion.span animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.9, ease: 'linear' }} style={{ width: 15, height: 15, border: '2px solid currentColor', borderRightColor: 'transparent', borderRadius: 8, display: 'block' }} /> : <Icon.up size={17} />}
         </button>
       </div>

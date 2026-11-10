@@ -29,7 +29,7 @@ export function Shelf({ state, months, onOpen }: { state: State; months: string[
                 <div style={{ display: 'flex', justifyContent: 'space-between', font: 'italic 400 13px var(--serif)', color: '#E2C27A' }}>
                   <span>Chapter {ch.numeral}</span><span>{current ? 'Being written' : m.slice(0, 4)}</span>
                 </div>
-                <div className="bound-plate" style={{ backgroundImage: `url(${artSrc(p.id)})`, backgroundPosition: p.focus, filter: `sepia(${(1 - clean) * 0.75}) saturate(${0.55 + clean * 0.5}) brightness(${0.75 + clean * 0.25})` }} />
+                <div className="bound-plate" style={{ backgroundImage: `url(${artSrc(p.id, 'sm')})`, backgroundPosition: p.focus, filter: `sepia(${(1 - clean) * 0.75}) saturate(${0.55 + clean * 0.5}) brightness(${0.75 + clean * 0.25})` }} />
                 <div style={{ font: '360 24px/1.02 var(--serif)', letterSpacing: '-0.025em', color: '#F6EEDC', marginTop: 14 }}>
                   {ch.title.map((x, j) => x.em ? <em key={j}>{x.t}</em> : <span key={j}>{x.t}</span>)}
                 </div>

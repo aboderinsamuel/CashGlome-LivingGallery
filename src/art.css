@@ -11,15 +11,23 @@
 .living-light { position: absolute; inset: -20%; pointer-events: none; mix-blend-mode: soft-light; background: linear-gradient(115deg, transparent 22%, rgba(255, 232, 180, 0.55) 34%, rgba(255, 232, 180, 0.12) 44%, transparent 56%); animation: shaft 14s ease-in-out infinite alternate; }
 @keyframes shaft { from { opacity: 0.55; transform: translateX(-4%); } to { opacity: 1; transform: translateX(5%); } }
 .living-dust { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; mix-blend-mode: screen; }
-.living-grain { position: absolute; inset: -50%; pointer-events: none; opacity: 0.1; mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"); }
-.living-grain.moving { animation: grain 0.9s steps(6) infinite; }
-@keyframes grain { 0% { transform: translate(0, 0); } 20% { transform: translate(-3%, 2%); } 40% { transform: translate(2%, -3%); } 60% { transform: translate(-2%, -1%); } 80% { transform: translate(3%, 3%); } 100% { transform: translate(0, 0); } }
+/* Film grain: a still bitmap tile made once at start-up (an animated SVG noise filter cost a repaint every frame). */
+.living-grain { position: absolute; inset: 0; pointer-events: none; opacity: 0.1; mix-blend-mode: overlay; background-image: var(--grain, none); background-size: 160px 160px; }
+/* Paintings that have scrolled away stop moving. */
+.living.offscreen .living-img, .living.offscreen .living-light { animation-play-state: paused; }
+.living-img.drift, .living-light { will-change: transform; }
 
 /* ——— Restoration plate ——— */
 .plate { position: relative; width: 100%; overflow: hidden; border-radius: 3px; background: #241a10;
   box-shadow: 0 0 0 1px rgba(36, 31, 23, 0.3), 0 0 0 10px var(--card), 0 0 0 11px rgba(176, 138, 58, 0.6), 0 50px 80px -34px rgba(36, 31, 23, 0.6); }
-.plate-svg { display: block; width: 100%; height: 100%; }
+.plate-canvas { position: absolute; inset: 0; }
+.plate-canvas.drift-soft { will-change: transform; }
+.plate-img, .plate-layer { position: absolute; inset: 0; width: 100%; height: 100%; }
+.plate-img { object-fit: cover; display: block; user-select: none; -webkit-user-drag: none;
+  -webkit-mask-size: 100% 100%; mask-size: 100% 100%; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; }
+/* Until the varnished copy is drawn (a moment, once per painting), a cheap look-alike. */
+.plate-standin { filter: sepia(0.75) saturate(0.7) brightness(0.48) contrast(0.95); }
+.plate-shine { position: absolute; background: linear-gradient(135deg, rgba(255, 242, 200, 0) 0%, rgba(255, 242, 200, 0.55) 50%, rgba(255, 242, 200, 0) 100%); pointer-events: none; }
 .plate-label { margin-top: 30px; }
 .plate-meter { display: grid; grid-template-columns: repeat(30, 1fr); gap: 2px; margin-top: 12px; }
 .plate-meter span { height: 4px; border-radius: 1px; background: var(--fill-2); transition: background 0.6s; }
@@ -43,15 +51,15 @@
   box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.4), 0 40px 120px -20px rgba(0, 0, 0, 0.65), 0 18px 40px -16px rgba(0, 0, 0, 0.45); }
 .win > .app { position: absolute; inset: 0; }
 .dock { position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); z-index: 40; display: flex; align-items: flex-end; gap: 4px; padding: 6px 8px; border-radius: 24px;
-  background: rgba(250, 247, 240, 0.26); backdrop-filter: blur(30px) saturate(1.8); -webkit-backdrop-filter: blur(30px) saturate(1.8);
+  background: rgba(250, 247, 240, 0.26); backdrop-filter: blur(22px) saturate(1.8); -webkit-backdrop-filter: blur(22px) saturate(1.8);
   box-shadow: 0 0 0 0.5px rgba(255, 255, 255, 0.35) inset, 0 0 0 0.5px rgba(0, 0, 0, 0.2), 0 20px 40px -12px rgba(0, 0, 0, 0.45); }
 .dock-sep { width: 1px; align-self: stretch; margin: 8px 4px; background: rgba(255, 255, 255, 0.45); }
 .dock-item { position: relative; display: flex; flex-direction: column; align-items: center; }
 .dock-tip { position: absolute; bottom: calc(100% + 12px); padding: 5px 10px; border-radius: 8px; font: 500 12.5px var(--ui); white-space: nowrap; color: var(--ink);
   background: var(--glass-strong); backdrop-filter: blur(20px); box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.15), 0 8px 20px -6px rgba(0, 0, 0, 0.35); pointer-events: none; }
 .dock-dot { width: 4px; height: 4px; border-radius: 2px; background: rgba(255, 255, 255, 0.9); margin-top: 3px; box-shadow: 0 0 3px rgba(0, 0, 0, 0.4); }
-.widget { border-radius: 24px; padding: 16px; color: #fff; background: rgba(30, 22, 14, 0.34); backdrop-filter: blur(28px) saturate(1.6); -webkit-backdrop-filter: blur(28px) saturate(1.6);
-  box-shadow: 0 0 0 0.5px rgba(255, 255, 255, 0.22) inset, 0 16px 40px -18px rgba(0, 0, 0, 0.55); text-align: left; overflow: hidden; cursor: default; }
+.widget { border-radius: 24px; padding: 16px; color: #fff; background: rgba(30, 22, 14, 0.34); backdrop-filter: blur(22px) saturate(1.6); -webkit-backdrop-filter: blur(22px) saturate(1.6);
+  box-shadow: 0 0 0 0.5px rgba(255, 255, 255, 0.22) inset, 0 16px 40px -18px rgba(0, 0, 0, 0.55); text-align: left; overflow: hidden; cursor: pointer; }
 .widget .wl { font: 600 12px var(--ui); opacity: 0.78; }
 
 
@@ -74,7 +82,7 @@
   .salon { padding: 28px 18px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .living-img.drift, .drift-soft, .living-light, .living-grain.moving { animation: none; }
+  .living-img.drift, .drift-soft, .living-light { animation: none; }
 }
 
 /* ——— Chapter hero ——— */
@@ -109,7 +117,7 @@
 
 /* ——— Welcome ——— */
 .welcome-pane { width: min(640px, 100%); padding: clamp(24px, 4vw, 40px); border-radius: 28px; color: #F6EEDC;
-  background: rgba(20, 14, 8, 0.5); backdrop-filter: blur(34px) saturate(1.5); -webkit-backdrop-filter: blur(34px) saturate(1.5);
+  background: rgba(20, 14, 8, 0.5); backdrop-filter: blur(24px) saturate(1.5); -webkit-backdrop-filter: blur(24px) saturate(1.5);
   box-shadow: inset 0 0 0 1px rgba(246, 238, 220, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 50px 100px -30px rgba(0, 0, 0, 0.7); }
 .welcome-h { font: 330 clamp(40px, 5.4vw, 66px)/0.98 var(--serif); letter-spacing: -0.04em; margin: 16px 0 0; }
 .welcome-h em { color: #E2C27A; }

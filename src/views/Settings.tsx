@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { DEFAULT_BASE, MUSE_MODELS, testConnection } from '../lib/ai';
 import { CURRENCIES, currencySymbol } from '../lib/format';
 import { demoEntries } from '../lib/demo';
@@ -8,11 +8,13 @@ import type { State } from '../lib/types';
 import { Icon } from '../components/Icons';
 import { AppIcon } from '../components/Logo';
 import { artSrc, PAINTINGS, seasonalWallpaper, WALLPAPERS } from '../lib/art';
+import { canLinkSpotify, linkSpotify, MUSIC_PICKS, myPlaylists, parseSpotify, spotifyLinked, unlinkSpotify, type MyPlaylist } from '../lib/spotify';
 
-type Pane = 'general' | 'appearance' | 'muse' | 'data' | 'about';
+export type Pane = 'general' | 'appearance' | 'music' | 'muse' | 'data' | 'about';
 const PANES: { id: Pane; label: string; icon: ReactNode; tint: string }[] = [
   { id: 'general', label: 'General', icon: <Icon.person size={14} />, tint: '#7A6A52' },
   { id: 'appearance', label: 'Appearance', icon: <Icon.sun size={14} />, tint: '#2B3FA8' },
+  { id: 'music', label: 'Music', icon: <Icon.music size={14} />, tint: '#1DB954' },
   { id: 'muse', label: 'Meta Muse', icon: <Icon.bolt size={14} />, tint: '#6A3FA0' },
   { id: 'data', label: 'Your data', icon: <Icon.download size={14} />, tint: '#2F6B4A' },
   { id: 'about', label: 'About', icon: <Icon.book size={14} />, tint: '#B08A3A' },
@@ -40,6 +42,7 @@ export function SettingsSheet({ state, dispatch, close, initial = 'general' }: {
           <div style={{ font: '600 20px var(--ui)', letterSpacing: '-0.02em', marginBottom: 18 }}>{P.label}</div>
           {pane === 'general' && <General state={state} dispatch={dispatch} />}
           {pane === 'appearance' && <Appearance state={state} dispatch={dispatch} />}
+          {pane === 'music' && <Music state={state} dispatch={dispatch} />}
           {pane === 'muse' && <Muse state={state} dispatch={dispatch} />}
           {pane === 'data' && <Data state={state} dispatch={dispatch} close={close} />}
           {pane === 'about' && <About />}
@@ -145,7 +148,7 @@ function Appearance({ state, dispatch }: { state: State; dispatch: (a: Action) =
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(104px, 1fr))', gap: 10, padding: 12 }}>
           {['season', ...WALLPAPERS].map((id) => {
             const on = (state.settings.wallpaper || 'season') === id;
-            const src = artSrc(id === 'season' ? seasonalWallpaper() : id);
+            const src = artSrc(id === 'season' ? seasonalWallpaper() : id, 'sm');
             return (
               <button key={id} onClick={() => dispatch({ type: 'settings', patch: { wallpaper: id } })} style={{ display: 'grid', gap: 6, textAlign: 'left' }}>
                 <span style={{ aspectRatio: '16 / 10', borderRadius: 8, backgroundImage: `url(${src})`, backgroundSize: 'cover', backgroundPosition: 'center', boxShadow: on ? '0 0 0 2px var(--paper), 0 0 0 4px var(--accent)' : 'inset 0 0 0 1px var(--line)' }} />
@@ -186,12 +189,80 @@ function Muse({ state, dispatch }: { state: State; dispatch: (a: Action) => void
             <Row label="Endpoint" sub="OpenAI-compatible Chat Completions base URL.">
               <input className="field" style={{ width: 260 }} value={ai.base} placeholder={DEFAULT_BASE} onChange={(e) => dispatch({ type: 'ai', patch: { base: e.target.value } })} />
             </Row>
+            <Row label="Answer questions with Muse" sub="Only for questions CashGlome can't count itself. Sends your entries from the last two months and six months of totals; never photos.">
+              <Toggle label="Answer questions with Muse" on={!!state.settings.askMuse} set={(v) => dispatch({ type: 'settings', patch: { askMuse: v } })} />
+            </Row>
             <Row label={status ? <span style={{ color: status.ok ? 'var(--green)' : 'var(--rust)' }}>{status.text}</span> : 'Check the connection'}>
               <button className="btn" onClick={test} disabled={testing || ai.key.length < 8}>{testing ? 'Checking…' : 'Test'}</button>
             </Row>
           </>
         )}
       </Group>
+    </>
+  );
+}
+
+function Music({ state, dispatch }: { state: State; dispatch: (a: Action) => void }) {
+  const m = state.settings.music ?? { url: '', on: false };
+  const [text, setText] = useState(m.url);
+  const [err, setErr] = useState<string | null>(null);
+  const [linked, setLinked] = useState(spotifyLinked);
+  const [mine, setMine] = useState<MyPlaylist[] | null>(null);
+  const [busy, setBusy] = useState(false);
+  const valid = !!parseSpotify(m.url);
+  const set = (patch: Partial<{ url: string; on: boolean }>) => dispatch({ type: 'settings', patch: { music: { ...m, ...patch } } });
+  const use = (url: string) => {
+    if (!parseSpotify(url)) { setErr('That isn’t a Spotify link. In Spotify, choose Share, then Copy link.'); return; }
+    setErr(null); setText(url); set({ url, on: true });
+  };
+  useEffect(() => {
+    if (!linked) return;
+    myPlaylists().then(setMine).catch((e) => { setErr((e as Error).message); setLinked(spotifyLinked()); });
+  }, [linked]);
+  const link = async () => {
+    setBusy(true); setErr(null);
+    try { if (await linkSpotify()) setLinked(true); } catch (e) { setErr((e as Error).message); } finally { setBusy(false); }
+  };
+  const Pick = ({ url, name, sub, image }: { url: string; name: string; sub: string; image?: string }) => (
+    <button onClick={() => use(url)} style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', minHeight: 50, padding: '8px 14px', borderTop: '1px solid var(--line)', marginTop: -1, textAlign: 'left' }}>
+      {image ? <img src={image} alt="" style={{ width: 34, height: 34, borderRadius: 6, objectFit: 'cover', flex: 'none' }} />
+        : <span style={{ width: 34, height: 34, borderRadius: 6, background: 'linear-gradient(135deg, #1DB954, #127a37)', color: '#fff', display: 'grid', placeItems: 'center', flex: 'none' }}><Icon.music size={16} /></span>}
+      <span style={{ flex: 1, minWidth: 0 }}><span style={{ display: 'block', fontSize: 13 }}>{name}</span><span className="small">{sub}</span></span>
+      {m.url === url && m.on && <Icon.check size={16} />}
+    </button>
+  );
+  return (
+    <>
+      <Group note="Music plays in Spotify's own player, from the ♪ button in the toolbar. Without signing in to Spotify, it plays 30-second previews; Open in Spotify plays everything in the Spotify app.">
+        <Row label="Play music while you write" sub={valid ? 'Turn it off any time.' : 'Paste a link or pick one below.'}>
+          <Toggle label="Play music" on={!!m.on && valid} set={(v) => (valid ? set({ on: v }) : setErr('Paste a Spotify link or pick one below first.'))} />
+        </Row>
+        <form onSubmit={(e) => { e.preventDefault(); use(text); }} style={{ display: 'flex', gap: 8, padding: '8px 14px', borderTop: '1px solid var(--line)', marginTop: -1 }}>
+          <input className="field" style={{ flex: 1, minWidth: 0 }} placeholder="Paste a Spotify link (playlist, album or song)" value={text} onChange={(e) => setText(e.target.value)} spellCheck={false} />
+          <button className="btn" disabled={!text.trim()}>Use</button>
+        </form>
+        {err && <div className="small" style={{ color: 'var(--rust)', padding: '0 14px 10px' }}>{err}</div>}
+      </Group>
+      <div className="label" style={{ margin: '0 4px 8px' }}>Quiet picks</div>
+      <Group>{MUSIC_PICKS.map((p) => <Pick key={p.url} url={p.url} name={p.name} sub={p.note} />)}</Group>
+      {canLinkSpotify() && (
+        <>
+          <div className="label" style={{ margin: '0 4px 8px' }}>Your Spotify</div>
+          <Group note="CashGlome only reads your playlist names. It can't play, change or post anything, and the link stays on this device.">
+            {!linked ? (
+              <Row label="Link your Spotify account" sub="Choose from your own playlists.">
+                <button className="btn primary" onClick={link} disabled={busy}>{busy ? 'Waiting for Spotify…' : 'Link Spotify'}</button>
+              </Row>
+            ) : (
+              <>
+                {!mine && <Row label={<span className="small">Loading your playlists…</span>} />}
+                {mine?.map((p) => <Pick key={p.id} url={p.url} name={p.name} sub={`${p.tracks} songs`} image={p.image} />)}
+                <Row label="Linked on this device"><button className="btn" onClick={() => { unlinkSpotify(); setLinked(false); setMine(null); }}>Unlink</button></Row>
+              </>
+            )}
+          </Group>
+        </>
+      )}
     </>
   );
 }
@@ -241,7 +312,7 @@ function About() {
         <div style={{ display: 'grid', gap: 6 }}>
           {Object.values(PAINTINGS).map((p) => (
             <div key={p.id} style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-              <img src={artSrc(p.id)} alt="" style={{ width: 34, height: 34, objectFit: 'cover', borderRadius: 4, flex: 'none' }} />
+              <img src={artSrc(p.id, 'sm')} alt="" decoding="async" style={{ width: 34, height: 34, objectFit: 'cover', borderRadius: 4, flex: 'none' }} />
               <span className="small" style={{ lineHeight: 1.35 }}><i style={{ color: 'var(--ink)' }}>{p.title}</i>, {p.artist}, {p.year}. {p.place}.</span>
             </div>
           ))}

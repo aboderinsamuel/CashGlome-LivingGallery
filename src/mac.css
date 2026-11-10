@@ -20,8 +20,8 @@
 /* Glass: one recipe for every floating surface */
 .glass {
   background: var(--mat);
-  backdrop-filter: blur(28px) saturate(1.8) brightness(1.03);
-  -webkit-backdrop-filter: blur(28px) saturate(1.8) brightness(1.03);
+  backdrop-filter: blur(22px) saturate(1.8) brightness(1.03);
+  -webkit-backdrop-filter: blur(22px) saturate(1.8) brightness(1.03);
   border: 0.5px solid var(--hair);
   box-shadow: inset 0 0.5px 0 var(--hair-hi), inset 0 -0.5px 0 rgba(0, 0, 0, 0.03), var(--shadow-1);
 }
@@ -43,12 +43,12 @@
 
 /* Pop-up button wrapping a native select */
 .popup { position: relative; display: inline-flex; align-items: center; gap: 7px; height: 28px; padding: 0 10px 0 8px; border-radius: 14px; background: color-mix(in srgb, var(--card) 86%, transparent); border: 0.5px solid var(--hair); box-shadow: inset 0 0.5px 0 var(--hair-hi), 0 0.5px 1.5px rgba(0, 0, 0, 0.08); font-size: 13px; font-weight: 500; color: var(--ink); }
-.popup select { appearance: none; border: 0; background: transparent; font: inherit; color: inherit; outline: none; padding-right: 2px; cursor: default; }
+.popup select { appearance: none; border: 0; background: transparent; font: inherit; color: inherit; outline: none; padding-right: 2px; cursor: pointer; }
 .popup:focus-within { box-shadow: 0 0 0 3.5px var(--ring); }
 .popup .dotc { width: 12px; height: 12px; border-radius: 6px; box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.25); flex: none; }
 
 /* Menus and popovers */
-.menu, .popover { background: var(--mat-thick); backdrop-filter: blur(30px) saturate(1.8); -webkit-backdrop-filter: blur(30px) saturate(1.8); border: 0.5px solid var(--hair); box-shadow: inset 0 0.5px 0 var(--hair-hi), var(--pop-shadow); border-radius: 14px; padding: 5px; }
+.menu, .popover { background: var(--mat-thick); backdrop-filter: blur(22px) saturate(1.8); -webkit-backdrop-filter: blur(22px) saturate(1.8); border: 0.5px solid var(--hair); box-shadow: inset 0 0.5px 0 var(--hair-hi), var(--pop-shadow); border-radius: 14px; padding: 5px; }
 .menu button { height: 28px; border-radius: 8px; }
 .menu button.on { font-weight: 600; }
 .menu button:hover { background: var(--accent); color: var(--accent-ink); }
@@ -69,7 +69,7 @@
 
 /* ——— Panels (sheets) ——— */
 .cap-scrim { background: rgba(20, 14, 6, 0.32); backdrop-filter: blur(6px) saturate(1.1); -webkit-backdrop-filter: blur(6px) saturate(1.1); }
-.panel { position: relative; border-radius: 26px; background: var(--mat-thick); backdrop-filter: blur(40px) saturate(1.8); -webkit-backdrop-filter: blur(40px) saturate(1.8); border: 0.5px solid var(--hair); box-shadow: inset 0 0.5px 0 var(--hair-hi), var(--pop-shadow); overflow: hidden; }
+.panel { position: relative; border-radius: 26px; background: var(--mat-thick); backdrop-filter: blur(26px) saturate(1.8); -webkit-backdrop-filter: blur(26px) saturate(1.8); border: 0.5px solid var(--hair); box-shadow: inset 0 0.5px 0 var(--hair-hi), var(--pop-shadow); overflow: hidden; }
 .panel-x { position: absolute; top: 14px; left: 14px; z-index: 5; width: 26px; height: 26px; border-radius: 13px; display: grid; place-items: center; color: var(--ink-2); background: var(--fill); }
 .panel-x:hover { background: var(--fill-2); color: var(--ink); }
 
@@ -190,3 +190,75 @@
   .start span { display: none; }
   .hero-text { min-width: 0; }
 }
+
+/* Coins drop into the tray with CSS (compositor) animations, staggered by --i. */
+.tray { opacity: 0; transform: translateY(16px); transition: opacity 0.5s var(--ease), transform 0.5s var(--ease); }
+.tray.in, .tray.still { opacity: 1; transform: none; }
+.tray.in .coin { animation: coinDrop 0.55s cubic-bezier(0.3, 1.4, 0.5, 1) backwards; animation-delay: calc(0.12s + var(--i) * 10ms); }
+.tray.still .coin { animation: none; }
+.coin.dim { opacity: 0.18; }
+@keyframes coinDrop { from { opacity: 0; transform: translateY(-48px) rotate(-40deg); } to { opacity: 1; transform: none; } }
+/* The day-by-day chart grows from the baseline the same way. */
+.days .bar { transform-origin: 50% 100%; }
+.days.in .bar { animation: barGrow 0.6s var(--ease) backwards; animation-delay: calc(0.1s + var(--i) * 18ms); }
+.days.in .dot { animation: dotPop 0.4s var(--ease) backwards; animation-delay: calc(var(--i) * 15ms); }
+.days:not(.in) .bar, .days:not(.in) .dot { visibility: hidden; }
+.days.still .bar, .days.still .dot { animation: none; visibility: visible; }
+@keyframes barGrow { from { transform: scaleY(0); } }
+@keyframes dotPop { from { transform: scale(0); } }
+@media (prefers-reduced-motion: reduce) { .tray, .tray .coin, .days .bar, .days .dot { animation: none !important; transition: none !important; } .days .bar, .days .dot { visibility: visible !important; } .tray { opacity: 1; transform: none; } }
+
+/* ——— Ask about your money: a Spotlight-like panel above the writing box ——— */
+.ask-scrim { display: grid; place-items: end center; padding: 24px 16px 96px; background: rgba(20, 14, 6, 0.18); backdrop-filter: none; -webkit-backdrop-filter: none; }
+.panel.ask { width: min(640px, 100%); max-height: min(72vh, 680px); display: flex; flex-direction: column; overflow: hidden; }
+.ask-head { display: flex; align-items: center; gap: 12px; padding: 16px 16px 12px 18px; border-bottom: 0.5px solid var(--hair); }
+.ask-badge { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; color: #1A140D; background: linear-gradient(180deg, #EBD08F, #C9A253); box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.5); flex: none; }
+.ask-title { font: 600 15px var(--ui); letter-spacing: -0.01em; }
+.panel-x.static { position: static; flex: none; }
+.ask-body { flex: 1; overflow-y: auto; padding: 14px 18px 6px; display: grid; gap: 18px; align-content: start; overscroll-behavior: contain; }
+.ask-try { display: grid; gap: 10px; }
+.ask-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.ask-chip { padding: 8px 13px; border-radius: 999px; background: var(--fill); font: 500 13px var(--ui); color: var(--ink); text-align: left; transition: background 0.15s; }
+.ask-chip:hover { background: var(--fill-2); }
+.ask-turn { display: grid; gap: 8px; }
+.ask-q { justify-self: end; max-width: 85%; padding: 8px 13px; border-radius: 16px 16px 4px 16px; background: var(--accent); color: #fff; font: 500 14px/1.35 var(--ui); }
+.ask-a { justify-self: start; max-width: 100%; }
+.ask-a p { margin: 0; font: 400 17px/1.45 var(--serif); color: var(--ink); text-wrap: pretty; }
+.ask-src { margin-top: 6px; font: 500 11px var(--ui); color: var(--ink-3); letter-spacing: 0.01em; }
+.ask-work { margin-top: 10px; border-radius: 12px; background: var(--fill); padding: 0 12px; }
+.ask-work > summary { list-style: none; padding: 9px 0; font: 600 12.5px var(--ui); color: var(--ink-2); display: flex; align-items: center; gap: 6px; }
+.ask-work > summary::-webkit-details-marker { display: none; }
+.ask-work > summary::before { content: '›'; display: inline-block; transition: transform 0.15s; font-size: 15px; line-height: 1; }
+.ask-work[open] > summary::before { transform: rotate(90deg); }
+.ask-figs { margin: 0 0 10px; display: grid; gap: 4px; }
+.ask-figs > div { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; }
+.ask-figs dt { color: var(--ink-2); } .ask-figs dd { margin: 0; font-weight: 600; }
+.ask-rows { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 6px; }
+.ask-rows li { display: grid; grid-template-columns: 10px 1fr auto auto; align-items: center; gap: 10px; font-size: 13px; }
+.ask-rows .dotc { width: 10px; height: 10px; border-radius: 5px; }
+.ask-row-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ask-consent { padding: 14px; border-radius: 14px; background: var(--fill); }
+.ask-consent p { margin: 0 0 12px; font-size: 13.5px; line-height: 1.45; }
+.ask-input { display: flex; gap: 8px; padding: 10px 12px 12px 18px; border-top: 0.5px solid var(--hair); align-items: center; }
+.ask-input input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font: 400 15px var(--ui); padding: 8px 0; }
+.ask-dots { display: inline-flex; gap: 5px; padding: 8px 0; }
+.ask-dots i { width: 7px; height: 7px; border-radius: 4px; background: var(--ink-3); animation: askDot 1s ease-in-out infinite; }
+.ask-dots i:nth-child(2) { animation-delay: 0.15s; } .ask-dots i:nth-child(3) { animation-delay: 0.3s; }
+@keyframes askDot { 0%, 100% { opacity: 0.25; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-3px); } }
+@media (max-width: 560px) { .ask-scrim { padding: 8px 8px 8px; } .panel.ask { max-height: 86vh; } }
+/* The writing box says when Enter will ask instead of add. */
+.pchip.asking { color: var(--ink-2); }
+
+/* ——— Music: Spotify's player in a pop-over under the toolbar. Hidden, not removed, so it keeps playing. ——— */
+.music-pop { position: absolute; top: 58px; right: 14px; z-index: 70; width: min(360px, calc(100% - 28px)); padding: 12px; border-radius: 18px;
+  background: var(--mat-thick); backdrop-filter: blur(22px) saturate(1.8); -webkit-backdrop-filter: blur(22px) saturate(1.8);
+  border: 0.5px solid var(--hair); box-shadow: inset 0 0.5px 0 var(--hair-hi), 0 18px 50px -12px rgba(0, 0, 0, 0.45);
+  opacity: 0; visibility: hidden; transform: translateY(-6px) scale(0.98); transform-origin: top right; pointer-events: none;
+  transition: opacity 0.16s, transform 0.2s var(--ease), visibility 0s linear 0.2s; }
+.music-pop.open { opacity: 1; visibility: visible; transform: none; pointer-events: auto; transition: opacity 0.16s, transform 0.2s var(--ease), visibility 0s; }
+.music-head { display: flex; align-items: center; gap: 8px; margin: 0 2px 10px; font-size: 13px; }
+.link-btn { font: 500 12px var(--ui); color: var(--accent); padding: 4px 6px; border-radius: 6px; }
+.link-btn:hover { background: var(--fill); }
+.tbtn.on { background: var(--fill-2); color: var(--ink); }
+.tbtn { position: relative; }
+.music-live { position: absolute; top: 5px; right: 5px; width: 6px; height: 6px; border-radius: 3px; background: #1DB954; box-shadow: 0 0 0 1.5px var(--paper); }

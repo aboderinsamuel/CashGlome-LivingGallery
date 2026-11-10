@@ -4,12 +4,13 @@ import { cat } from '../lib/categories';
 import { chapterOf, computeStats, momentsOf, projection, recurringOf, type Chapter as Ch, type Stats } from '../lib/analytics';
 import { candleOf, dayCardOf, paintingOf, restorationOf, PATCHES, type Restoration } from '../lib/art';
 import { money, monthLabel, shiftMonth, todayISO } from '../lib/format';
+import { useInView, useStages } from '../lib/inview';
 import type { State } from '../lib/types';
 import type { Action } from '../lib/store';
 import { Sticker } from '../components/Stickers';
 import { Icon } from '../components/Icons';
 import { LivingArt } from '../components/LivingArt';
-import { PlateLabel, RestorationPlate, revealTime } from '../components/Restoration';
+import { PlateLabel, RestorationPlate, revealTime, warmPlate } from '../components/Restoration';
 import { Candle, Seal } from '../components/Candle';
 import { WhatIf } from './WhatIf';
 import { Coins } from '../components/Coins';
@@ -30,7 +31,7 @@ interface Props {
 }
 
 const ease = [0.2, 0.8, 0.2, 1] as const;
-const reveal = { initial: { opacity: 0, y: 18 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true, margin: '-60px' }, transition: { duration: 0.7, ease } };
+const reveal = { initial: { opacity: 0, y: 12 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true, margin: '0px 0px 120px 0px' }, transition: { duration: 0.4, ease } };
 
 export function Chapter({ state, dispatch, museChapter, onOpenCategory, onEdition, onWrite, onPlans, onGallery, onSay, onSnap }: Props) {
   const canSay = useMemo(() => voiceSupport() !== null, []);
@@ -47,6 +48,13 @@ export function Chapter({ state, dispatch, museChapter, onOpenCategory, onEditio
   const mon = monthLabel(state.month).split(' ')[0];
   const painting = paintingOf(s);
   const r = useMemo(() => restorationOf(state.entries, state.month), [state.entries, state.month]);
+  const stage = useStages(2);
+  // Once this page is drawn, quietly prepare last month's painting: the usual next tap.
+  useEffect(() => {
+    if (stage < 2) return;
+    const t = setTimeout(() => warmPlate(paintingOf(prev)), 600);
+    return () => clearTimeout(t);
+  }, [stage, prev]);
 
   // Patches cleaned since you last looked are shown being cleaned, then remembered.
   const seen = state.seenRestored[state.month] ?? 0;
@@ -68,21 +76,21 @@ export function Chapter({ state, dispatch, museChapter, onOpenCategory, onEditio
             {s.isCurrent && <span>· Day {s.dayOfMonth} of {s.monthDays}</span>}
           </motion.div>
           <motion.h1 className="display hero-title" key={ch.title.map((x) => x.t).join('')}
-            initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, ease }}>
+            initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45, ease }}>
             {ch.title.map((seg, i) => seg.em ? <em key={i}>{seg.t}</em> : <span key={i}>{seg.t}</span>)}
           </motion.h1>
-          <motion.p className="lede" style={{ marginTop: 26 }} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.8 }}>
+          <motion.p className="lede" style={{ marginTop: 26 }} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.06, duration: 0.4, ease }}>
             {ch.lede}
           </motion.p>
           {empty && s.isCurrent && (
-            <motion.div className="starts" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+            <motion.div className="starts" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12, duration: 0.35 }}>
               <button className="start" onClick={() => onWrite(cur === 'NGN' ? 'Lunch 3,500' : 'Lunch 14')}><Icon.list size={22} /><b>Type</b><span>{cur === 'NGN' ? '“Lunch 3,500”' : '“Lunch 14”'}</span></button>
               {canSay && <button className="start" onClick={onSay}><Icon.mic size={22} /><b>Say</b><span>“Got paid {cur === 'NGN' ? '350k' : '3,200'}”</span></button>}
               <button className="start" onClick={onSnap}><Icon.camera size={22} /><b>Snap</b><span>A receipt or a thing</span></button>
             </motion.div>
           )}
         </div>
-        <motion.figure className="hero-art" initial={{ opacity: 0, y: 30, rotate: 1.2 }} animate={{ opacity: 1, y: 0, rotate: 0 }} transition={{ duration: 1.1, ease, delay: 0.15 }}>
+        <motion.figure className="hero-art" initial={{ opacity: 0, y: 16, rotate: 0.8 }} animate={{ opacity: 1, y: 0, rotate: 0 }} transition={{ duration: 0.5, ease, delay: 0.04 }}>
           <button onClick={onGallery} aria-label="Open the gallery" style={{ display: 'block', width: '100%', cursor: 'pointer' }}>
             <RestorationPlate painting={painting} r={r} seen={shownSeen} calm={calm} />
           </button>
@@ -90,6 +98,7 @@ export function Chapter({ state, dispatch, museChapter, onOpenCategory, onEditio
         </motion.figure>
       </header>
 
+      {stage >= 1 && <>
       {/* ——— The month in 100 coins: where the money went, at a glance ——— */}
       {!empty && <Coins s={s} entries={state.entries} cur={cur} calm={calm} onOpen={onOpenCategory} />}
       {s.entries.some((e) => e.photo) && (
@@ -117,6 +126,9 @@ export function Chapter({ state, dispatch, museChapter, onOpenCategory, onEditio
       )}
 
       {!empty && <Strip s={s} state={state} />}
+      </>}
+
+      {stage >= 2 && <>
 
       {/* ——— Where it went ——— */}
       {top.length > 0 && (
@@ -174,6 +186,7 @@ export function Chapter({ state, dispatch, museChapter, onOpenCategory, onEditio
           </button>
         </motion.section>
       )}
+      </>}
     </div>
   );
 }
@@ -279,6 +292,7 @@ function Strip({ s, state }: { s: Stats; state: State }) {
   const H = 150;
   const today = s.isCurrent ? s.dayOfMonth : s.monthDays;
   const byDay = useMemo(() => s.days.map((d) => s.entries.filter((e) => e.date === d.date)), [s]);
+  const [chart, shown] = useInView<HTMLDivElement>();
   return (
     <motion.section className="section" style={{ marginTop: 84 }} {...reveal}>
       <div className="section-head">
@@ -286,23 +300,23 @@ function Strip({ s, state }: { s: Stats; state: State }) {
         <p className="body-serif">Each column is a day, coloured by what the money went on. Green dots are money in. Hover a day to read it.</p>
       </div>
       <div style={{ position: 'relative' }} onMouseLeave={() => setHover(null)}>
-        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${s.monthDays}, 1fr)`, gap: 4, alignItems: 'end', height: H + 40 }}>
+        <div ref={chart} className={'days' + (shown ? ' in' : '') + (state.settings.calm ? ' still' : '')} style={{ display: 'grid', gridTemplateColumns: `repeat(${s.monthDays}, 1fr)`, gap: 4, alignItems: 'end', height: H + 40 }}>
           {s.days.map((d, i) => {
             const items = byDay[i].filter((e) => e.dir === 'out' && cat(e.category).nature !== 'save');
             const future = i + 1 > today;
             const h = (Math.sqrt(d.out) / max) * H;
             return (
               <div key={d.date} onMouseEnter={() => setHover(i)} style={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'stretch', position: 'relative' }}>
-                {d.in > 0 && <motion.div initial={{ scale: 0 }} whileInView={{ scale: 1 }} viewport={{ once: true }} transition={{ delay: i * 0.015 }} style={{ position: 'absolute', top: Math.max(0, H - h - 26), left: '50%', marginLeft: -4, width: 8, height: 8, borderRadius: 4, background: 'var(--green)' }} />}
+                {d.in > 0 && <div className="dot" style={{ ['--i' as string]: i, position: 'absolute', top: Math.max(0, H - h - 26), left: '50%', marginLeft: -4, width: 8, height: 8, borderRadius: 4, background: 'var(--green)' }} />}
                 {future ? (
                   <div style={{ height: 22, borderRadius: 5, background: 'var(--fill)' }} />
                 ) : d.out === 0 ? (
                   <div style={{ height: 3, borderRadius: 2, background: 'var(--ink-4)' }} />
                 ) : (
-                  <motion.div initial={{ height: 0 }} whileInView={{ height: Math.max(4, h) }} viewport={{ once: true }} transition={{ delay: 0.1 + i * 0.018, duration: 0.6, ease }}
-                    style={{ borderRadius: 4, overflow: 'hidden', display: 'flex', flexDirection: 'column-reverse', outline: hover === i ? '1.5px solid var(--ink)' : undefined, outlineOffset: 2 }}>
+                  <div className="bar"
+                    style={{ ['--i' as string]: i, height: Math.max(4, h), borderRadius: 4, overflow: 'hidden', display: 'flex', flexDirection: 'column-reverse', outline: hover === i ? '1.5px solid var(--ink)' : undefined, outlineOffset: 2 }}>
                     {items.map((e) => <div key={e.id} style={{ flex: e.amount, background: cat(e.category).color, borderTop: '1px solid rgba(36,31,23,.18)' }} />)}
-                  </motion.div>
+                  </div>
                 )}
                 <div className="num" style={{ height: 22, paddingTop: 8, textAlign: 'center', font: '500 10px/1 var(--grot)', color: i + 1 === today && s.isCurrent ? 'var(--accent)' : 'var(--ink-3)' }}>{(i + 1) % 5 === 0 || i === 0 || (i + 1 === today && s.isCurrent) ? i + 1 : ''}</div>
               </div>

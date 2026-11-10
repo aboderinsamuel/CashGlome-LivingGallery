@@ -154,7 +154,7 @@ export function Edition({ state, muse, close }: { state: State; muse: MuseChapte
       {/* The painting behind each page, crossfading as the pages turn */}
       <AnimatePresence initial={false}>
         <motion.div key={slides[i].art + i} style={{ position: 'absolute', inset: 0 }} initial={{ opacity: 0, scale: 1.04 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 1.4, ease }}>
-          <LivingArt id={slides[i].art} dust light calm={calm} style={{ position: 'absolute', inset: 0 }}
+          <LivingArt id={slides[i].art} sizes="100vw" dust light calm={calm} style={{ position: 'absolute', inset: 0 }}
             shade="linear-gradient(90deg, rgba(14,10,6,.9) 0%, rgba(14,10,6,.7) 42%, rgba(14,10,6,.25) 75%, rgba(14,10,6,.45) 100%), linear-gradient(rgba(14,10,6,.5), transparent 25%, transparent 70%, rgba(14,10,6,.7))" />
         </motion.div>
       </AnimatePresence>
@@ -181,7 +181,7 @@ export function Edition({ state, muse, close }: { state: State; muse: MuseChapte
             ))}
             <button className="nodrag" onClick={close} aria-label="Close" style={{ marginLeft: 14, width: 30, height: 30, borderRadius: 15, display: 'grid', placeItems: 'center', background: 'rgba(246,238,220,.12)', color: BONE }}><Icon.close size={14} /></button>
           </div>
-          <div style={{ flex: 1, position: 'relative', padding: 'clamp(28px, 6vw, 80px)', display: 'flex', alignItems: 'center' }} onClick={(e) => { const r = e.currentTarget.getBoundingClientRect(); if ((e.target as HTMLElement).closest('button')) return; setI((x) => (e.clientX - r.left < r.width / 3 ? Math.max(0, x - 1) : Math.min(slides.length - 1, x + 1))); }}>
+          <div className="tap" style={{ flex: 1, position: 'relative', padding: 'clamp(28px, 6vw, 80px)', display: 'flex', alignItems: 'center' }} onClick={(e) => { const r = e.currentTarget.getBoundingClientRect(); if ((e.target as HTMLElement).closest('button')) return; setI((x) => (e.clientX - r.left < r.width / 3 ? Math.max(0, x - 1) : Math.min(slides.length - 1, x + 1))); }}>
             <AnimatePresence mode="wait">
               <motion.div key={i} style={{ width: '100%', position: 'relative' }} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.6, ease }}>
                 {slides[i].render()}

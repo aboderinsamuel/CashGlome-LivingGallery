@@ -81,6 +81,34 @@ ipcMain.handle('ai:chat', async (_e, { base, key, body }) => {
   }
 });
 
+// Spotify sign-in (PKCE). The browser does the sign-in; this catches the redirect on a loopback port
+// for a few minutes, then closes. Only Spotify's accounts site is ever opened, and only https.
+let spotifyServer = null;
+ipcMain.handle('spotify:auth', (_e, url) => new Promise((resolve) => {
+  if (typeof url !== 'string' || !url.startsWith('https://accounts.spotify.com/authorize?')) return resolve({ error: 'Bad sign-in address' });
+  if (spotifyServer) { try { spotifyServer.close(); } catch { /* already closed */ } }
+  const http = require('node:http');
+  let done = false;
+  const finish = (r) => { if (done) return; done = true; clearTimeout(timer); try { spotifyServer.close(); } catch { /* fine */ } spotifyServer = null; resolve(r); };
+  spotifyServer = http.createServer((req, res) => {
+    const u = new URL(req.url, 'http://127.0.0.1:43821');
+    if (u.pathname !== '/callback') { res.statusCode = 404; return res.end(); }
+    res.setHeader('content-type', 'text/html; charset=utf-8');
+    res.end('<!doctype html><meta charset="utf-8"><title>CashGlome</title><body style="font:16px system-ui;display:grid;place-items:center;height:90vh;color:#241a10;background:#f6f2e8"><p>Spotify is linked. You can close this tab and go back to CashGlome.</p>');
+    finish({ code: u.searchParams.get('code'), state: u.searchParams.get('state'), error: u.searchParams.get('error') });
+    if (win) { if (win.isMinimized()) win.restore(); win.focus(); }
+  });
+  const timer = setTimeout(() => finish({ error: 'Sign-in timed out' }), 5 * 60000);
+  spotifyServer.on('error', (err) => finish({ error: String(err.message || err) }));
+  spotifyServer.listen(43821, '127.0.0.1', () => shell.openExternal(url));
+}));
+ipcMain.handle('spotify:token', async (_e, body) => {
+  try {
+    const r = await fetch('https://accounts.spotify.com/api/token', { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: String(body) });
+    return await r.text();
+  } catch (e) { return JSON.stringify({ error: String((e && e.message) || e) }); }
+});
+
 // Voice: offline dictation with the Windows recogniser (see speech.cjs).
 const speech = require('./speech.cjs');
 let stopListening = null;

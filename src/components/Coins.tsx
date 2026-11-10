@@ -1,5 +1,5 @@
-import { motion } from 'framer-motion';
 import { useMemo, useState } from 'react';
+import { useInView } from '../lib/inview';
 import { cat } from '../lib/categories';
 import { coinMonth, everydayUnit, unitsOf } from '../lib/coins';
 import { money } from '../lib/format';
@@ -14,6 +14,7 @@ export function Coins({ s, entries, cur, calm, onOpen }: { s: Stats; entries: En
   const m = useMemo(() => coinMonth(s), [s]);
   const unit = useMemo(() => everydayUnit(entries, cur, s.spend), [entries, cur, s.spend]);
   const [focus, setFocus] = useState<string | null>(null);
+  const [tray, shown] = useInView<HTMLDivElement>();
   if (!m) return null;
 
   const coins: { id: string; over?: boolean }[] = [];
@@ -24,20 +25,19 @@ export function Coins({ s, entries, cur, calm, onOpen }: { s: Stats; entries: En
 
   return (
     <section className="section coins-sec">
-      <motion.div className="tray" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-80px' }} transition={{ duration: 0.7 }}>
+      {/* Plain buttons with a CSS drop-in: 100 JS springs here used to make the whole page stutter. */}
+      <div ref={tray} className={'tray' + (shown ? ' in' : '') + (calm ? ' still' : '')}>
         <div className="coin-grid" onMouseLeave={() => setFocus(null)}>
           {coins.map((c, i) => (
-            <motion.button
-              key={i} className={'coin' + (c.id === 'left' ? ' left' : '') + (c.over ? ' over' : '')}
-              style={{ ['--c' as string]: c.id === 'left' ? 'transparent' : colorOf(c.id), opacity: focus && focus !== c.id ? 0.18 : 1 }}
-              initial={calm ? false : { y: -60, opacity: 0, rotate: -40 }} whileInView={{ y: 0, opacity: focus && focus !== c.id ? 0.18 : 1, rotate: 0 }} viewport={{ once: true }}
-              transition={{ type: 'spring', stiffness: 520, damping: 22, delay: calm ? 0 : 0.15 + i * 0.012 }}
+            <button
+              key={i} className={'coin' + (c.id === 'left' ? ' left' : '') + (c.over ? ' over' : '') + (focus && focus !== c.id ? ' dim' : '')}
+              style={{ ['--c' as string]: c.id === 'left' ? 'transparent' : colorOf(c.id), ['--i' as string]: i }}
               onMouseEnter={() => setFocus(c.id)} onClick={() => c.id !== 'left' && onOpen(c.id)}
               aria-label={c.id === 'left' ? 'Still yours' : cat(c.id).name}
             />
           ))}
         </div>
-      </motion.div>
+      </div>
       <div className="coins-copy">
         <div className="kicker">{m.base === 'in' ? 'Every 100 coins that came in' : 'Every 100 coins you spent'}</div>
         <h2 className="h2 coins-h">

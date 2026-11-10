@@ -1,5 +1,5 @@
 import { useEffect, useRef, type CSSProperties, type ReactNode } from 'react';
-import { artSrc, PAINTINGS } from '../lib/art';
+import { artSet, artSrc, PAINTINGS } from '../lib/art';
 
 interface Props {
   id: string;
@@ -14,12 +14,34 @@ interface Props {
   style?: CSSProperties;
   children?: ReactNode;
   calm?: boolean;
+  /** How wide it is shown, for picking the file size. Full-bleed callers pass '100vw'. */
+  sizes?: string;
+}
+
+/** One still grain tile for the whole app, drawn on first use. */
+let grainReady = false;
+function ensureGrain() {
+  if (grainReady || typeof document === 'undefined') return;
+  grainReady = true;
+  const c = document.createElement('canvas'); c.width = c.height = 160;
+  const g = c.getContext('2d')!; const d = g.createImageData(160, 160);
+  for (let i = 0; i < d.data.length; i += 4) { const v = Math.random() * 255; d.data[i] = d.data[i + 1] = d.data[i + 2] = v; d.data[i + 3] = 255; }
+  g.putImageData(d, 0, 0);
+  document.documentElement.style.setProperty('--grain', `url(${c.toDataURL('image/png')})`);
 }
 
 /** A painting that breathes: drift, light, dust and grain, like a slow film of the canvas. */
-export function LivingArt({ id, focus, drift = true, dust = false, grain = true, light = false, parallax = false, shade, className, style, children, calm }: Props) {
+export function LivingArt({ id, focus, drift = true, dust = false, grain = true, light = false, parallax = false, shade, className, style, children, calm, sizes = '(max-width: 860px) 100vw, 60vw' }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const p = PAINTINGS[id];
+  if (grain) ensureGrain();
+  // Pause the slow camera move and light while the painting is off screen.
+  useEffect(() => {
+    const el = ref.current; if (!el || calm || (!drift && !light)) return;
+    const io = new IntersectionObserver(([e]) => el.classList.toggle('offscreen', !e.isIntersecting));
+    io.observe(el);
+    return () => io.disconnect();
+  }, [calm, drift, light]);
   useEffect(() => {
     if (!parallax || calm) return;
     const el = ref.current; if (!el) return;
@@ -34,12 +56,12 @@ export function LivingArt({ id, focus, drift = true, dust = false, grain = true,
   return (
     <div ref={ref} className={'living ' + (className ?? '')} style={style}>
       <div className="living-par">
-        <img src={artSrc(id)} alt={p ? `${p.title}, ${p.artist}` : ''} draggable={false}
+        <img src={artSrc(id, 'md')} srcSet={artSet(id)} sizes={sizes} alt={p ? `${p.title}, ${p.artist}` : ''} draggable={false} decoding="async"
           className={drift && !calm ? 'living-img drift' : 'living-img'} style={{ objectPosition: focus ?? p?.focus ?? '50% 50%', animationDelay: `${-(id.length * 7) % 40}s` }} />
       </div>
       {light && !calm && <div className="living-light" />}
       {dust && !calm && <Dust />}
-      {grain && <div className={'living-grain' + (calm ? '' : ' moving')} />}
+      {grain && <div className="living-grain" />}
       {shade && <div style={{ position: 'absolute', inset: 0, background: shade, pointerEvents: 'none' }} />}
       {children}
     </div>
