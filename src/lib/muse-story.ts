@@ -49,3 +49,31 @@ export function localAsk(state: State, q: string): string {
   if (/save|saving/i.test(q)) return `You're keeping ${Math.round(Math.max(0, s.savingsRate) * 100)}% of what comes in. A good target is 20%. The fastest way there is your largest flexible category: cut it by a third and see the difference in Plans.`;
   return `This month: ${money(s.inflow, cur)} in, ${money(s.spend, cur)} spent. Try asking "Can I afford a 300k phone?" or "How do I save more?". Connect Meta Muse in Settings for fuller answers.`;
 }
+
+/* ——— Remembering chapters, so Muse is asked rarely ———
+   A month's story is rewritten only when its entry count reaches a new doubling (4, 8, 16, 32…),
+   or, for the current month, at most once a day and only if entries changed since, or after a deletion. Stories are kept
+   on this device between launches. `first` (the month's oldest entry id) ties a story to the data it
+   was written from, so a reset or an import never shows a stale story. */
+export interface SavedChapter { step: string; day: string; count: number; first: string; ch: MuseChapter }
+const CACHE = 'cg-muse';
+
+export function loadChapters(): Record<string, SavedChapter> {
+  try { return JSON.parse(localStorage.getItem(CACHE) || '{}'); } catch { return {}; }
+}
+export function saveChapters(all: Record<string, SavedChapter>) {
+  const keep = Object.keys(all).sort().slice(-24); // two years is plenty
+  try { localStorage.setItem(CACHE, JSON.stringify(Object.fromEntries(keep.map((m) => [m, all[m]])))); } catch { /* storage full or blocked */ }
+}
+
+export const chapterStep = (month: string, count: number, model: string) => `${month}:${Math.floor(Math.log2(Math.max(4, count)))}:${model}`;
+
+/** The saved story if it still belongs to this month's data (same entries, none deleted since). */
+export const validChapter = (saved: SavedChapter | undefined, first: string | undefined, count: number) =>
+  (saved && first && saved.first === first && count >= saved.count ? saved.ch : null);
+
+export function chapterIsStale(saved: SavedChapter | undefined, o: { month: string; count: number; first: string; model: string; today: string; current: boolean }) {
+  if (!saved || saved.first !== o.first || o.count < saved.count) return true;
+  if (saved.step !== chapterStep(o.month, o.count, o.model)) return true;
+  return o.current && saved.day !== o.today && saved.count !== o.count;
+}

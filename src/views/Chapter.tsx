@@ -179,12 +179,24 @@ export function Chapter({ state, dispatch, museChapter, onOpenCategory, onEditio
 }
 
 /* ——— Today: candle, the day's card, and today's cleaning ——— */
+/** One key holds the date the card was last turned over (older versions kept a key per day). */
+const CARD_KEY = 'cg-card';
+function cardFlippedToday() {
+  try {
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const k = localStorage.key(i);
+      if (!k?.startsWith('cg-card-')) continue;
+      if (k === 'cg-card-' + todayISO() && localStorage.getItem(k) === '1') localStorage.setItem(CARD_KEY, todayISO());
+      localStorage.removeItem(k);
+    }
+    return localStorage.getItem(CARD_KEY) === todayISO();
+  } catch { return false; }
+}
 function Today({ state, r, calm, onWrite }: { state: State; r: Restoration; calm: boolean; onWrite: (h?: string) => void }) {
   const c = useMemo(() => candleOf(state.entries), [state.entries]);
   const card = useMemo(() => dayCardOf(state), [state]);
-  const key = 'cg-card-' + todayISO();
-  const [flipped, setFlipped] = useState(() => { try { return localStorage.getItem(key) === '1'; } catch { return false; } });
-  const flip = () => { setFlipped(true); try { localStorage.setItem(key, '1'); } catch { /* fine */ } };
+  const [flipped, setFlipped] = useState(cardFlippedToday);
+  const flip = () => { setFlipped(true); try { localStorage.setItem(CARD_KEY, todayISO()); } catch { /* fine */ } };
   const left = Math.max(0, r.todayCap - Math.min(r.todayCap, r.today));
   return (
     <motion.section className="today" {...reveal}>

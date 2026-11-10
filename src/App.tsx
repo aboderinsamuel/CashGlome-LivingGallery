@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { useGlomeStore, toEntry } from './lib/store';
 import { aiEnabled, readMoney } from './lib/ai';
 import { badgesOf, chapterOf, computeStats, levelOf, xpOf } from './lib/analytics';
-import { museChapter, type MuseChapter } from './lib/muse-story';
+import { chapterIsStale, chapterStep, loadChapters, museChapter, saveChapters, validChapter, type SavedChapter } from './lib/muse-story';
 import { cat } from './lib/categories';
 import { demoEntries } from './lib/demo';
 import { artSrc, candleOf, isGilded, paintingOf, restorationOf, seasonalWallpaper } from './lib/art';
@@ -41,7 +41,7 @@ export default function App() {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<Notice | null>(null);
   const [capture, setCapture] = useState<{ file: Blob | null; attach?: Entry } | null>(null);
-  const [muse, setMuse] = useState<Record<string, { key: string; ch: MuseChapter }>>({});
+  const [saved, setSaved] = useState<Record<string, SavedChapter>>(loadChapters);
   const composer = useRef<ComposerHandle>(null);
   const main = useRef<HTMLDivElement>(null);
   const cur = state.profile.currency;
@@ -74,7 +74,19 @@ export default function App() {
     set.add(monthOf(todayISO()));
     return [...set].sort().reverse();
   }, [state.entries]);
-  const chapters = useMemo(() => months.map((m) => ({ month: m, title: (muse[m]?.ch.title ?? chapterOf(state, computeStats(state.entries, m)).title).map((x) => x.t).join('') })), [months, state, muse]);
+  // The oldest entry of each month: ties a saved Muse story to the data it was written from.
+  const firstOf = useMemo(() => {
+    const f: Record<string, { id: string; at: number; n: number }> = {};
+    for (const e of state.entries) {
+      const m = monthOf(e.date);
+      if (!f[m]) f[m] = { id: e.id, at: e.createdAt, n: 0 };
+      f[m].n++;
+      if (e.createdAt < f[m].at) { f[m].id = e.id; f[m].at = e.createdAt; }
+    }
+    return f;
+  }, [state.entries]);
+  const muse = useMemo(() => Object.fromEntries(months.map((m) => [m, validChapter(saved[m], firstOf[m]?.id, firstOf[m]?.n ?? 0)])), [months, saved, firstOf]);
+  const chapters = useMemo(() => months.map((m) => ({ month: m, title: (muse[m]?.title ?? chapterOf(state, computeStats(state.entries, m)).title).map((x) => x.t).join('') })), [months, state, muse]);
   const badges = useMemo(() => badgesOf(state), [state]);
   const lv = levelOf(xpOf(state.entries));
   const candle = useMemo(() => candleOf(state.entries), [state.entries]);
@@ -83,15 +95,18 @@ export default function App() {
 
   // ——— Muse writes the chapter when connected ———
   useEffect(() => {
-    if (!ai || monthCount < 4) return;
-    const key = `${state.month}:${monthCount}:${state.settings.ai.storyModel}`;
-    if (muse[state.month]?.key === key) return;
-    const m = state.month;
+    const m = state.month, first = firstOf[m]?.id, model = state.settings.ai.storyModel, today = todayISO();
+    if (!ai || monthCount < 4 || !first) return;
+    if (!chapterIsStale(saved[m], { month: m, count: monthCount, first, model, today, current: m === monthOf(today) })) return;
     const t = setTimeout(() => {
-      museChapter(state, m).then((ch) => setMuse((x) => ({ ...x, [m]: { key, ch } }))).catch(() => { /* local chapter stays */ });
+      museChapter(state, m).then((ch) => setSaved((x) => {
+        const next = { ...x, [m]: { step: chapterStep(m, monthCount, model), day: today, count: monthCount, first, ch } };
+        saveChapters(next);
+        return next;
+      })).catch(() => { /* the local chapter stays */ });
     }, 1500);
     return () => clearTimeout(t);
-  }, [ai, state.month, monthCount, state.settings.ai.storyModel]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [ai, state.month, monthCount, state.settings.ai.storyModel, firstOf[state.month]?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ——— Stickers: one quiet line, never a pile of toasts ———
   const prevLen = useRef(state.entries.length);
@@ -241,7 +256,7 @@ export default function App() {
       <main className="main" ref={main}>
         <AnimatePresence mode="wait">
           <motion.div key={`${view}:${state.month}`} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.35, ease: [0.2, 0.8, 0.2, 1] }}>
-            {view === 'chapter' && <Chapter state={state} dispatch={dispatch} museChapter={muse[state.month]?.ch ?? null} onOpenCategory={(id) => { setFilter(id); setView('ledger'); }} onEdition={() => setEdition(true)} onWrite={(h) => composer.current?.fill(h ?? '')} onPlans={goView('plans')} onGallery={goView('collection')} onSay={() => composer.current?.speak()} onSnap={() => setCapture({ file: null })} />}
+            {view === 'chapter' && <Chapter state={state} dispatch={dispatch} museChapter={muse[state.month] ?? null} onOpenCategory={(id) => { setFilter(id); setView('ledger'); }} onEdition={() => setEdition(true)} onWrite={(h) => composer.current?.fill(h ?? '')} onPlans={goView('plans')} onGallery={goView('collection')} onSay={() => composer.current?.speak()} onSnap={() => setCapture({ file: null })} />}
             {view === 'shelf' && <Shelf state={state} months={months} onOpen={(m) => { setMonth(m); setView('chapter'); }} />}
             {view === 'ledger' && <Ledger state={state} dispatch={dispatch} filter={filter} setFilter={setFilter} query={query} onAttach={(e) => setCapture({ file: null, attach: e })} />}
             {view === 'plans' && <Plans state={state} dispatch={dispatch} />}
@@ -350,7 +365,7 @@ export default function App() {
       <AnimatePresence>
         {settings && <SettingsSheet key="settings" state={state} dispatch={dispatch} initial={settings} close={() => setSettingsPane(null)} />}
         {capture && <CaptureSheet key="capture" file={capture.file} attachTo={capture.attach?.label} settings={state.settings} currency={cur} onDone={captured} onClose={() => setCapture(null)} />}
-        {edition && <Edition key="edition" state={state} muse={muse[state.month]?.ch ?? null} close={() => setEdition(false)} />}
+        {edition && <Edition key="edition" state={state} muse={muse[state.month] ?? null} close={() => setEdition(false)} />}
       </AnimatePresence>
     </MotionConfig>
   );

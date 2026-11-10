@@ -11,10 +11,18 @@ let dbp: Promise<IDBDatabase> | null = null;
 function db() {
   if (!dbp) {
     dbp = new Promise((res, rej) => {
-      const r = indexedDB.open(DB, 1);
-      r.onupgradeneeded = () => r.result.createObjectStore(STORE, { keyPath: 'id' });
-      r.onsuccess = () => res(r.result);
-      r.onerror = () => rej(r.error);
+      const r = indexedDB.open(DB, 2);
+      r.onupgradeneeded = () => {
+        // v1: the store. v2: an index on createdAt, so pruning reads keys and dates, never the photos.
+        const s = r.result.objectStoreNames.contains(STORE) ? r.transaction!.objectStore(STORE) : r.result.createObjectStore(STORE, { keyPath: 'id' });
+        if (!s.indexNames.contains('createdAt')) s.createIndex('createdAt', 'createdAt');
+      };
+      r.onsuccess = () => {
+        // Another tab opening a newer version must not be blocked by this one.
+        r.result.onversionchange = () => { r.result.close(); dbp = null; };
+        res(r.result);
+      };
+      r.onerror = () => { dbp = null; rej(r.error); };
     });
   }
   return dbp;
@@ -29,18 +37,23 @@ function tx<T>(mode: IDBTransactionMode, fn: (s: IDBObjectStore) => IDBRequest<T
 }
 
 export const savePicture = (p: Picture) => tx('readwrite', (s) => s.put(p)).then(() => { urls.delete(p.id); emit(); return p.id; });
-export const loadPicture = (id: string) => tx<Picture | undefined>('readonly', (s) => s.get(id));
-export const deletePicture = (id: string) => tx('readwrite', (s) => s.delete(id)).then(() => { const u = urls.get(id); if (u) URL.revokeObjectURL(u.url); urls.delete(id); emit(); });
+const loadPicture = (id: string) => tx<Picture | undefined>('readonly', (s) => s.get(id));
+const deletePicture = (id: string) => tx('readwrite', (s) => s.delete(id)).then(() => { const u = urls.get(id); if (u) URL.revokeObjectURL(u.url); urls.delete(id); emit(); });
 
-export const pictureIds = () => tx<IDBValidKey[]>('readonly', (s) => s.getAllKeys()).then((k) => k.map(String)).catch(() => [] as string[]);
+/** Ids of pictures taken before `before`, read from the createdAt index (keys only, no blobs). */
+function idsOlderThan(before: number) {
+  return db().then((d) => new Promise<string[]>((res, rej) => {
+    const ids: string[] = [];
+    const req = d.transaction(STORE, 'readonly').objectStore(STORE).index('createdAt').openKeyCursor(IDBKeyRange.upperBound(before, true));
+    req.onsuccess = () => { const c = req.result; if (!c) return res(ids); ids.push(String(c.primaryKey)); c.continue(); };
+    req.onerror = () => rej(req.error);
+  }));
+}
 
-/** Removes pictures whose entry is gone (deleted, or an add that was undone). */
+/** Removes pictures whose entry is gone (deleted, or an add that was undone), after a short grace period. */
 export async function prunePictures(keep: Set<string>, graceMs = 5 * 60000) {
-  for (const id of await pictureIds()) {
-    if (keep.has(id)) continue;
-    const p = await loadPicture(id).catch(() => undefined);
-    if (p && Date.now() - p.createdAt > graceMs) await deletePicture(id).catch(() => {});
-  }
+  const ids = await idsOlderThan(Date.now() - graceMs).catch(() => [] as string[]);
+  for (const id of ids) if (!keep.has(id)) await deletePicture(id).catch(() => {});
 }
 
 /* Object URLs, cached so lists of thumbnails don't re-read the database. */
