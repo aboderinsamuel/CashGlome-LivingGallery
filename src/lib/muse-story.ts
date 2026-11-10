@@ -4,7 +4,7 @@ import { findAmounts } from './parser';
 import { money } from './format';
 import type { State } from './types';
 
-const VOICE = `Write like a thoughtful editor at a design magazine who also understands money: warm, specific, observant, never preachy. Short sentences. Use the person's real numbers and currency. No emojis, no exclamation marks, no clichés like "journey" or "unlock". No markdown.`;
+const VOICE = `Write like a thoughtful editor at a design magazine who also understands money: warm, specific, observant, never preachy. Short sentences. Use the person's real numbers and currency. No emojis, no exclamation marks, no clichés like "journey" or "unlock". No markdown. Refer to the person by name or as "you"; if a pronoun is needed, use they/them, never one guessed from their name.`;
 
 export interface MuseChapter { title: Seg[]; lede: string; notes: string[] }
 

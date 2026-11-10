@@ -224,6 +224,10 @@
 .ask-q { justify-self: end; max-width: 85%; padding: 8px 13px; border-radius: 16px 16px 4px 16px; background: var(--accent); color: #fff; font: 500 14px/1.35 var(--ui); }
 .ask-a { justify-self: start; max-width: 100%; }
 .ask-a p { margin: 0; font: 400 17px/1.45 var(--serif); color: var(--ink); text-wrap: pretty; }
+.ask-a p + p, .ask-a p + .ask-list, .ask-a .ask-list + p { margin-top: 8px; }
+.ask-list { margin: 6px 0 0; padding-left: 20px; font: 400 16px/1.45 var(--serif); color: var(--ink); }
+.ask-list li + li { margin-top: 3px; }
+.ask-thinking { display: flex; align-items: center; gap: 10px; }
 .ask-src { margin-top: 6px; font: 500 11px var(--ui); color: var(--ink-3); letter-spacing: 0.01em; }
 .ask-work { margin-top: 10px; border-radius: 12px; background: var(--fill); padding: 0 12px; }
 .ask-work > summary { list-style: none; padding: 9px 0; font: 600 12.5px var(--ui); color: var(--ink-2); display: flex; align-items: center; gap: 6px; }

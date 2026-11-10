@@ -24,19 +24,38 @@ declare global {
 
 export const DEFAULT_BASE = 'https://api.meta.ai/v1';
 export const MUSE_MODELS = [
+  { id: 'muse-spark-1.3', name: 'Muse Spark 1.3', note: 'newest Spark — fast, reads entries well' },
   { id: 'muse-spark-1.1', name: 'Muse Spark 1.1', note: 'fast & cheap — great for reading entries' },
   { id: 'muse-wonder-1.0', name: 'Muse Wonder 1.0', note: 'frontier — deep stories & advice' },
 ];
 
 export type Part = { type: 'text'; text: string } | { type: 'image_url'; image_url: { url: string } };
-type Msg = { role: 'system' | 'user' | 'assistant'; content: string | Part[] };
+export interface ToolCall { id: string; type: 'function'; function: { name: string; arguments: string } }
+export type Msg =
+  | { role: 'system' | 'user'; content: string | Part[] }
+  | { role: 'assistant'; content: string | null; tool_calls?: ToolCall[] }
+  | { role: 'tool'; tool_call_id: string; content: string };
+export interface Tool { type: 'function'; function: { name: string; description: string; parameters: unknown } }
 
 export const aiEnabled = (s: Settings) => s.ai.provider === 'meta' && s.ai.key.trim().length > 8;
 
-export async function chat(s: Settings, model: string, messages: Msg[], opts: { temperature?: number; max_tokens?: number; timeoutMs?: number } = {}) {
-  const body = { model, messages, temperature: opts.temperature ?? 0.2, max_tokens: opts.max_tokens ?? 900 };
+/** One request to Muse. Desktop goes through Electron main (no CORS); the web goes through the /__ai proxy. */
+// Muse models think before they answer, and that thinking counts against max_tokens. Left at its default it
+// can use the whole budget and return nothing (and take 10-15 s), so every call asks for light thinking and
+// leaves room for it on top of the answer.
+const THINKING_ROOM = 1500;
+
+async function send(s: Settings, body: Record<string, unknown>, timeoutMs: number): Promise<{ content?: string | null; tool_calls?: ToolCall[] }> {
+  try { return await sendOnce(s, { ...body, reasoning_effort: 'low' }, timeoutMs); } catch (e) {
+    // An endpoint that doesn't know reasoning_effort: ask again without it.
+    if (/Muse error 400/.test((e as Error).message) && /reasoning/i.test((e as Error).message)) return sendOnce(s, body, timeoutMs);
+    throw e;
+  }
+}
+
+async function sendOnce(s: Settings, body: unknown, timeoutMs: number): Promise<{ content?: string | null; tool_calls?: ToolCall[] }> {
   const base = s.ai.base || DEFAULT_BASE;
-  const timeout = new Promise<never>((_, rej) => setTimeout(() => rej(new Error('Muse took too long to answer')), opts.timeoutMs ?? 25000));
+  const timeout = new Promise<never>((_, rej) => setTimeout(() => rej(new Error('Muse took too long to answer')), timeoutMs));
   const call = (async () => {
     let status = 0, text = '';
     if (window.glome?.aiChat) {
@@ -53,11 +72,21 @@ export async function chat(s: Settings, model: string, messages: Msg[], opts: { 
       if (!r.ok) throw new Error(`Muse error ${status}: ${text.slice(0, 160)}`);
     }
     const json = JSON.parse(text);
-    const content: string = json?.choices?.[0]?.message?.content ?? json?.output_text ?? json?.content?.[0]?.text ?? '';
-    if (!content) throw new Error('Muse returned an empty answer');
-    return content;
+    return json?.choices?.[0]?.message ?? { content: json?.output_text ?? json?.content?.[0]?.text ?? '' };
   })();
   return Promise.race([call, timeout]);
+}
+
+export async function chat(s: Settings, model: string, messages: Msg[], opts: { temperature?: number; max_tokens?: number; timeoutMs?: number } = {}) {
+  const m = await send(s, { model, messages, temperature: opts.temperature ?? 0.2, max_tokens: (opts.max_tokens ?? 900) + THINKING_ROOM }, opts.timeoutMs ?? 25000);
+  if (!m.content) throw new Error('Muse returned an empty answer');
+  return m.content;
+}
+
+/** A turn that may call tools: returns the text and any tool calls Muse wants made. */
+export async function chatTools(s: Settings, model: string, messages: Msg[], tools: Tool[], opts: { max_tokens?: number; timeoutMs?: number } = {}) {
+  const m = await send(s, { model, messages, tools, tool_choice: 'auto', temperature: 0.1, max_tokens: (opts.max_tokens ?? 1200) + THINKING_ROOM }, opts.timeoutMs ?? 30000);
+  return { content: m.content ?? '', tool_calls: m.tool_calls ?? [] };
 }
 
 export function extractJSON<T>(text: string): T {

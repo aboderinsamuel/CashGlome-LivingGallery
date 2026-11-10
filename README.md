@@ -35,8 +35,14 @@ Next to each category is a translation into something you actually buy. That is 
 
 Type or say a question in the same box (or press `Ctrl/⌘ K`, or **Ask** in the toolbar): "Where did my money go this month?", "How much did I spend on food last week?", "When did I last buy suya?", "Am I spending more than last month?", "Can I afford 40k?".
 
-- **Counted, not guessed.** Questions about totals, top categories, comparisons, counts, dates and "can I afford" are worked out on this device from your entries. **Show the numbers** lists the exact entries and figures behind every answer. When nothing you wrote matches a word ("pizza"), it says so instead of inventing a number.
-- **Muse only with your OK.** Questions it can't count (advice, "why", open questions) can go to Meta Muse. The first time, it says exactly what would be sent (your entries from the last two months and six months of totals, never photos) and asks. Change it any time in **Settings → Meta Muse**.
+- **Any question, exact numbers.** With Meta Muse on, Muse reads the question and asks the app to search your entries (by date, category, words, amount, weekday, grouped by week or month…), as many searches as it needs. The app does every sum on the device and Muse writes the answer from those results, so it can take on "What do I spend on at weekends?", "Which week was my most expensive and why?" or "How much have I given my mum this year?" without making numbers up. You see each search as it runs, and **Show the numbers** lists the figures and entries behind the answer.
+- **Muse only with your OK.** The first time, it says exactly what is sent (your question, monthly totals, and the entries each search finds; never photos) and asks. Change it any time in **Settings → Meta Muse**.
+- **Works without Muse too.** Offline, or with Muse off, totals, top categories, comparisons, "when did I last…" and "can I afford" are still counted on the device.
+- **Your Meta key**: paste it in **Settings → Meta Muse**. It is stored only on this device and never exported.
+
+## iPhone and iPad
+
+A native SwiftUI version is in [`ios/`](ios/README.md): open `ios/CashGlome.xcodeproj` in Xcode 26 on a Mac and run. Same categories, parser and Ask engine, built for touch with Liquid Glass, haptics and Swift Charts.
 
 ## Music
 

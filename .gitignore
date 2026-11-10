@@ -7,3 +7,6 @@ release/
 Thumbs.db
 .env*.local
 .env
+xcuserdata/
+*.xcuserstate
+DerivedData/
