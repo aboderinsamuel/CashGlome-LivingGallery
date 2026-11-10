@@ -37,7 +37,12 @@ export type Msg =
   | { role: 'tool'; tool_call_id: string; content: string };
 export interface Tool { type: 'function'; function: { name: string; description: string; parameters: unknown } }
 
-export const aiEnabled = (s: Settings) => s.ai.provider === 'meta' && s.ai.key.trim().length > 8;
+/** The shared Muse: a server holding CashGlome's own key (set at build time), so people can use Muse without one. */
+export const SHARED_MUSE = ((import.meta.env.VITE_MUSE_PROXY as string | undefined) ?? '').trim();
+const ownKey = (s: Settings) => s.ai.key.trim().length > 8;
+/** True when calls go through the shared Muse rather than the person's own key. */
+export const usingShared = (s: Settings) => !ownKey(s) && !!SHARED_MUSE;
+export const aiEnabled = (s: Settings) => s.ai.provider === 'meta' && (ownKey(s) || !!SHARED_MUSE);
 
 /** One request to Muse. Desktop goes through Electron main (no CORS); the web goes through the /__ai proxy. */
 // Muse models think before they answer, and that thinking counts against max_tokens. Left at its default it
@@ -58,7 +63,15 @@ async function sendOnce(s: Settings, body: unknown, timeoutMs: number): Promise<
   const timeout = new Promise<never>((_, rej) => setTimeout(() => rej(new Error('Muse took too long to answer')), timeoutMs));
   const call = (async () => {
     let status = 0, text = '';
-    if (window.glome?.aiChat) {
+    if (usingShared(s)) {
+      const r = await fetch(SHARED_MUSE, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+      status = r.status; text = await r.text();
+      if (!r.ok) {
+        let why = text.slice(0, 160);
+        try { why = JSON.parse(text).error || why; } catch { /* not JSON */ }
+        throw new Error(status === 429 ? why : `Muse error ${status}: ${why}`);
+      }
+    } else if (window.glome?.aiChat) {
       const r = await window.glome.aiChat({ base, key: s.ai.key.trim(), body });
       status = r.status; text = r.text;
       if (!r.ok) throw new Error(`Muse error ${status}: ${text.slice(0, 160)}`);

@@ -314,6 +314,8 @@ flowchart LR
 5. **Build.** `npm run build` (or `npm run dist:win`). Without the two variables, the build has no accounts and no Supabase code at all.
 
 Confirmation emails link to the web address. Desktop users confirm in the browser, then sign in in the app.
+
+The full walkthrough, with a check script, email setup and troubleshooting, is in [**docs/SETUP.md**](docs/SETUP.md).
 </details>
 
 <br>
@@ -344,6 +346,8 @@ To use Meta's models, open *Settings → Meta Muse* and paste a Meta Model API k
 - **Muse Wonder 1.0** (`muse-wonder-1.0`) writes each chapter's headline and notes, and answers questions with the app's tools.
 
 The API is OpenAI-compatible (default base `https://api.meta.ai/v1`). The key stays on the device, is never synced and is left out of exports. On desktop, requests go from the Electron main process; on the web, through the bundled `/__ai` proxy.
+
+**The shared Muse.** A build can turn Muse on for everyone without a key: set `VITE_MUSE_PROXY` to a server function holding your key ([`api/muse.js`](https://github.com/cashglome/cashglome-site/blob/main/api/muse.js) on the website, with the key in Vercel as `META_API_KEY`). It limits each visitor and accepts only Muse models; anyone who pastes their own key uses theirs instead. Setup is in [docs/SETUP.md](docs/SETUP.md#b-shared-muse-your-meta-key-on-the-server).
 </details>
 
 <details>

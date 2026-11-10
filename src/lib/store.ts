@@ -1,12 +1,13 @@
 import { useEffect, useReducer } from 'react';
-import { DEFAULT_BASE } from './ai';
+import { DEFAULT_BASE, SHARED_MUSE } from './ai';
 import { guessCurrency, monthOf, todayISO, uid } from './format';
 import type { Entry, Goal, Memory, Parsed, RoutineMark, Settings, State } from './types';
 
 const KEY = 'cashglome.v1';
 
 export const defaultSettings: Settings = {
-  ai: { provider: 'local', key: '', base: DEFAULT_BASE, parseModel: 'muse-spark-1.1', storyModel: 'muse-wonder-1.0' },
+  // With a shared Muse built in, Muse is on from the start; otherwise it waits for someone's own key.
+  ai: { provider: SHARED_MUSE ? 'meta' : 'local', key: '', base: DEFAULT_BASE, parseModel: 'muse-spark-1.1', storyModel: 'muse-wonder-1.0' },
   sound: true,
   calm: false,
   theme: 'auto',

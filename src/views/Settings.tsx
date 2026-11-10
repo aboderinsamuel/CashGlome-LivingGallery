@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { DEFAULT_BASE, MUSE_MODELS, testConnection } from '../lib/ai';
+import { DEFAULT_BASE, MUSE_MODELS, SHARED_MUSE, testConnection, usingShared } from '../lib/ai';
 import { CURRENCIES, currencySymbol } from '../lib/format';
 import { demoEntries } from '../lib/demo';
 import { exportState, importState, type Action } from '../lib/store';
@@ -178,25 +178,27 @@ function Muse({ state, dispatch }: { state: State; dispatch: (a: Action) => void
   };
   return (
     <>
-      <Group note={<>Without Muse, entries are read on this device by CashGlome's own parser. With Muse, Meta's models read your entries and write your chapters. Your key is stored only on this device and never included in exports.</>}>
-        <Row label="Use Meta Muse" sub={on ? 'Entries and chapters are written by Muse.' : 'Everything stays on this device.'}><Toggle label="Use Meta Muse" on={on} set={(v) => dispatch({ type: 'ai', patch: { provider: v ? 'meta' : 'local' } })} /></Row>
+      <Group note={<>Without Muse, entries are read on this device by CashGlome's own parser. With Muse, Meta's models read your entries and write your chapters{SHARED_MUSE ? <>, through CashGlome's server, which passes them to Meta and keeps nothing</> : null}. {SHARED_MUSE ? 'A key of your own is optional, ' : 'Your key is '}stored only on this device and never included in exports.</>}>
+        <Row label="Use Meta Muse" sub={on ? (usingShared(state.settings) ? "Entries and chapters are written by Muse, on CashGlome's key." : 'Entries and chapters are written by Muse.') : 'Everything stays on this device.'}><Toggle label="Use Meta Muse" on={on} set={(v) => dispatch({ type: 'ai', patch: { provider: v ? 'meta' : 'local' } })} /></Row>
         {on && (
           <>
-            <Row label="API key"><input className="field" type="password" autoComplete="off" spellCheck={false} style={{ width: 260 }} placeholder="Paste your Meta Model API key" value={ai.key} onChange={(e) => dispatch({ type: 'ai', patch: { key: e.target.value } })} /></Row>
+            <Row label="API key" sub={SHARED_MUSE ? 'Optional. Leave empty to use CashGlome’s.' : undefined}><input className="field" type="password" autoComplete="off" spellCheck={false} style={{ width: 260 }} placeholder={SHARED_MUSE ? 'Your own Meta key (optional)' : 'Paste your Meta Model API key'} value={ai.key} onChange={(e) => dispatch({ type: 'ai', patch: { key: e.target.value } })} /></Row>
             <Row label="Reads entries with">
               <select className="field" style={{ width: 200 }} value={ai.parseModel} onChange={(e) => dispatch({ type: 'ai', patch: { parseModel: e.target.value } })}>{MUSE_MODELS.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}</select>
             </Row>
             <Row label="Writes chapters with">
               <select className="field" style={{ width: 200 }} value={ai.storyModel} onChange={(e) => dispatch({ type: 'ai', patch: { storyModel: e.target.value } })}>{MUSE_MODELS.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}</select>
             </Row>
-            <Row label="Endpoint" sub="OpenAI-compatible Chat Completions base URL.">
-              <input className="field" style={{ width: 260 }} value={ai.base} placeholder={DEFAULT_BASE} onChange={(e) => dispatch({ type: 'ai', patch: { base: e.target.value } })} />
-            </Row>
+            {!usingShared(state.settings) && (
+              <Row label="Endpoint" sub="OpenAI-compatible Chat Completions base URL.">
+                <input className="field" style={{ width: 260 }} value={ai.base} placeholder={DEFAULT_BASE} onChange={(e) => dispatch({ type: 'ai', patch: { base: e.target.value } })} />
+              </Row>
+            )}
             <Row label="Answer questions with Muse" sub="Only for questions CashGlome can't count itself. Sends your entries from the last two months and six months of totals; never photos.">
               <Toggle label="Answer questions with Muse" on={!!state.settings.askMuse} set={(v) => dispatch({ type: 'settings', patch: { askMuse: v } })} />
             </Row>
             <Row label={status ? <span style={{ color: status.ok ? 'var(--green)' : 'var(--rust)' }}>{status.text}</span> : 'Check the connection'}>
-              <button className="btn" onClick={test} disabled={testing || ai.key.length < 8}>{testing ? 'Checking…' : 'Test'}</button>
+              <button className="btn" onClick={test} disabled={testing || (ai.key.length < 8 && !SHARED_MUSE)}>{testing ? 'Checking…' : 'Test'}</button>
             </Row>
           </>
         )}

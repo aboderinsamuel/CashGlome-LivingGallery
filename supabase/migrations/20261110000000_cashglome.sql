@@ -11,7 +11,7 @@
 -- ——— Helpers ———————————————————————————————————————————————
 
 create or replace function public.cg_touch() returns trigger
-language plpgsql as $$
+language plpgsql set search_path = '' as $$
 begin
   -- An older edit arriving late (from an offline device) never overwrites a newer one.
   if tg_op = 'UPDATE' and new.updated_ms < old.updated_ms then
@@ -98,6 +98,11 @@ drop trigger if exists goals_touch on public.goals;
 create trigger goals_touch before insert or update on public.goals for each row execute function public.cg_touch();
 drop trigger if exists memories_touch on public.memories;
 create trigger memories_touch before insert or update on public.memories for each row execute function public.cg_touch();
+
+-- ——— Who can reach the tables through the API: signed-in people only ————————
+
+revoke all on public.profiles, public.entries, public.goals, public.memories from anon;
+grant select, insert, update, delete on public.profiles, public.entries, public.goals, public.memories to authenticated;
 
 -- ——— Row-level security: your rows, only yours ——————————————————
 
