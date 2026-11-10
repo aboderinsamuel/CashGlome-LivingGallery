@@ -1,0 +1,223 @@
+<!doctype html><meta charset="utf-8"><body style="margin:0;background:transparent">
+<canvas id="c"></canvas>
+<script>
+// The CashGlome logo: a gold florin in a wreath of real flowers.
+// Flowers are cut from Ambrosius Bosschaert the Elder, "Vase of Flowers in a Window" (c. 1618, Mauritshuis, public domain).
+// Each: centre x, y and radius in the 1920px-wide source.
+const FLOWERS = [
+  { n: 'yellow iris',      x: 875,  y: 330,  r: 112 },
+  { n: 'crimson rose',     x: 1545, y: 1345, r: 108 },
+  { n: 'white tulip',      x: 680,  y: 790,  r: 128 },
+  { n: 'columbine',        x: 1590, y: 920,  r: 72 },
+  { n: 'flame tulip',      x: 667,  y: 1333, r: 112 },
+  { n: 'pink peony',       x: 840,  y: 1720, r: 150 },
+  { n: 'yellow carnation', x: 1010, y: 920,  r: 100 },
+  { n: 'red rose',         x: 1245, y: 1300, r: 105 },
+  { n: 'cream rose',       x: 893,  y: 1453, r: 104 },
+  { n: 'blue iris',        x: 540,  y: 1030, r: 92 },
+  { n: 'striped tulip',    x: 1280, y: 1020, r: 120 },
+  { n: 'carnation',        x: 510,  y: 2370, r: 112 },
+  { n: 'pink rose',        x: 1250, y: 560,  r: 112 },
+  { n: 'narcissus',        x: 1000, y: 1150, r: 74 },
+];
+const LILY = [
+  'M0 -150 C 30 -118 40 -64 18 -8 L -18 -8 C -40 -64 -30 -118 0 -150 Z',
+  'M16 -4 C 48 -40 104 -58 122 -20 C 134 6 112 34 88 24 C 104 6 94 -16 72 -10 C 52 -4 38 14 26 30 Z',
+  'M-16 -4 C -48 -40 -104 -58 -122 -20 C -134 6 -112 34 -88 24 C -104 6 -94 -16 -72 -10 C -52 -4 -38 14 -26 30 Z',
+  'M-58 22 h116 a9 9 0 0 1 9 9 v8 a9 9 0 0 1 -9 9 h-116 a9 9 0 0 1 -9 -9 v-8 a9 9 0 0 1 9 -9 Z',
+  'M-14 48 C -26 82 -56 102 -92 100 C -74 118 -32 118 -6 84 Z',
+  'M14 48 C 26 82 56 102 92 100 C 74 118 32 118 6 84 Z',
+];
+
+const q = new URLSearchParams(location.search);
+const img = new Image();
+img.onload = () => (q.get('debug') ? debug() : draw(+(q.get('size') || 1024)));
+img.src = q.get('src');
+
+function debug() {
+  const c = document.getElementById('c'); c.width = img.width / 2; c.height = img.height / 2;
+  const g = c.getContext('2d'); g.drawImage(img, 0, 0, c.width, c.height);
+  g.lineWidth = 3; g.font = 'bold 20px sans-serif';
+  FLOWERS.forEach((f, i) => { g.strokeStyle = '#0f0'; g.beginPath(); g.arc(f.x / 2, f.y / 2, f.r / 2, 0, 7); g.stroke(); g.fillStyle = '#000'; g.fillText(i + '', f.x / 2 - 6, f.y / 2 + 6); });
+  document.title = 'ready';
+}
+
+const cl = (v) => Math.min(1, Math.max(0, v));
+const skyOf = (r, b) => cl((b - r - 8) / 24) * cl((r - 100) / 28) * cl((b - 165) / 25);
+const leafOf = (r, g, b) => cl((g - r + 4) / 18) * cl((g - b + 8) / 22);
+
+function crop(f, D, k = 1) {
+  const c = document.createElement('canvas'); c.width = c.height = D;
+  const g = c.getContext('2d', { willReadFrequently: true });
+  const R = f.r * k;
+  g.drawImage(img, f.x - R, f.y - R, R * 2, R * 2, 0, 0, D, D);
+  return { c, g, d: g.getImageData(0, 0, D, D) };
+}
+
+/** The flower's own colours: k-means over its heart, without sky or leaves. */
+function paletteOf(p, D) {
+  const pts = [];
+  for (let y = 0; y < D; y += 2) for (let x = 0; x < D; x += 2) {
+    if (Math.hypot(x - D / 2, y - D / 2) > D * 0.22) continue;
+    const i = (y * D + x) * 4, r = p[i], g = p[i + 1], b = p[i + 2];
+    if (skyOf(r, b) > 0.4 || leafOf(r, g, b) > 0.5 || r + g + b < 120) continue;
+    pts.push([r, g, b]);
+  }
+  let cs = [pts[0], pts[Math.floor(pts.length / 2)], pts[pts.length - 1]].filter(Boolean).map((v) => v.slice());
+  let counts = [];
+  for (let it = 0; it < 10; it++) {
+    const sum = cs.map(() => [0, 0, 0]); counts = cs.map(() => 0);
+    for (const v of pts) {
+      let bi = 0, bd = Infinity;
+      cs.forEach((c, j) => { const d = (v[0] - c[0]) ** 2 + (v[1] - c[1]) ** 2 + (v[2] - c[2]) ** 2; if (d < bd) { bd = d; bi = j; } });
+      sum[bi][0] += v[0]; sum[bi][1] += v[1]; sum[bi][2] += v[2]; counts[bi]++;
+    }
+    cs = cs.map((c, j) => (counts[j] ? sum[j].map((x) => x / counts[j]) : c));
+  }
+  return cs.filter((_, j) => counts[j] > pts.length * 0.1);
+}
+
+function blurAlpha(p, D) {
+  const a = new Float32Array(D * D);
+  for (let i = 0; i < D * D; i++) a[i] = p[i * 4 + 3];
+  for (let y = 1; y < D - 1; y++) for (let x = 1; x < D - 1; x++) {
+    let s = 0; for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) s += a[(y + dy) * D + x + dx];
+    p[(y * D + x) * 4 + 3] = s / 9;
+  }
+}
+
+/** One flower, cut out of the painting along its petals. */
+function cutFlower(f, D) {
+  const { c, g, d } = crop(f, D, 1.4); const p = d.data;
+  const pal = paletteOf(p, D);
+  for (let y = 0; y < D; y++) for (let x = 0; x < D; x++) {
+    const i = (y * D + x) * 4, r = p[i], gg = p[i + 1], b = p[i + 2];
+    let md = Infinity;
+    for (const c2 of pal) md = Math.min(md, Math.sqrt((r - c2[0]) ** 2 + (gg - c2[1]) ** 2 + (b - c2[2]) ** 2));
+    const dist = Math.hypot(x - D / 2, y - D / 2) / (D / 2);
+    const near = cl(1 - (md - 55) / 45);
+    const core = cl((0.3 - dist) / 0.1); // the heart always stays
+    p[i + 3] = 255 * Math.max(near * (1 - skyOf(r, b)) * (1 - leafOf(r, gg, b) * 0.85), core) * cl((0.98 - dist) / 0.22);
+  }
+  blurAlpha(p, D);
+  g.putImageData(d, 0, 0);
+  return c;
+}
+
+/** Foliage from the same painting, so the flowers sit in a real wreath of leaves. */
+function cutLeaves(f, D) {
+  const { c, g, d } = crop(f, D, 1.5); const p = d.data;
+  for (let y = 0; y < D; y++) for (let x = 0; x < D; x++) {
+    const i = (y * D + x) * 4, r = p[i], gg = p[i + 1], b = p[i + 2];
+    const dist = Math.hypot(x - D / 2, y - D / 2) / (D / 2);
+    p[i + 3] = 255 * leafOf(r, gg, b) * (1 - skyOf(r, b)) * cl((1 - dist) / 0.3);
+  }
+  blurAlpha(p, D);
+  g.putImageData(d, 0, 0);
+  return c;
+}
+
+function rr(g, x, y, w, h, r) { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
+
+function star(g, x, y, r) {
+  g.save(); g.translate(x, y); g.beginPath();
+  for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, s = i % 2 ? r * 0.45 : r; g.lineTo(Math.cos(a) * s, Math.sin(a) * s); }
+  g.closePath(); g.fillStyle = '#6E4E14'; g.fill(); g.restore();
+}
+
+function coin(g, cx, cy, R) {
+  g.save();
+  g.shadowColor = 'rgba(0,0,0,.65)'; g.shadowBlur = R * 0.18; g.shadowOffsetY = R * 0.06;
+  g.beginPath(); g.arc(cx, cy, R, 0, 7); g.fillStyle = '#8A6420'; g.fill();
+  g.restore();
+  // rim of brushed metal
+  const rim = g.createConicGradient(-0.6, cx, cy);
+  [['#FFF0BE', 0], ['#C9A253', 0.12], ['#7A5413', 0.25], ['#E9CC88', 0.38], ['#9C7426', 0.52], ['#F6E2A8', 0.66], ['#7A5413', 0.8], ['#D9B867', 0.92], ['#FFF0BE', 1]].forEach(([c, o]) => rim.addColorStop(o, c));
+  g.beginPath(); g.arc(cx, cy, R, 0, 7); g.fillStyle = rim; g.fill();
+  // beaded border
+  const n = 64;
+  for (let k = 0; k < n; k++) {
+    const a = (k / n) * Math.PI * 2, x = cx + Math.cos(a) * R * 0.885, y = cy + Math.sin(a) * R * 0.885, br = R * 0.034;
+    const bg = g.createRadialGradient(x - br * 0.4, y - br * 0.4, 0, x, y, br);
+    bg.addColorStop(0, '#FFF4CC'); bg.addColorStop(0.5, '#D4AE5E'); bg.addColorStop(1, '#6E4E14');
+    g.beginPath(); g.arc(x, y, br, 0, 7); g.fillStyle = bg; g.fill();
+  }
+  // the field, slightly sunk
+  const fr = R * 0.82;
+  const field = g.createRadialGradient(cx - fr * 0.35, cy - fr * 0.4, fr * 0.05, cx, cy, fr);
+  field.addColorStop(0, '#FBE7AE'); field.addColorStop(0.45, '#DDB866'); field.addColorStop(1, '#9A7228');
+  g.beginPath(); g.arc(cx, cy, fr, 0, 7); g.fillStyle = field; g.fill();
+  g.save(); g.clip();
+  g.lineWidth = R * 0.05; g.strokeStyle = 'rgba(70,45,8,.45)'; g.filter = 'blur(' + R * 0.02 + 'px)';
+  g.beginPath(); g.arc(cx + R * 0.012, cy + R * 0.02, fr, 0, 7); g.stroke();
+  g.restore();
+  // legend, struck into the metal
+  const word = 'FLORENTIA';
+  g.save();
+  g.font = '600 ' + R * 0.15 + 'px "Trajan Pro", Cinzel, Georgia, "Times New Roman", serif';
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  const span = 1.9, step = span / (word.length - 1);
+  [...word].forEach((ch, k) => {
+    const a = -Math.PI / 2 - span / 2 + k * step;
+    g.save(); g.translate(cx + Math.cos(a) * fr * 0.8, cy + Math.sin(a) * fr * 0.8); g.rotate(a + Math.PI / 2);
+    g.fillStyle = 'rgba(255,245,210,.85)'; g.fillText(ch, -R * 0.006, -R * 0.008);
+    g.fillStyle = '#5E420F'; g.fillText(ch, R * 0.006, R * 0.01);
+    g.fillStyle = '#B48C3C'; g.fillText(ch, 0, 0);
+    g.restore();
+  });
+  [-1, 1].forEach((s) => { const a = Math.PI / 2 + s * 0.85; star(g, cx + Math.cos(a) * fr * 0.8, cy + Math.sin(a) * fr * 0.8, R * 0.045); });
+  g.restore();
+  // the Florentine lily, embossed
+  const k = (R * 0.5) / 150;
+  const lily = (dx, dy, fill) => { g.save(); g.translate(cx + dx, cy + R * 0.06 + dy); g.scale(k, k); g.fillStyle = fill; LILY.forEach((d) => g.fill(new Path2D(d))); g.restore(); };
+  lily(R * 0.012, R * 0.018, 'rgba(74,48,8,.85)');
+  lily(-R * 0.008, -R * 0.01, 'rgba(255,246,214,.9)');
+  const lg = g.createLinearGradient(cx - R * 0.4, cy - R * 0.5, cx + R * 0.4, cy + R * 0.5);
+  lg.addColorStop(0, '#F6E2A8'); lg.addColorStop(0.5, '#C9A253'); lg.addColorStop(1, '#8C6A24');
+  lily(0, 0, lg);
+  // sheen
+  g.save(); g.globalCompositeOperation = 'screen';
+  const sh = g.createRadialGradient(cx - R * 0.45, cy - R * 0.5, 0, cx - R * 0.45, cy - R * 0.5, R * 0.9);
+  sh.addColorStop(0, 'rgba(255,248,220,.55)'); sh.addColorStop(1, 'rgba(255,248,220,0)');
+  g.beginPath(); g.arc(cx, cy, R, 0, 7); g.fillStyle = sh; g.fill(); g.restore();
+}
+
+function draw(size) {
+  const S = 1024;
+  const c = document.createElement('canvas'); c.width = c.height = S;
+  const g = c.getContext('2d');
+  // macOS icon grid: an 824px tile with a continuous corner of about 185px
+  const m = 100, w = S - m * 2;
+  g.save();
+  g.shadowColor = 'rgba(0,0,0,.35)'; g.shadowBlur = 24; g.shadowOffsetY = 10;
+  rr(g, m, m, w, w, 186);
+  const bg = g.createRadialGradient(S * 0.42, S * 0.36, 40, S / 2, S / 2, w * 0.75);
+  bg.addColorStop(0, '#3F2E1B'); bg.addColorStop(0.6, '#1E150C'); bg.addColorStop(1, '#0E0905');
+  g.fillStyle = bg; g.fill(); g.restore();
+  g.save(); rr(g, m, m, w, w, 186); g.clip();
+  const cx = S / 2, cy = S / 2, R = 292;
+  const at = (k) => -Math.PI / 2 + (k / FLOWERS.length) * Math.PI * 2;
+  const sizeOf = (f) => 150 + (f.r / 150) * 60;
+  FLOWERS.forEach((f, k) => {
+    const D = Math.round(sizeOf(f) * 1.45), lv = cutLeaves(f, D);
+    const a = at(k) + Math.PI / FLOWERS.length;
+    g.save(); g.globalAlpha = 1; g.translate(cx + Math.cos(a) * R, cy + Math.sin(a) * R); g.rotate(a);
+    g.drawImage(lv, -D / 2, -D / 2); g.restore();
+  });
+  FLOWERS.forEach((f, k) => {
+    const D = Math.round(sizeOf(f) * 1.3), fl = cutFlower(f, D);
+    g.save(); g.shadowColor = 'rgba(0,0,0,.6)'; g.shadowBlur = 22; g.shadowOffsetY = 8;
+    g.translate(cx + Math.cos(at(k)) * R, cy + Math.sin(at(k)) * R); g.rotate(Math.sin(k * 2.3) * 0.35);
+    g.drawImage(fl, -D / 2, -D / 2); g.restore();
+  });
+  coin(g, cx, cy, 212);
+  g.restore();
+  g.save(); rr(g, m + 1, m + 1, w - 2, w - 2, 185); g.lineWidth = 2; g.strokeStyle = 'rgba(255,236,190,.16)'; g.stroke(); g.restore();
+  // downscale in halves for clean small sizes
+  const out = document.getElementById('c'); out.width = out.height = size;
+  let src = c, cur = S;
+  while (cur / 2 >= size) { const t = document.createElement('canvas'); t.width = t.height = cur / 2; const tg = t.getContext('2d'); tg.imageSmoothingQuality = 'high'; tg.drawImage(src, 0, 0, cur / 2, cur / 2); src = t; cur /= 2; }
+  const o = out.getContext('2d'); o.imageSmoothingQuality = 'high'; o.drawImage(src, 0, 0, size, size);
+  document.title = 'ready';
+}
+</script>
