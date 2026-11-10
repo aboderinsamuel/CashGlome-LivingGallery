@@ -9,12 +9,18 @@
 
 <br>
 
+### [Open it in your browser →](https://cashglome.vercel.app/app/)
+<sub>No install, works on a phone · [The website](https://cashglome.vercel.app) · [Run it yourself](#viii-run-it) · [Set up your own](docs/SETUP.md)</sub>
+
+<br>
+
 ![React 18](https://img.shields.io/badge/React-18-1d1a14?style=flat-square&logo=react&logoColor=E9C75B&labelColor=0E0A06)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-1d1a14?style=flat-square&logo=typescript&logoColor=E9C75B&labelColor=0E0A06)
 ![Vite](https://img.shields.io/badge/Vite-5-1d1a14?style=flat-square&logo=vite&logoColor=E9C75B&labelColor=0E0A06)
 ![Electron](https://img.shields.io/badge/Electron-Windows%20%C2%B7%20Mac-1d1a14?style=flat-square&logo=electron&logoColor=E9C75B&labelColor=0E0A06)
 ![Supabase](https://img.shields.io/badge/Supabase-optional%20sync-1d1a14?style=flat-square&logo=supabase&logoColor=E9C75B&labelColor=0E0A06)
 ![Offline first](https://img.shields.io/badge/works-offline-1d1a14?style=flat-square&labelColor=0E0A06)
+[![Live](https://img.shields.io/badge/live-cashglome.vercel.app-1d1a14?style=flat-square&logo=vercel&logoColor=E9C75B&labelColor=0E0A06)](https://cashglome.vercel.app/app/)
 
 [**The idea**](#i-the-idea) ·
 [**Memory**](#ii-the-commonplace-book) ·
@@ -37,6 +43,7 @@
 
 | You are… | Start here |
 |---|---|
+| 🌐 **Just curious** | [cashglome.vercel.app/app](https://cashglome.vercel.app/app/), in any browser, phone included. No install, no account, nothing to paste. |
 | 🪶 **Someone with money to keep** | Open the app, write one line ("lunch 4.5k, bolt 6k"), then tell **Memory** how your days go. [The commonplace book →](#ii-the-commonplace-book) |
 | 🧮 **Curious how "can I afford it" works** | Balance, routines and payday, run day by day. [The purse →](#iii-the-purse-until-payday) |
 | 🛠️ **A developer** | `npm install && npm run dev`. [Run it →](#viii-run-it) · [Project map →](#project-map) |
@@ -333,19 +340,24 @@ npm run desktop:dev    # desktop app with hot reload
 npm run build && npm run serve    # production web server + AI proxy (PORT, default 4173)
 npm run dist:win                  # Windows installer → release/
 npm run dist:mac                  # macOS .dmg (on a Mac)
+node scripts/publish-web.mjs      # build into ../cashglome-site/app for cashglome.vercel.app/app/
 ```
+
+`publish-web.mjs` reads `.env.local`, says which features are on (accounts, the shared Muse), and refuses to build if a secret is about to be published. Push `cashglome-site` afterwards and Vercel deploys it. [docs/SETUP.md](docs/SETUP.md) walks through all of it.
 
 <details>
 <summary><b>Meta Muse (optional AI)</b></summary>
 
 CashGlome's own parser understands `5k`, `2.5m`, `₦4,500` and `$12`, tells money in from money out, splits one line into several entries, and picks up feelings ("regret", "worth it") and dates ("yesterday", "last friday").
 
-To use Meta's models, open *Settings → Meta Muse* and paste a Meta Model API key:
+Muse is Meta's models doing the reading and writing instead:
 
 - **Muse Spark 1.1** (`muse-spark-1.1`) reads your entries.
 - **Muse Wonder 1.0** (`muse-wonder-1.0`) writes each chapter's headline and notes, and answers questions with the app's tools.
 
-The API is OpenAI-compatible (default base `https://api.meta.ai/v1`). The key stays on the device, is never synced and is left out of exports. On desktop, requests go from the Electron main process; on the web, through the bundled `/__ai` proxy.
+**With the shared Muse** (below) built in, as intended for the hosted app, Muse runs on CashGlome's own key and is on from the start, with nothing to paste. Switch it off in *Settings → Meta Muse* and everything is read on the device again. **Anywhere else**, paste your own Meta Model API key there.
+
+The API is OpenAI-compatible (default base `https://api.meta.ai/v1`). Your own key stays on the device, is never synced and is left out of exports. On desktop, requests go from the Electron main process; on the web, through the bundled `/__ai` proxy.
 
 **The shared Muse.** A build can turn Muse on for everyone without a key: set `VITE_MUSE_PROXY` to a server function holding your key ([`api/muse.js`](https://github.com/cashglome/cashglome-site/blob/main/api/muse.js) on the website, with the key in Vercel as `META_API_KEY`). It limits each visitor and accepts only Muse models; anyone who pastes their own key uses theirs instead. Setup is in [docs/SETUP.md](docs/SETUP.md#b-shared-muse-your-meta-key-on-the-server).
 </details>
@@ -363,10 +375,11 @@ They're taken from the real app with an example world (a month of demo entries a
 
 ```bash
 npm run dev
-npx electron scripts/readme-shots.cjs
+npx electron scripts/readme-shots.cjs                 # everything
+npx electron scripts/readme-shots.cjs --banner-only   # just the banner
 ```
 
-This writes `docs/assets/*.jpg`.
+This writes `docs/assets/`. The banner is a PNG with its rounded corners cut out, since GitHub ignores CSS in READMEs.
 </details>
 
 **Shortcuts.** `Ctrl/⌘ N` write · `Ctrl/⌘ K` ask · `Ctrl/⌘ 1–6` Chapter, All chapters, Ledger, Plans, Gallery, Memory · `Ctrl/⌘ [ ]` month · `Ctrl/⌘ E` Edition · `Ctrl/⌘ ,` Settings
@@ -377,9 +390,10 @@ This writes `docs/assets/*.jpg`.
 
 ```
 electron/           desktop shell: frameless window, AI calls, offline speech
-scripts/            AI proxy, desktop dev runner, icon renderer, painting sizes, README shots
+docs/               SETUP.md (accounts, shared Muse, publishing) and the README pictures
+scripts/            AI proxy, desktop dev runner, icon renderer, painting sizes, README shots, publish-web
 server.mjs          production web server
-supabase/           database schema (migrations) for optional accounts
+supabase/           database schema (migrations) and check.sql for optional accounts
 src/lib/
   memory.ts         the commonplace book: reading memories, routines, the purse, affordability
   cloud.ts          Supabase auth and sync (loaded only when configured)
@@ -397,7 +411,7 @@ public/art/         sixteen public-domain paintings (Wikimedia Commons)
 ## Related repos
 
 - [cashglome-ios](https://github.com/cashglome/cashglome-ios): the native iPhone and iPad app (SwiftUI).
-- [cashglome-site](https://github.com/cashglome/cashglome-site): the landing page.
+- [cashglome-site](https://github.com/cashglome/cashglome-site): the website at [cashglome.vercel.app](https://cashglome.vercel.app). It also serves this app at `/app/` and runs the shared Muse (`api/muse.js`).
 
 <br>
 
