@@ -1,7 +1,7 @@
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { cat } from '../lib/categories';
-import { chapterOf, computeStats, momentsOf, paceOf, projection, recurringOf, type Chapter as Ch, type Stats } from '../lib/analytics';
+import { chapterOf, computeStats, momentsOf, projection, recurringOf, type Chapter as Ch, type Stats } from '../lib/analytics';
 import { candleOf, dayCardOf, paintingOf, restorationOf, PATCHES, type Restoration } from '../lib/art';
 import { money, monthLabel, shiftMonth, todayISO } from '../lib/format';
 import type { State } from '../lib/types';
@@ -454,5 +454,3 @@ function Recurring({ state }: { state: State }) {
   );
 }
 
-export type { Ch };
-export { paceOf };

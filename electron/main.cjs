@@ -3,7 +3,8 @@ const { app, BrowserWindow, ipcMain, shell, nativeTheme } = require('electron');
 const path = require('node:path');
 
 // Screenshot runs get their own profile, so they never touch the data of an installed copy.
-if (process.env.CASHGLOME_SNAPSHOT) app.setPath('userData', path.join(app.getPath('temp'), 'cashglome-snapshot-profile'));
+const SNAPSHOT = !app.isPackaged && process.env.CASHGLOME_SNAPSHOT;
+if (SNAPSHOT) app.setPath('userData', path.join(app.getPath('temp'), 'cashglome-snapshot-profile'));
 
 let win;
 function createWindow() {
@@ -24,13 +25,13 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
-      backgroundThrottling: !process.env.CASHGLOME_SNAPSHOT,
+      backgroundThrottling: !SNAPSHOT,
     },
   });
   win.once('ready-to-show', () => win.show());
-  // Dev aid: CASHGLOME_SNAPSHOT=dir captures screenshots, then quits.
-  // CASHGLOME_STEPS is a JSON array of { js?, wait?, out? } run in order after load.
-  if (process.env.CASHGLOME_SNAPSHOT) {
+  // Dev aid (never in the installed app): CASHGLOME_SNAPSHOT=dir captures screenshots, then quits.
+  // CASHGLOME_STEPS is a JSON array of { size?, js?, wait?, title?, out? } run in order after load.
+  if (SNAPSHOT) {
     const fs = require('node:fs');
     const steps = JSON.parse(process.env.CASHGLOME_STEPS || '[{"wait":6000,"out":"shot.png"}]');
     win.webContents.once('did-finish-load', async () => {
@@ -39,7 +40,7 @@ function createWindow() {
         if (st.js) { try { await win.webContents.executeJavaScript(st.js); } catch (e) { console.error(e); } }
         await new Promise((r) => setTimeout(r, st.wait ?? 1500));
         if (st.title) console.log('TITLE ' + win.webContents.getTitle());
-        if (st.out) fs.writeFileSync(path.join(process.env.CASHGLOME_SNAPSHOT, st.out), (await win.webContents.capturePage()).toPNG());
+        if (st.out) fs.writeFileSync(path.join(SNAPSHOT, st.out), (await win.webContents.capturePage()).toPNG());
       }
       app.quit();
     });

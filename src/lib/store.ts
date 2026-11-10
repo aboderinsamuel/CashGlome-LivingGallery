@@ -9,7 +9,6 @@ export const defaultSettings: Settings = {
   ai: { provider: 'local', key: '', base: DEFAULT_BASE, parseModel: 'muse-spark-1.1', storyModel: 'muse-wonder-1.0' },
   sound: true,
   calm: false,
-  sky: 'auto',
   theme: 'auto',
   wallpaper: 'season',
   reminder: { on: false, time: '21:00' },
@@ -36,7 +35,6 @@ function load(): State {
 
 export type Action =
   | { type: 'onboard'; name: string; currency: string }
-  | { type: 'add'; items: Parsed[] }
   | { type: 'addEntries'; entries: Entry[] }
   | { type: 'update'; id: string; patch: Partial<Entry> }
   | { type: 'remove'; id: string }
@@ -56,7 +54,6 @@ export const toEntry = (p: Parsed): Entry => ({ id: uid(), text: p.text, label: 
 function reducer(s: State, a: Action): State {
   switch (a.type) {
     case 'onboard': return { ...s, profile: { ...s.profile, name: a.name, currency: a.currency, onboarded: true } };
-    case 'add': return { ...s, entries: [...s.entries, ...a.items.map(toEntry)] };
     case 'addEntries': return { ...s, entries: [...s.entries, ...a.entries] };
     case 'update': return { ...s, entries: s.entries.map((e) => (e.id === a.id ? { ...e, ...a.patch, source: a.patch.category || a.patch.dir ? 'manual' : e.source } : e)) };
     case 'remove': return { ...s, entries: s.entries.filter((e) => e.id !== a.id) };

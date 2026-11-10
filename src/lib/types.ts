@@ -25,7 +25,6 @@ export interface Goal {
 }
 
 export type AiProvider = 'local' | 'meta';
-export type SkyMode = 'auto' | 'dawn' | 'day' | 'dusk' | 'night';
 
 export interface Settings {
   ai: {
@@ -37,7 +36,6 @@ export interface Settings {
   };
   sound: boolean;
   calm: boolean;
-  sky: SkyMode;
   theme: 'auto' | 'light' | 'dark';
   wallpaper: string; // painting id, or 'season'
   reminder: { on: boolean; time: string };

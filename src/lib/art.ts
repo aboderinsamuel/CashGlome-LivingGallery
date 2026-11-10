@@ -107,7 +107,6 @@ export function candleOf(entries: Entry[]): Candle {
   return { streak: run, seals, litToday: days.has(today), best, sealed, toNextSeal: seals >= 2 ? 0 : 7 - sinceSeal };
 }
 
-export const RANKS = ['Apprentice', 'Journeyman', 'Artisan', 'Master', 'Patron', 'Maestro', 'Medici'];
 
 /* ——— Today's card: one observation a day, drawn from your own entries ——— */
 export interface DayCard { title: string; line: string; painting: Painting; focus: string; numeral: string }

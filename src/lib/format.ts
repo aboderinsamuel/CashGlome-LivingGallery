@@ -64,7 +64,6 @@ export function currencySymbol(currency: string) {
   }
 }
 
-export const pct = (n: number) => `${Math.round(n * 100)}%`;
 
 export function todayISO(d = new Date()) {
   const z = (x: number) => String(x).padStart(2, '0');

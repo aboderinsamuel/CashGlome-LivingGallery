@@ -118,15 +118,7 @@
 .welcome-input:focus { border-bottom-color: #E2C27A; }
 .btn.gold { background: linear-gradient(180deg, #EBD08F, #C9A253); color: #1A140D; border-color: transparent; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 8px 20px -10px rgba(176, 138, 58, 0.8); }
 .btn.gold:disabled { opacity: 0.45; }
-.btn.ghost-dark { background: rgba(246, 238, 220, 0.1); color: #F6EEDC; border-color: transparent; }
-.coin-pick { padding: 12px 14px; text-align: left; border-radius: 14px; color: #F6EEDC; background: rgba(246, 238, 220, 0.06); box-shadow: inset 0 0 0 1px rgba(246, 238, 220, 0.12); transition: background 0.15s, box-shadow 0.15s; }
-.coin-pick:hover { background: rgba(246, 238, 220, 0.1); }
-.coin-pick.on { background: rgba(226, 194, 122, 0.16); box-shadow: inset 0 0 0 1.5px #E2C27A; }
-.choice { display: flex; flex-direction: column; text-align: left; padding: 20px; min-height: 150px; justify-content: flex-end; border-radius: 18px; color: #F6EEDC; background: rgba(246, 238, 220, 0.07); box-shadow: inset 0 0 0 1px rgba(246, 238, 220, 0.16); transition: background 0.2s, transform 0.3s var(--ease); }
-.choice:hover { background: rgba(226, 194, 122, 0.16); transform: translateY(-3px); }
-@media (max-width: 640px) { .welcome-last { grid-template-columns: 1fr !important; } }
 .btn.gold:hover { background: linear-gradient(180deg, #F1D99E, #CFA95C); }
-.btn.ghost-dark:hover { background: rgba(246, 238, 220, 0.16); }
 
 /* ——— Salon wall ——— */
 .salon-wall { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 44px 36px; margin-top: 40px; align-items: start; }

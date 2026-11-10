@@ -69,5 +69,3 @@ export const CATEGORIES: Category[] = [
 
 export const CAT: Record<string, Category> = Object.fromEntries(CATEGORIES.map((c) => [c.id, c]));
 export const cat = (id: string): Category => CAT[id] ?? CAT.other;
-export const OUT_CATS = CATEGORIES.filter((c) => c.dir === 'out');
-export const IN_CATS = CATEGORIES.filter((c) => c.dir === 'in');

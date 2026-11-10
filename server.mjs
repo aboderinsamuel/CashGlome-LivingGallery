@@ -7,11 +7,11 @@ import { fileURLToPath } from 'node:url';
 import { aiProxy } from './scripts/ai-proxy.mjs';
 
 const root = join(fileURLToPath(new URL('.', import.meta.url)), 'dist');
-const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.woff2': 'font/woff2', '.woff': 'font/woff', '.json': 'application/json', '.ico': 'image/x-icon' };
+const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.woff2': 'font/woff2', '.woff': 'font/woff', '.json': 'application/json', '.ico': 'image/x-icon', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.wasm': 'application/wasm', '.gz': 'application/gzip' };
 
 http.createServer(async (req, res) => {
   if (req.url?.startsWith('/__ai')) { req.url = req.url.slice(5) || '/'; return aiProxy(req, res); }
-  let p = normalize(decodeURIComponent((req.url || '/').split('?')[0])).replace(/^([/\])+/, '');
+  let p = normalize(decodeURIComponent((req.url || '/').split('?')[0])).replace(/^[/\\]+/, '');
   let file = join(root, p);
   if (!file.startsWith(root)) { res.statusCode = 403; return res.end(); }
   try { if ((await stat(file)).isDirectory()) file = join(file, 'index.html'); } catch { file = join(root, 'index.html'); }

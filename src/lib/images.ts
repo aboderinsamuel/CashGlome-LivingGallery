@@ -71,4 +71,3 @@ export async function downscale(file: Blob, max = 1200, quality = 0.84): Promise
   return { blob, bitmap: await createImageBitmap(blob) };
 }
 
-export const blobToDataURL = (b: Blob) => new Promise<string>((res) => { const r = new FileReader(); r.onload = () => res(String(r.result)); r.readAsDataURL(b); });
