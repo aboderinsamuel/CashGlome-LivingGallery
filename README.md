@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/assets/banner.jpg" alt="CashGlome: a living money world. Quentin Matsys's The Moneylender and his Wife beside the title." width="100%">
+<img src="docs/assets/banner.png" alt="CashGlome: a living money world. Quentin Matsys's The Moneylender and his Wife beside the title." width="100%">
 
 <br>
 

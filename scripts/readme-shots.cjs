@@ -50,7 +50,9 @@ app.whenReady().then(async () => {
     @font-face { font-family: N; src: url('${fileURL(path.join(fonts, 'newsreader', 'files', 'newsreader-latin-opsz-normal.woff2'))}'); font-weight: 200 800; }
     @font-face { font-family: N; font-style: italic; src: url('${fileURL(path.join(fonts, 'newsreader', 'files', 'newsreader-latin-opsz-italic.woff2'))}'); font-weight: 200 800; }
     @font-face { font-family: G; src: url('${fileURL(path.join(fonts, 'schibsted-grotesk', 'files', 'schibsted-grotesk-latin-wght-normal.woff2'))}'); font-weight: 400 900; }
-    html, body { margin: 0; width: 1600px; height: 640px; background: #0E0A06; overflow: hidden; }
+    /* GitHub strips CSS from READMEs, so the rounded corners are baked into a transparent PNG. */
+    html { margin: 0; background: transparent; }
+    body { margin: 0; position: relative; width: 1600px; height: 640px; background: #0E0A06; overflow: hidden; border-radius: 36px; }
     .art { position: absolute; inset: 0 0 0 auto; width: 980px; background: url('${fileURL(art)}') 60% 35% / cover; filter: saturate(1.05) contrast(1.04); }
     .art::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, #0E0A06 0%, rgba(14,10,6,.86) 22%, rgba(14,10,6,.25) 62%, rgba(14,10,6,.05)), linear-gradient(0deg, rgba(14,10,6,.75), transparent 40%); }
     .grain { position: absolute; inset: 0; opacity: .13; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E"); mix-blend-mode: overlay; }
@@ -71,7 +73,16 @@ app.whenReady().then(async () => {
   win.setContentSize(1600, 640);
   await win.loadURL(fileURL(bannerFile));
   await js('document.fonts.ready.then(() => 1)');
-  await shot('banner.jpg', undefined, 88);
+  await wait(900);
+  const flat = (await win.webContents.capturePage()).toDataURL();
+  // Cut the corners away on a canvas, which keeps transparency.
+  const round = await js(`new Promise((ok) => { const img = new Image(); img.onload = () => {
+    const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const g = c.getContext('2d');
+    g.beginPath(); g.roundRect(0, 0, c.width, c.height, 36); g.clip(); g.drawImage(img, 0, 0); ok(c.toDataURL('image/png'));
+  }; img.src = ${JSON.stringify(flat)}; })`);
+  fs.writeFileSync(path.join(out, 'banner.png'), Buffer.from(round.split(',')[1], 'base64'));
+  console.log('wrote banner.png');
+  if (process.argv.includes('--banner-only')) return app.quit();
 
   // 2. The app, seeded.
   win.setContentSize(1440, 900);
