@@ -42,7 +42,7 @@ Type or say a question in the same box (or press `Ctrl/⌘ K`, or **Ask** in the
 
 ## iPhone and iPad
 
-A native SwiftUI version is in [`ios/`](ios/README.md): open `ios/CashGlome.xcodeproj` in Xcode 26 on a Mac and run. Same categories, parser and Ask engine, built for touch with Liquid Glass, haptics and Swift Charts.
+A native SwiftUI version lives in its own repo, [cashglome/cashglome-ios](https://github.com/cashglome/cashglome-ios): open `CashGlome.xcodeproj` in Xcode 26 on a Mac and run. Same categories, parser and Ask engine, built for touch with Liquid Glass, haptics and Swift Charts.
 
 ## Music
 
@@ -177,3 +177,8 @@ src/views/       Chapter, WhatIf, Shelf, Ledger, Plans, Collection, Settings, Ed
 CashGlome gives general money insights, not licensed financial advice.
 
 The paintings are public-domain reproductions from Wikimedia Commons; credits are listed in Settings → About.
+
+## Related repos
+
+- [cashglome-ios](https://github.com/cashglome/cashglome-ios): the native iPhone and iPad app.
+- [cashglome-site](https://github.com/cashglome/cashglome-site): the landing page.

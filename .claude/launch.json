@@ -2,7 +2,6 @@
   "version": "0.0.1",
   "configurations": [
     { "name": "cashglome-web", "runtimeExecutable": "npx", "runtimeArgs": ["vite", "--port", "5173", "--strictPort"], "port": 5173 },
-    { "name": "cashglome-prod", "runtimeExecutable": "node", "runtimeArgs": ["server.mjs"], "port": 4173 },
-    { "name": "cashglome-site", "runtimeExecutable": "npx", "runtimeArgs": ["vite", "site", "--port", "5180", "--strictPort"], "port": 5180 }
+    { "name": "cashglome-prod", "runtimeExecutable": "node", "runtimeArgs": ["server.mjs"], "port": 4173 }
   ]
 }
