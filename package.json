@@ -12,6 +12,7 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "test:parser": "node scripts/test-parser.mjs",
+    "export:cases": "node scripts/export-cases.mjs",
     "serve": "node server.mjs",
     "desktop": "vite build && electron .",
     "desktop:dev": "node scripts/desktop-dev.mjs",
