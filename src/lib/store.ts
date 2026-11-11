@@ -57,6 +57,9 @@ export type Action =
   | { type: 'removeGoal'; id: string }
   | { type: 'seenBadges'; ids: string[] }
   | { type: 'seenRestored'; month: string; n: number }
+  | { type: 'cash'; pocket: NonNullable<State['cash']>[number] }
+  | { type: 'removeCash'; id: string }
+  | { type: 'refine'; id: string; patch: Partial<Pick<Entry, 'label' | 'category'>> }
   | { type: 'remember'; memory: Memory } // add, or edit (the old version goes into its history)
   | { type: 'forget'; id: string }
   | { type: 'restoreMemory'; id: string }
@@ -107,6 +110,10 @@ export function reducer(s: State, a: Action): State {
     }
     case 'seenBadges': return { ...s, seenBadges: Array.from(new Set([...s.seenBadges, ...a.ids])) };
     case 'seenRestored': return { ...s, seenRestored: { ...s.seenRestored, [a.month]: a.n } };
+    case 'cash': return { ...s, cash: [...(s.cash ?? []).filter((p) => p.id !== a.pocket.id), a.pocket].slice(-20) };
+    case 'removeCash': return { ...s, cash: (s.cash ?? []).filter((p) => p.id !== a.id) };
+    // Muse's better wording for an entry already saved from the on-device reading.
+    case 'refine': return { ...s, entries: s.entries.map((e) => (e.id === a.id && e.source !== 'manual' ? { ...e, ...a.patch, source: 'muse', updatedAt: Date.now() } : e)) };
     case 'merge': {
       const r = a.remote;
       const stamp = (x: { updatedAt?: number; createdAt?: number }) => x.updatedAt ?? x.createdAt ?? 0;

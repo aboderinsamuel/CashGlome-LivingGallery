@@ -1,0 +1,81 @@
+# CASHGLOME — MASTER BRIEF
+
+I'm building CashGlome (cashglome.vercel.app) and I need you locked in.
+I believe in this product, but what exists today doesn't do it justice:
+the UI/UX reads as AI slop, the web app is bad and far worse on phones,
+and the landing page looks amateur. I want an artistic app people can't
+put down and that investors rush toward. Think as long as you need,
+research before designing, test what you build.
+
+## PRODUCT
+
+A private, local-first money diary for cash and bank-transfer economies
+(Nigeria first), where bank-linking apps fail. Three acts: Write, See,
+Ask.
+
+- Write: "bolt 6k, lunch 4.5k, got paid 350k" becomes three entries.
+  Understands k/m, pidgin and slang (danfo, suya), 15 currencies.
+  Voice and receipt photos too.
+- See: each month is a Chapter with a title (e.g. "The Homebody") and a
+  public-domain masterpiece under old varnish. Every entry cleans a
+  patch. Finished paintings hang in the gallery for good.
+- Ask: Muse (cloud AI) only plans the query; the device does every sum
+  exactly and shows its working.
+- Rules we don't bend: entries stay on the device, no account, no ads,
+  no bank login, no guilt, no streaks. Missing a day costs nothing.
+
+## RENAISSANCE THEME (locked; extend it, never replace it)
+
+- Read the existing CSS first and extract the real tokens (colours,
+  fonts, spacing, radii). Treat them as the design system.
+- Parchment base (#EEE6D6), Old Master paintings as the heroes: Bruegel
+  (The Harvesters, Hunters in the Snow, Peasant Wedding, Tower of
+  Babel), van Eyck (Arnolfini Portrait), Matsys (The Moneylender and
+  His Wife), Caravaggio (The Calling of Saint Matthew), and many others.
+  We could have a very, very large library for that later.
+- Serif headlines with one italic word ("Your money, painted."),
+  museum-label captions (artist, title, year), dates in words
+  ("Tuesday, the tenth of November"), a calm and kind voice.
+- Colour comes from the paintings: ochre, umber, lapis, vermilion, gold
+  leaf. Never neon, never red/green guilt charts, no stock gradients,
+  no emoji as icons, no generic card grids.
+- Motion feels physical: varnish lifting, brush strokes, paper, gilt.
+
+## REFERENCES (study before designing; I've attached screenshots I like)
+
+- Pattern libraries: mobbin.com, appllama.io, pageflows.com (flows)
+- Android: Material 3 Expressive and developer.android.com/design
+- Principles: lawsofux.com, Refactoring UI
+- Apps: Telegram and Apple Messages (input physics, inline bubbles),
+  Finch (reward loop), Procreate (tactile wiping), Amie (calm data),
+  Apple Journal (time-aware suggestions), Duolingo (onboarding),
+  Gentler Streak (kind tone), Not Boring apps (craft and haptics),
+  Spotify Wrapped (shareable recap)
+- Landing pages: Linear, Stripe, Arc, plus godly.website and
+  land-book.com, and the YC company directory for packaging
+- Art: Met Open Access, Rijksmuseum, Art Institute of Chicago,
+  Wikimedia Commons (public domain only)
+- Motion: Rive or Lottie
+
+## THE BIG RISK: LOGGING FATIGUE
+
+Nobody will type every expense forever. Design for about one small
+action a day:
+
+1. Auto-capture bank alert notifications, parsed on-device, user taps
+   to confirm. Check current Play policy; notification access first.
+2. Share-to-CashGlome from any bank app's receipt (Android share menu).
+3. Statement catch-up: import a bank statement PDF, parsed on-device.
+4. Cash by balance: "You withdrew ₦20k Monday, how much is left?" The
+   gap is filed as cash spending.
+5. One evening prompt: "What did today cost?"
+6. Recurring entries post themselves after one confirmation.
+7. Quick Settings tile and widget: log by voice without opening the app.
+
+## HOW TO WORK
+
+- Audit first, then give me a written plan. Wait for my go.
+- Design every state: empty, loading, error, offline.
+- Test on 360px and 412px widths with real entry strings. Show me
+  screenshots of every finished screen.
+- If something I asked for is a bad idea, say so and propose better.

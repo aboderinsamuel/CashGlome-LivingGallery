@@ -2,14 +2,14 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState, type ReactNode } from 'react';
 import { CATEGORIES, cat } from '../lib/categories';
 import { money, todayISO } from '../lib/format';
-import { parseOne, splitStory } from '../lib/parser';
+import { parseStory } from '../lib/parser';
 import { isQuestion } from '../lib/ask';
 import { listen, voiceSupport, type Listening } from '../lib/speech';
 import type { Entry, Parsed } from '../lib/types';
 import { Icon } from './Icons';
 
 export interface ComposerHandle { focus: () => void; fill: (t: string) => void; speak: () => void }
-export interface Notice { text: ReactNode; undo?: () => void; art?: string }
+export interface Notice { text: ReactNode; undo?: () => void; art?: string; /** one thing to do about it, e.g. "Yes, write it for me" */ action?: { label: string; run: () => void } }
 interface Props {
   currency: string;
   aiOn: boolean;
@@ -26,13 +26,16 @@ interface Props {
   above?: ReactNode;
   /** "Remember I spend 4k on transport every weekday" goes to Memory instead of the ledger. */
   onRemember?: (text: string) => void;
+  /** Shown in the row above the box while it is empty and nothing else has something to say (one-tap chips). */
+  idle?: ReactNode;
+  onFocusChange?: (focused: boolean) => void;
 }
 
 const HINTS_NG = ['Spent 4,500 on suya', 'Got paid 350k', 'Bolt 6k, data 3k', 'Sent mum 20k'];
 const HINTS = ['Lunch 14', 'Got paid 3,200', 'Uber 18, coffee 6.50', 'Netflix 15.49'];
 const touch = typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches;
 
-export const Composer = forwardRef<ComposerHandle, Props>(function Composer({ currency, aiOn, busy, notice, onSubmit, onCamera, onAsk, usuals = [], onRepeat, above, onRemember }, ref) {
+export const Composer = forwardRef<ComposerHandle, Props>(function Composer({ currency, aiOn, busy, notice, onSubmit, onCamera, onAsk, usuals = [], onRepeat, above, onRemember, idle, onFocusChange }, ref) {
   const [focused, setFocused] = useState(false);
   const [text, setText] = useState('');
   const [over, setOver] = useState<Record<number, Partial<Parsed>>>({});
@@ -69,7 +72,7 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer({ cu
 
   const memo = !!onRemember && /^(please\s+)?(remember|keep in mind|note that|fyi)\b/i.test(text.trim());
   const question = useMemo(() => !memo && isQuestion(text), [text, memo]);
-  const items = useMemo(() => question || memo ? [] : splitStory(text).map(parseOne).filter((p): p is Parsed => !!p).map((p, i) => ({ ...p, ...over[i] })), [text, over, question, memo]);
+  const items = useMemo(() => question || memo ? [] : parseStory(text, { home: currency }).map((p, i) => ({ ...p, ...over[i] })), [text, over, question, memo, currency]);
   const submit = () => {
     if (!text.trim() || busy) return;
     if (memo) { session.current?.stop(); onRemember!(text.trim()); setText(''); return; }
@@ -88,6 +91,7 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer({ cu
           <motion.div key={note ? 'note' : 'n'} className="notice glass" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 6 }} transition={{ type: 'spring', stiffness: 420, damping: 32 }}>
             {'art' in shown && shown.art && <img src={shown.art} alt="" className="notice-art" />}
             <span>{shown.text}</span>
+            {'action' in shown && shown.action && <button className="notice-undo notice-do" onClick={shown.action.run}>{shown.action.label}</button>}
             {'undo' in shown && shown.undo && <button className="notice-undo" onClick={shown.undo}>Undo</button>}
           </motion.div>
         )}
@@ -99,6 +103,9 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer({ cu
               </button>
             ))}
           </motion.div>
+        )}
+        {idle && !shown && !text && !listening && (
+          <motion.div key="idle" className="preview idle" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }}>{idle}</motion.div>
         )}
         {memo && (
           <motion.div key="m" className="preview" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }}>
@@ -147,8 +154,8 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer({ cu
           placeholder={placeholder}
           aria-label="Write what came in or went out"
           onChange={(e) => setText(e.target.value)}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
+          onFocus={() => { setFocused(true); onFocusChange?.(true); }}
+          onBlur={() => { setFocused(false); onFocusChange?.(false); }}
           onPaste={(e) => { const f = [...e.clipboardData.files].find((x) => x.type.startsWith('image/')); if (f) { e.preventDefault(); onCamera(f); } }}
           onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(); } if (e.key === 'Escape') { session.current?.stop(); setText(''); ta.current?.blur(); } }}
         />
@@ -159,7 +166,7 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer({ cu
           </button>
         )}
         <button className="send" disabled={!text.trim() || busy} onClick={submit} aria-label={question ? 'Ask' : 'Add'}>
-          {busy ? <motion.span animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.9, ease: 'linear' }} style={{ width: 15, height: 15, border: '2px solid currentColor', borderRightColor: 'transparent', borderRadius: 8, display: 'block' }} /> : <Icon.up size={17} />}
+          {busy ? <span className="brushing" aria-label="Reading"><i /><i /><i /></span> : <Icon.up size={17} />}
         </button>
       </div>
       <input ref={fileIn} type="file" accept="image/*" capture="environment" hidden onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) onCamera(f); }} />

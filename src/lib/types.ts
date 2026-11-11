@@ -97,6 +97,8 @@ export interface State {
   routineLog: Record<string, RoutineMark>; // "<memory id>@<YYYY-MM-DD>"
   /** Entries and goals deleted on this device, so a sync can delete them everywhere. */
   gone: { kind: 'entry' | 'goal'; id: string; at: number }[];
+  /** Cash taken out and not yet accounted for: asked about later, the gap filed as cash spending. */
+  cash?: { id: string; amount: number; left: number; date: string; askedOn?: string; closed?: boolean }[];
 }
 
 export interface Parsed {
@@ -109,4 +111,6 @@ export interface Parsed {
   confidence: number;
   text: string;
   source: 'oracle' | 'muse';
+  /** Set when the text names a currency ("4,000 naira", "$20"), which may not be the person's own. */
+  currency?: string;
 }

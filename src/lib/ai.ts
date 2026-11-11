@@ -139,16 +139,22 @@ Rules: one item per distinct money movement. "dir" is "in" when the user receive
   return res;
 }
 
-/** Best available reading: Muse when connected, the offline Oracle otherwise or on failure. */
+/** Best available reading: Muse when connected, the offline Oracle otherwise or on failure.
+ *  What the person saw under the box while typing is the Oracle's reading, so that is what gets saved:
+ *  when Muse finds the same amounts, the Oracle keeps the last word on in or out, and Muse adds the wording. */
 export async function readMoney(s: Settings, text: string, currency: string): Promise<{ items: Parsed[]; engine: 'muse' | 'oracle'; error?: string }> {
+  const seen = parseStory(text, { home: currency });
   if (aiEnabled(s)) {
     try {
-      return { items: await museParse(s, text, currency), engine: 'muse' };
+      const muse = await museParse(s, text, currency);
+      const same = muse.length === seen.length && muse.every((m, i) => Math.abs(m.amount - seen[i].amount) < 0.005);
+      const items = same ? muse.map((m, i) => (m.dir === seen[i].dir ? { ...m, currency: seen[i].currency } : { ...m, dir: seen[i].dir, category: seen[i].category, currency: seen[i].currency })) : muse;
+      return { items, engine: 'muse' };
     } catch (e) {
-      return { items: parseStory(text), engine: 'oracle', error: (e as Error).message };
+      return { items: seen, engine: 'oracle', error: (e as Error).message };
     }
   }
-  return { items: parseStory(text), engine: 'oracle' };
+  return { items: seen, engine: 'oracle' };
 }
 
 export async function testConnection(s: Settings) {

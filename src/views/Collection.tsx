@@ -14,6 +14,7 @@ import type { Entry } from '../lib/types';
 /** The gallery: one painting per month on a salon wall, the candle, your rank and the sticker book. */
 export function Collection({ state, onOpen, onCamera }: { state: State; onOpen: (month: string) => void; onCamera: () => void }) {
   const ref = useRef<HTMLDivElement>(null);
+  const phone = document.documentElement.dataset.phone !== undefined;
   const calm = state.settings.calm;
   const xp = xpOf(state.entries);
   const lv = levelOf(xp);
@@ -33,6 +34,16 @@ export function Collection({ state, onOpen, onCamera }: { state: State; onOpen: 
 
   return (
     <div className="page" ref={ref}>
+      {phone ? (
+        /* On a phone the gallery is only what hangs in it: no ranks, no points, no days in a row. */
+        <div>
+          <div className="kicker"><span style={{ font: 'italic 400 17px var(--serif)', color: 'var(--gold)' }}>The gallery</span></div>
+          <h1 className="display" style={{ marginTop: 10 }}>{months.length === 1 ? 'One painting' : `${months.length} paintings`}, <em>yours</em>.</h1>
+          <p className="lede" style={{ marginTop: 14 }}>
+            {done ? `${done} fully restored. ` : ''}{state.entries.length} {state.entries.length === 1 ? 'line' : 'lines'} written over {daysWritten} {daysWritten === 1 ? 'day' : 'days'}. A finished painting hangs here for good.
+          </p>
+        </div>
+      ) : (<>
       <div className="two-col" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 40, alignItems: 'end' }}>
         <div>
           <div className="kicker"><span style={{ font: 'italic 400 17px var(--serif)', color: 'var(--gold)' }}>The gallery</span></div>
@@ -63,6 +74,8 @@ export function Collection({ state, onOpen, onCamera }: { state: State; onOpen: 
           </div>
         ))}
       </div>
+
+      </>)}
 
       {/* The salon wall */}
       <section className="section">

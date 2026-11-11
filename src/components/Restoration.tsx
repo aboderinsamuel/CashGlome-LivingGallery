@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { artSet, artSrc, COLS, PATCHES, ROWS, type Painting, type Restoration } from '../lib/art';
 import { cellMask, varnish, varnishNow } from '../lib/varnish';
 
@@ -19,7 +19,7 @@ export function warmPlate(painting: Painting, ratio = 4 / 5) {
   varnish(painting.id, W, H, ax, ay).catch(() => {});
 }
 
-export function RestorationPlate({ painting, r, seen, ratio = 4 / 5, drift = true, calm }: { painting: Painting; r: Restoration; seen: number; ratio?: number; drift?: boolean; calm?: boolean }) {
+export function RestorationPlate({ painting, r, seen, ratio = 4 / 5, drift = true, calm, lead = 0.6 }: { painting: Painting; r: Restoration; seen: number; ratio?: number; drift?: boolean; calm?: boolean; /** seconds before the first waiting patch lifts */ lead?: number }) {
   const W = 900, H = Math.round(W / ratio);
   const [fx, fy] = painting.focus.split(' ').map((v) => parseFloat(v));
   const ax = fx < 35 ? 0 : fx > 65 ? 1 : 0.5, ay = fy < 35 ? 0 : fy > 65 ? 1 : 0.5;
@@ -35,6 +35,10 @@ export function RestorationPlate({ painting, r, seen, ratio = 4 / 5, drift = tru
   // The base layer already has the fresh patches cleaned; each fresh patch gets its own varnish layer that fades away.
   const dirty = useMemo(() => cellMask(r.order.slice(r.restored)), [r.order, r.restored]);
   const step = Math.min(0.35, 6 / Math.max(1, fresh.length)); // a big catch-up still finishes in a few seconds
+  // Patches waiting when the plate appears lift one after another; a patch earned while you watch lifts at once.
+  const waiting = useRef<Set<number> | null>(null);
+  if (!waiting.current) waiting.current = new Set(fresh);
+  const wait = (i: number, k: number) => (waiting.current!.has(i) ? lead + k * step : 0.04);
   const pos = `${ax * 100}% ${ay * 100}%`;
   const src = artSrc(painting.id, 'md');
   const layer = (mask: string): CSSProperties => ({ objectPosition: pos, WebkitMaskImage: `url(${mask})`, maskImage: `url(${mask})` });
@@ -48,13 +52,13 @@ export function RestorationPlate({ painting, r, seen, ratio = 4 / 5, drift = tru
         <img src={src} srcSet={artSet(painting.id)} sizes="(max-width: 860px) 100vw, 40vw" alt="" className="plate-img" style={{ objectPosition: pos }} decoding="async" draggable={false} />
         {r.restored < PATCHES && varnishImg(dirty)}
         {fresh.map((i, k) => (
-          <motion.div key={'v' + i} className="plate-layer" initial={{ opacity: 1 }} animate={{ opacity: 0 }} transition={{ delay: 0.6 + k * step, duration: 1.1, ease: 'easeInOut' }}>
+          <motion.div key={'v' + i} className="plate-layer" initial={{ opacity: 1 }} animate={{ opacity: 0 }} transition={{ delay: wait(i, k), duration: 1.1, ease: 'easeInOut' }}>
             {varnishImg(cellMask([i]))}
           </motion.div>
         ))}
         {fresh.map((i, k) => (
           <motion.div key={'s' + i} className="plate-shine" style={{ left: `${(i % COLS) * (100 / COLS)}%`, top: `${Math.floor(i / COLS) * (100 / ROWS)}%`, width: `${100 / COLS}%`, height: `${100 / ROWS}%` }}
-            initial={{ opacity: 0 }} animate={{ opacity: [0, 1, 0] }} transition={{ delay: 0.6 + k * step, duration: 1.4 }} />
+            initial={{ opacity: 0 }} animate={{ opacity: [0, 1, 0] }} transition={{ delay: wait(i, k), duration: 1.4 }} />
         ))}
       </div>
     </div>

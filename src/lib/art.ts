@@ -34,8 +34,20 @@ const BY_CHARACTER: Record<string, string> = {
   beginner: 'hare', saver: 'moneylender', overreacher: 'icarus', host: 'wedding', giver: 'magi', homebody: 'arnolfini',
   commuter: 'census', collector: 'gisze', subscriber: 'matthew', nightowl: 'carnival', risktaker: 'cardsharps', explorer: 'hunters', student: 'athens',
 };
-/** The painting a month is restored into: chosen by who you were that month. */
+const HUNG_BY_CALENDAR_FROM = '2026-11';
+/** January to December: snow scenes in winter, harvest in August, the counting-house when the year's books close. */
+const CALENDAR = ['census', 'arnolfini', 'babel', 'athens', 'wedding', 'icarus', 'goldsmith', 'harvesters', 'gisze', 'matthew', 'moneylender', 'hunters'];
+/** Odd years swap in the paintings the calendar leaves out, so two years bring all sixteen. */
+const ALTERNATE: (string | undefined)[] = ['magi', 'carnival', undefined, undefined, undefined, 'cardsharps', undefined, undefined, 'hare', undefined, undefined, undefined];
+/** The painting a month is restored into. */
 export function paintingOf(s: Stats): Painting {
+  // From November 2026 a month has one painting from its first day to its last, hung by the calendar.
+  // (Before, it followed the month's character, so it could change under you as you wrote. Months written
+  // under that rule keep the painting they were given.)
+  if (s.month >= HUNG_BY_CALENDAR_FROM) {
+    const y = Number(s.month.slice(0, 4)), m = Number(s.month.slice(5, 7)) - 1;
+    return PAINTINGS[(y % 2 ? ALTERNATE[m] : undefined) ?? CALENDAR[m]];
+  }
   return PAINTINGS[BY_CHARACTER[characterOf(s).id] ?? 'moneylender'];
 }
 

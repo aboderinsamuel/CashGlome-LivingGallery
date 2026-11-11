@@ -242,3 +242,4 @@ select.field { appearance: none; padding-right: 28px; background-image: url("dat
 input[type='number']::-webkit-inner-spin-button, input[type='number']::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 /* Long ledgers: days off screen are not laid out or painted until you scroll to them. */
 .day-group { content-visibility: auto; contain-intrinsic-size: auto 260px; }
+.sheet-done { display: none; }

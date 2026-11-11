@@ -58,7 +58,7 @@ export const CATEGORIES: Category[] = [
   { id: 'craft', name: 'Freelance & creator', short: 'Freelance', color: '#D9472B', ink: '#FFF6EA', dir: 'in', nature: 'income', sticker: 'palette',
     words: ['freelance','gig','client','brand deal','sponsorship','sponsor','youtube','adsense','tiktok','creator fund','commission','contract','upwork','fiverr','design job','project payment','consulting','royalties','affiliate','ugc','logo','design','designs','website','photoshoot','shoot','editing','video edit','tutoring','lesson','lessons','side hustle','hustle','article','writing','job','jobs','session','sessions'] },
   { id: 'blessing', name: 'Gifts received', short: 'Gifts', color: '#D98BA0', ink: '#1E1B16', dir: 'in', nature: 'income', sticker: 'heart',
-    words: ['gift','gave me','sent me','birthday money','allowance','pocket money','blessing','dash','spraying','sprayed','from mom','from dad','from mum'] },
+    words: ['gift','gifted','dashed','gave me','sent me','birthday money','allowance','pocket money','blessing','dash','spraying','sprayed','from mom','from dad','from mum'] },
   { id: 'harvest', name: 'Returns & interest', short: 'Returns', color: '#B8B05A', ink: '#1E1B16', dir: 'in', nature: 'income', sticker: 'sprout',
     words: ['interest','dividend','dividends','returns','roi','yield','matured','staking','profit from investment'] },
   { id: 'refund', name: 'Refunds', short: 'Refunds', color: '#98AADE', ink: '#1E1B16', dir: 'in', nature: 'income', sticker: 'coin',

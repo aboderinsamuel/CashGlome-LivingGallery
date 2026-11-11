@@ -29,7 +29,8 @@ export function SettingsSheet({ state, dispatch, close, initial = 'general' }: {
     <motion.div className="scrim" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onMouseDown={(e) => e.target === e.currentTarget && close()}>
       <motion.div className="sheet glass" role="dialog" aria-label="Settings" initial={{ opacity: 0, scale: 0.96, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.97 }} transition={{ type: 'spring', stiffness: 380, damping: 32 }}>
         <nav className="sheet-nav" style={{ display: 'flex', flexDirection: 'column', gap: 2, padding: '14px 10px', borderRight: '1px solid var(--line)', background: 'var(--fill)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '2px 6px 14px' }}>
+          <button className="sheet-done" onClick={close}>Done</button>
+          <div className="sheet-lights" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '2px 6px 14px' }}>
             <button onClick={close} aria-label="Close" style={{ width: 12, height: 12, borderRadius: 6, background: '#FF5F57', boxShadow: 'inset 0 0 0 .5px rgba(0,0,0,.2)' }} />
             <span style={{ width: 12, height: 12, borderRadius: 6, background: 'var(--fill-2)' }} />
             <span style={{ width: 12, height: 12, borderRadius: 6, background: 'var(--fill-2)' }} />
@@ -57,7 +58,7 @@ export function SettingsSheet({ state, dispatch, close, initial = 'general' }: {
 
 function Group({ children, note }: { children: ReactNode; note?: ReactNode }) {
   return (
-    <div style={{ marginBottom: 20 }}>
+    <div className="set-group" style={{ marginBottom: 20 }}>
       <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 12, overflow: 'hidden' }}>{children}</div>
       {note && <div className="small" style={{ padding: '7px 4px 0', lineHeight: 1.45 }}>{note}</div>}
     </div>
@@ -65,9 +66,9 @@ function Group({ children, note }: { children: ReactNode; note?: ReactNode }) {
 }
 function Row({ label, children, sub }: { label: ReactNode; children?: ReactNode; sub?: ReactNode }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 16, minHeight: 44, padding: '8px 14px', borderTop: '1px solid var(--line)', marginTop: -1 }}>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 13 }}>{label}</div>
+    <div className="set-row" style={{ display: 'flex', alignItems: 'center', gap: 16, minHeight: 44, padding: '8px 14px', borderTop: '1px solid var(--line)', marginTop: -1 }}>
+      <div className="set-row-text" style={{ flex: 1, minWidth: 0 }}>
+        <div className="set-row-label" style={{ fontSize: 13 }}>{label}</div>
         {sub && <div className="small" style={{ marginTop: 2 }}>{sub}</div>}
       </div>
       {children}
@@ -76,7 +77,7 @@ function Row({ label, children, sub }: { label: ReactNode; children?: ReactNode;
 }
 function Toggle({ on, set, label }: { on: boolean; set: (v: boolean) => void; label: string }) {
   return (
-    <button role="switch" aria-checked={on} aria-label={label} onClick={() => set(!on)} style={{ width: 38, height: 22, borderRadius: 11, background: on ? '#34C759' : 'var(--fill-2)', position: 'relative', transition: 'background .2s', flex: 'none' }}>
+    <button className="set-toggle" role="switch" aria-checked={on} aria-label={label} onClick={() => set(!on)} style={{ width: 38, height: 22, borderRadius: 11, background: on ? '#34C759' : 'var(--fill-2)', position: 'relative', transition: 'background .2s', flex: 'none' }}>
       <motion.span animate={{ x: on ? 16 : 0 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} style={{ position: 'absolute', top: 2, left: 2, width: 18, height: 18, borderRadius: 9, background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,.25)' }} />
     </button>
   );
@@ -110,7 +111,7 @@ function Reminder({ state, dispatch }: { state: State; dispatch: (a: Action) => 
   };
   return (
     <Group note={denied ? 'Notifications are blocked for CashGlome. Allow them in your browser or system settings to get the reminder.' : 'One quiet note a day, only if your candle is still unlit. Nothing on days you have already written.'}>
-      <Row label="Evening reminder" sub="Keeps your candle from going out."><Toggle label="Evening reminder" on={r.on && !denied} set={set} /></Row>
+      <Row label="Evening reminder" sub="One quiet question in the evening: what did today cost?"><Toggle label="Evening reminder" on={r.on && !denied} set={set} /></Row>
       {r.on && !denied && (
         <Row label="Remind me at">
           <input className="field" type="time" style={{ width: 120 }} value={r.time} onChange={(e) => dispatch({ type: 'settings', patch: { reminder: { ...r, time: e.target.value || '21:00' } } })} />

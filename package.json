@@ -11,6 +11,7 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
+    "test:parser": "node scripts/test-parser.mjs",
     "serve": "node server.mjs",
     "desktop": "vite build && electron .",
     "desktop:dev": "node scripts/desktop-dev.mjs",

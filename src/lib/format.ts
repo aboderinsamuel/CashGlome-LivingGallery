@@ -18,6 +18,11 @@ export const CURRENCIES: { code: string; name: string; flag: string; scale: numb
 
 export function guessCurrency(): string {
   try {
+    // Where the phone is says more than its language: most phones in Lagos are set to US English.
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+    const zones: [RegExp, string][] = [[/^Africa\/Lagos$/, 'NGN'], [/^Africa\/Nairobi$/, 'KES'], [/^Africa\/Accra$/, 'GHS'], [/^Africa\/Johannesburg$/, 'ZAR'], [/^Africa\/Cairo$/, 'EGP'], [/^Asia\/(Kolkata|Calcutta)$/, 'INR'], [/^Asia\/Tokyo$/, 'JPY'], [/^Asia\/Dubai$/, 'AED'], [/^America\/(Sao_Paulo|Bahia|Fortaleza|Recife|Manaus)$/, 'BRL'], [/^America\/(Mexico_City|Monterrey|Cancun|Tijuana)$/, 'MXN'], [/^America\/(Toronto|Vancouver|Edmonton|Winnipeg|Halifax)$/, 'CAD'], [/^Australia\//, 'AUD'], [/^Europe\/London$/, 'GBP']];
+    const byZone = zones.find(([re]) => re.test(tz))?.[1];
+    if (byZone) return byZone;
     const loc = navigator.language || 'en-US';
     const region = loc.split('-')[1]?.toUpperCase();
     const map: Record<string, string> = { NG: 'NGN', US: 'USD', GB: 'GBP', CA: 'CAD', AU: 'AUD', KE: 'KES', GH: 'GHS', ZA: 'ZAR', IN: 'INR', JP: 'JPY', BR: 'BRL', MX: 'MXN', AE: 'AED', EG: 'EGP', DE: 'EUR', FR: 'EUR', ES: 'EUR', IT: 'EUR', NL: 'EUR', IE: 'EUR', PT: 'EUR' };

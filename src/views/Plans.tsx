@@ -101,7 +101,7 @@ export function Plans({ state, dispatch }: { state: State; dispatch: (a: Action)
         <div className="card" style={{ padding: 8, display: 'flex', gap: 8, alignItems: 'center' }}>
           <input className="field" style={{ border: 0, height: 44, fontSize: 16, font: '400 19px var(--serif)', background: 'transparent', boxShadow: 'none' }} placeholder="Ask about your money…" value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && ask()} />
           <button className="send" onClick={ask} disabled={!q.trim() || asking} aria-label="Ask">
-            {asking ? <motion.span animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.9, ease: 'linear' }} style={{ width: 16, height: 16, border: '2px solid currentColor', borderRightColor: 'transparent', borderRadius: 8, display: 'block' }} /> : <Icon.up size={18} />}
+            {asking ? <span className="brushing" aria-label="Thinking"><i /><i /><i /></span> : <Icon.up size={18} />}
           </button>
         </div>
         <AnimatePresence mode="wait">

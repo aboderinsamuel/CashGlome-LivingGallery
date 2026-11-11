@@ -35,6 +35,13 @@ import { MemoryView } from './views/Memory';
 import { CheckIns, type CheckIn } from './components/CheckIns';
 import { describeMemory, dueRoutines, pendingRoutines, readMemory, routineEntry } from './lib/memory';
 import { useCloudSync, useSyncStatus } from './lib/useCloud';
+import { museParse } from './lib/ai';
+import { parseStory } from './lib/parser';
+import { CashCard, Chips, PhoneApp } from './phone/PhoneApp';
+import { PhoneWelcome } from './phone/PhoneWelcome';
+import { haptic, useKeyboardViewport, useOnline, usePhone } from './phone/device';
+import { WITHDRAWAL, cashEntry, dueCash, markOffered, newPocket, recurringOffer, routineFrom } from './phone/moments';
+import { daysPhrase } from './lib/memory';
 
 const TITLES: Record<View, string> = { chapter: 'Chapter', shelf: 'All chapters', ledger: 'Ledger', plans: 'Plans', memory: 'Memory', collection: 'Gallery' };
 const isMac = /Mac|iPhone|iPad/.test(navigator.platform) || window.glome?.platform === 'darwin';
@@ -62,6 +69,9 @@ export default function App() {
   const cur = state.profile.currency;
   const ai = aiEnabled(state.settings);
   const desk = useDesktopMode();
+  const phone = usePhone();
+  useKeyboardViewport(phone);
+  const online = useOnline();
   const openSettings = useCallback((p: Pane = 'general') => setSettingsPane(p), []);
 
   // ——— Account & sync: in the background while signed in ———
@@ -80,8 +90,8 @@ export default function App() {
   const theme = state.settings.theme === 'auto' || !state.settings.theme ? (systemDark ? 'dark' : 'light') : state.settings.theme;
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'dark' ? '#14110D' : '#F6F2E8');
-  }, [theme]);
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'dark' ? (phone ? '#17120C' : '#14110D') : phone ? '#EEE6D6' : '#F6F2E8');
+  }, [theme, phone]);
   useEffect(() => setSound(state.settings.sound), [state.settings.sound]);
   // Back from Spotify's sign-in page (web): finish linking, then show the Music pane.
   useEffect(() => { finishSpotifyLink().then((ok) => ok && setSettingsPane('music')).catch(() => setSettingsPane('music')); }, []);
@@ -156,12 +166,12 @@ export default function App() {
       if (now.getHours() * 60 + now.getMinutes() < h * 60 + m) return;
       const key = 'cg-reminded';
       try { if (localStorage.getItem(key) === todayISO()) return; localStorage.setItem(key, todayISO()); } catch { /* still remind */ }
-      new Notification(candle.streak ? `Your ${candle.streak}-day candle is still unlit` : 'One line lights your candle', { body: 'Write what came in or went out today. One line is enough.', icon: './icon.png', silent: true });
+      new Notification('What did today cost?', { body: 'One line is enough. Skipping a day costs nothing.', icon: './icon.png', silent: true });
     };
     check();
     const t = setInterval(check, 60000);
     return () => clearInterval(t);
-  }, [state.settings.reminder, candle.litToday, candle.streak]);
+  }, [state.settings.reminder, candle.litToday]);
 
   // ——— Routines: written down for you, or asked about with one tap ———
   const latest = useRef(state);
@@ -213,7 +223,9 @@ export default function App() {
     const gilded = entries.some(isGilded);
     dispatch({ type: 'addEntries', entries });
     const first = entries[0];
-    if (gained > 0 || opts.hung) sfx.restore(); else if (first.dir === 'in') sfx.income(); else if (cat(first.category).nature === 'save') sfx.vault(); else sfx.spend();
+    // On a phone every line is one brush stroke you can hear and feel; a patch lifting gets a second.
+    if (phone) { sfx.brush(gained > 0 || !!opts.hung); haptic(gained > 0 ? 'lift' : 'tap'); }
+    else if (gained > 0 || opts.hung) sfx.restore(); else if (first.dir === 'in') sfx.income(); else if (cat(first.category).nature === 'save') sfx.vault(); else sfx.spend();
     const ids = entries.map((e) => e.id);
     const outSum = entries.filter((e) => e.dir === 'out').reduce((a, e) => a + e.amount, 0);
     const inSum = entries.filter((e) => e.dir === 'in').reduce((a, e) => a + e.amount, 0);
@@ -230,9 +242,54 @@ export default function App() {
       </>,
       undo: () => { ids.forEach((id) => dispatch({ type: 'remove', id })); setNotice(null); },
     });
-  }, [state.entries, state.month, cur, dispatch]);
+  }, [state.entries, state.month, cur, dispatch, phone]);
+
+  /** After the third "Lunch 2,500", offer once to let it write itself. */
+  const offerRoutine = useCallback((just: Entry) => {
+    const offer = recurringOffer(latest.current, just);
+    if (!offer) return;
+    markOffered(offer.label);
+    setTimeout(() => setNotice({
+      text: <>You’ve written <b>{offer.label}</b> a few times. Let it write itself {daysPhrase(offer.days)}?</>,
+      action: { label: 'Yes', run: () => {
+        const m = routineFrom(offer);
+        dispatch({ type: 'remember', memory: m });
+        haptic('done');
+        setNotice({ text: <><b>{offer.label}</b> will write itself {daysPhrase(offer.days)}, starting tomorrow.</>, undo: () => { dispatch({ type: 'purgeMemory', id: m.id }); setNotice(null); } });
+      } },
+    }), 3200);
+  }, [dispatch]);
+
+  /** Phone: what the chips showed is saved the moment you send. Muse only improves the wording afterwards. */
+  const submitNow = useCallback((text: string, overrides: Record<number, Partial<Parsed>>) => {
+    const seen = parseStory(text, { home: cur }).map((p, i) => ({ ...recall(p), ...overrides[i] }));
+    seen.forEach((p, i) => { if (overrides[i]?.category) learn(p.label, p.category); });
+    if (!seen.length) { setNotice({ text: 'No amount in that. Try “Lunch 2,500” or “Got paid 350k”.' }); return; }
+    // Cash taken out is not spending yet: it becomes a pocket to ask about later.
+    const isCash = (p: Parsed) => WITHDRAWAL.test(p.text) && !/\b(charge|fee)s?\b/i.test(p.text);
+    const pockets = seen.filter(isCash).map((p) => newPocket(p.amount, p.date));
+    pockets.forEach((pocket) => dispatch({ type: 'cash', pocket }));
+    const kept = seen.map((p, i) => ({ p, i })).filter(({ p }) => !isCash(p));
+    const entries = kept.map(({ p }) => toEntry(p));
+    if (entries.length) { commit(entries); offerRoutine(entries[0]); }
+    else if (pockets.length) {
+      haptic();
+      setNotice({ text: <>Noted <b className="num">{money(pockets.reduce((a, x) => a + x.amount, 0), cur)}</b> in cash. I’ll ask what’s left in a day or two.</>, undo: () => { pockets.forEach((x) => dispatch({ type: 'removeCash', id: x.id })); setNotice(null); } });
+    }
+    if (ai && entries.length && navigator.onLine !== false) {
+      museParse(state.settings, text, cur).then((muse) => {
+        if (muse.length !== seen.length || muse.some((m, i) => Math.abs(m.amount - seen[i].amount) > 0.005)) return;
+        kept.forEach(({ p, i }, k) => {
+          const m = muse[i];
+          const patch = { label: m.label, ...(m.dir === p.dir && !overrides[i]?.category && recall(p).category === p.category ? { category: m.category } : {}) };
+          dispatch({ type: 'refine', id: entries[k].id, patch });
+        });
+      }).catch(() => { /* the on-device reading stands */ });
+    }
+  }, [cur, ai, state.settings, commit, dispatch, offerRoutine]);
 
   const submit = useCallback(async (text: string, overrides: Record<number, Partial<Parsed>>) => {
+    if (phone) { submitNow(text, overrides); return; }
     setBusy(true);
     try {
       const res = await readMoney(state.settings, text, cur);
@@ -242,7 +299,28 @@ export default function App() {
       if (!items.length) { setNotice({ text: 'No amount in that. Try “Lunch 14” or “Got paid 3,200”.' }); return; }
       commit(items.map(toEntry), { error: res.error });
     } finally { setBusy(false); }
-  }, [state.settings, cur, commit]);
+  }, [state.settings, cur, commit, phone, submitNow]);
+
+  // ——— Shared from another app (Android share menu): a bank receipt or alert lands in the box, read and ready ———
+  useEffect(() => {
+    if (!state.profile.onboarded) return;
+    const q = new URLSearchParams(location.search);
+    const shared = [q.get('text'), q.get('title')].filter(Boolean).join('\n').trim();
+    if (!shared) return;
+    history.replaceState(null, '', location.pathname);
+    setViewRaw('chapter');
+    setTimeout(() => composer.current?.fill(shared.slice(0, 2000)), 300);
+  }, [state.profile.onboarded]);
+
+  // ——— Cash by balance ———
+  const cashDue = useMemo(() => (phone ? dueCash(state) : null), [phone, state]);
+  const answerCash = useCallback((left: number) => {
+    if (!cashDue) return;
+    const gap = cashDue.left - left;
+    dispatch({ type: 'cash', pocket: { ...cashDue, left, askedOn: todayISO(), closed: left <= 0 } });
+    if (gap > 0) commit([cashEntry(gap, cashDue, left)]);
+    else { haptic(); setNotice({ text: 'Nothing spent from it yet. I’ll ask again another day.' }); }
+  }, [cashDue, commit, dispatch]);
 
   const answerCheckIn = useCallback((c: CheckIn, yes: boolean, amount?: number) => {
     dispatch({ type: 'mark', key: c.key, mark: yes ? 'done' : 'skipped' });
@@ -317,6 +395,22 @@ export default function App() {
     return () => window.removeEventListener('keydown', k);
   }, [edition, state.month, setMonth, setView, openSettings]);
 
+  if (!state.profile.onboarded && phone) {
+    return (
+      <PhoneWelcome initialCurrency={cur}
+        onStart={(currency, first) => {
+          dispatch({ type: 'onboard', name: '', currency });
+          dispatch({ type: 'addEntries', entries: first.map(toEntry) });
+          sfx.brush(true);
+          prevLen.current = Number.MAX_SAFE_INTEGER;
+        }}
+        onSample={(currency) => {
+          dispatch({ type: 'onboard', name: '', currency });
+          dispatch({ type: 'addEntries', entries: demoEntries(currency) });
+          prevLen.current = Number.MAX_SAFE_INTEGER;
+        }} />
+    );
+  }
   if (!state.profile.onboarded) {
     return (
       <>
@@ -396,6 +490,29 @@ export default function App() {
     </div>
   );
 
+  const phoneWindow = phone && (
+    <PhoneApp
+      state={state} dispatch={dispatch} view={view} setView={setView} setMonth={setMonth} museChapter={muse[state.month] ?? null} online={online}
+      onAsk={() => setAsk({ first: null })} onEdition={() => setEdition(true)} onShare={() => setSharing(true)} onSettings={() => openSettings()} onMusic={() => openSettings('music')}
+      composer={
+        <Composer ref={composer} currency={cur} aiOn={ai} busy={busy} notice={notice} onSubmit={submit} onCamera={(file) => setCapture({ file: file ?? null })} onAsk={(q) => setAsk({ first: q })} onRemember={remember}
+          idle={<Chips state={state} onRepeat={repeat} onFill={(t) => composer.current?.fill(t)} />}
+          above={<>
+            <AnimatePresence>{cashDue && <CashCard key={cashDue.id} pocket={cashDue} cur={cur} onAnswer={answerCash} onLater={() => dispatch({ type: 'cash', pocket: { ...cashDue, askedOn: todayISO() } })} />}</AnimatePresence>
+            {!cashDue && <CheckIns list={checkins} cur={cur} onYes={(c, a) => answerCheckIn(c, true, a)} onNo={(c) => answerCheckIn(c, false)} onAllYes={allYes} />}
+          </>} />
+      }
+      pages={{
+        ledger: <Ledger state={state} dispatch={dispatch} filter={filter} setFilter={setFilter} query={query} onAttach={(e) => setCapture({ file: null, attach: e })} />,
+        collection: <Collection state={state} onOpen={(m) => { setMonth(m); setView('chapter'); }} onCamera={() => setCapture({ file: null })} />,
+        read: <Chapter state={state} dispatch={dispatch} museChapter={muse[state.month] ?? null} onOpenCategory={(id) => { setFilter(id); setView('ledger'); }} onEdition={() => setEdition(true)} onWrite={(h) => composer.current?.fill(h ?? '')} onPlans={goView('plans')} onGallery={goView('collection')} onSay={() => composer.current?.speak()} onSnap={() => setCapture({ file: null })} onShare={() => setSharing(true)} />,
+        plans: <Plans state={state} dispatch={dispatch} />,
+        memory: <MemoryView state={state} dispatch={dispatch} notify={(text, undo) => setNotice({ text, undo: undo ? () => { undo(); setNotice(null); } : undefined })} />,
+        shelf: <Shelf state={state} months={months} onOpen={(m) => { setMonth(m); setView('chapter'); }} />,
+      }}
+    />
+  );
+
   const menus: Menu[] = [
     { title: '', items: [
       { label: 'About CashGlome', action: () => openSettings('about') },
@@ -460,7 +577,7 @@ export default function App() {
   return (
     <MotionConfig reducedMotion={state.settings.calm ? 'always' : 'user'}>
       <StickerDefs />
-      {desk ? <Desktop state={state} menus={menus} aiOn={ai} onDock={onDock} active={active}>{appWindow}</Desktop> : appWindow}
+      {phoneWindow || (desk ? <Desktop state={state} menus={menus} aiOn={ai} onDock={onDock} active={active}>{appWindow}</Desktop> : appWindow)}
 
       <AnimatePresence>
         {settings && <SettingsSheet key="settings" state={state} dispatch={dispatch} initial={settings} close={() => setSettingsPane(null)} />}
