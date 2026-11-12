@@ -1,6 +1,6 @@
 {
- "version": 1,
- "count": 357,
+ "version": 2,
+ "count": 616,
  "cases": [
   {
    "group": "shorthand",
@@ -3919,6 +3919,2797 @@
     {
      "dir": "in",
      "amount": 500
+    }
+   ]
+  },
+  {
+   "group": "spanish",
+   "text": "almuerzo 120",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 120
+    }
+   ]
+  },
+  {
+   "group": "spanish",
+   "text": "taxi 80, café 45",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 80
+    },
+    {
+     "dir": "out",
+     "amount": 45
+    }
+   ]
+  },
+  {
+   "group": "spanish",
+   "text": "me pagaron 15000",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 15000
+    }
+   ]
+  },
+  {
+   "group": "spanish",
+   "text": "cobré 800 del cliente",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 800
+    }
+   ]
+  },
+  {
+   "group": "spanish",
+   "text": "recibí 200 de Ana",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 200
+    }
+   ]
+  },
+  {
+   "group": "spanish",
+   "text": "mi mamá me mandó 500",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 500
+    }
+   ]
+  },
+  {
+   "group": "spanish",
+   "text": "le mandé 500 a mi mamá",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 500
+    }
+   ]
+  },
+  {
+   "group": "spanish",
+   "text": "pagué la renta 8000",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 8000
+    }
+   ]
+  },
+  {
+   "group": "spanish",
+   "text": "gasté 200 en comida",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 200
+    }
+   ]
+  },
+  {
+   "group": "spanish",
+   "text": "compré zapatos 900 pesos",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 900,
+     "currency": "MXN"
+    }
+   ]
+  },
+  {
+   "group": "spanish",
+   "text": "sueldo 25 mil",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 25000
+    }
+   ]
+  },
+  {
+   "group": "spanish",
+   "text": "vendí la bici en 1500",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 1500
+    }
+   ]
+  },
+  {
+   "group": "spanish",
+   "text": "me devolvieron 120",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 120
+    }
+   ]
+  },
+  {
+   "group": "spanish",
+   "text": "presté 300 a Luis",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 300
+    }
+   ]
+  },
+  {
+   "group": "spanish",
+   "text": "me prestaron 1000",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 1000
+    }
+   ]
+  },
+  {
+   "group": "spanish",
+   "text": "luz 450 y agua 180",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 450
+    },
+    {
+     "dir": "out",
+     "amount": 180
+    }
+   ]
+  },
+  {
+   "group": "spanish",
+   "text": "gasolina 600, me pagaron 12 mil",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 600
+    },
+    {
+     "dir": "in",
+     "amount": 12000
+    }
+   ]
+  },
+  {
+   "group": "spanish",
+   "text": "dos mil de renta",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 2000
+    }
+   ]
+  },
+  {
+   "group": "spanish",
+   "text": "súper 1.250 pesos",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 1250,
+     "currency": "MXN"
+    }
+   ]
+  },
+  {
+   "group": "spanish",
+   "text": "12,50 € de pan",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 12.5,
+     "currency": "EUR"
+    }
+   ]
+  },
+  {
+   "group": "spanish",
+   "text": "pagué el sueldo de la empleada 3000",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 3000
+    }
+   ]
+  },
+  {
+   "group": "spanish",
+   "text": "gané 300 en la rifa",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 300
+    }
+   ]
+  },
+  {
+   "group": "french",
+   "text": "déjeuner 12 euros",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 12,
+     "currency": "EUR"
+    }
+   ]
+  },
+  {
+   "group": "french",
+   "text": "café 2,50 €",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 2.5,
+     "currency": "EUR"
+    }
+   ]
+  },
+  {
+   "group": "french",
+   "text": "j'ai reçu 500 de Paul",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 500
+    }
+   ]
+  },
+  {
+   "group": "french",
+   "text": "maman m'a envoyé 200",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 200
+    }
+   ]
+  },
+  {
+   "group": "french",
+   "text": "j'ai envoyé 200 à maman",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 200
+    }
+   ]
+  },
+  {
+   "group": "french",
+   "text": "salaire 2400",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 2400
+    }
+   ]
+  },
+  {
+   "group": "french",
+   "text": "j'ai payé le loyer 800",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 800
+    }
+   ]
+  },
+  {
+   "group": "french",
+   "text": "j'ai dépensé 45 au marché",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 45
+    }
+   ]
+  },
+  {
+   "group": "french",
+   "text": "j'ai acheté des chaussures 60 €",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 60,
+     "currency": "EUR"
+    }
+   ]
+  },
+  {
+   "group": "french",
+   "text": "on m'a remboursé 30",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 30
+    }
+   ]
+  },
+  {
+   "group": "french",
+   "text": "j'ai vendu mon vélo 150",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 150
+    }
+   ]
+  },
+  {
+   "group": "french",
+   "text": "taxi 15 et dîner 40",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 15
+    },
+    {
+     "dir": "out",
+     "amount": 40
+    }
+   ]
+  },
+  {
+   "group": "french",
+   "text": "deux mille francs de riz",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 2000,
+     "currency": "XOF"
+    }
+   ]
+  },
+  {
+   "group": "french",
+   "text": "transport 500 fcfa",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 500,
+     "currency": "XOF"
+    }
+   ]
+  },
+  {
+   "group": "french",
+   "text": "j'ai gagné 100 au loto",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 100
+    }
+   ]
+  },
+  {
+   "group": "french",
+   "text": "j'ai prêté 50 à Marc",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 50
+    }
+   ]
+  },
+  {
+   "group": "french",
+   "text": "Marc m'a prêté 50",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 50
+    }
+   ]
+  },
+  {
+   "group": "french",
+   "text": "courses 1 250 fcfa, essence 5 000 fcfa",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 1250,
+     "currency": "XOF"
+    },
+    {
+     "dir": "out",
+     "amount": 5000,
+     "currency": "XOF"
+    }
+   ]
+  },
+  {
+   "group": "french",
+   "text": "loyer 75 mille",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 75000
+    }
+   ]
+  },
+  {
+   "group": "french",
+   "text": "j'ai été payé 1800",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 1800
+    }
+   ]
+  },
+  {
+   "group": "french",
+   "text": "facture internet 30 €",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 30,
+     "currency": "EUR"
+    }
+   ]
+  },
+  {
+   "group": "portuguese",
+   "text": "almoço 35",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 35
+    }
+   ]
+  },
+  {
+   "group": "portuguese",
+   "text": "uber 18,50",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 18.5
+    }
+   ]
+  },
+  {
+   "group": "portuguese",
+   "text": "recebi 2500",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 2500
+    }
+   ]
+  },
+  {
+   "group": "portuguese",
+   "text": "minha mãe me mandou 200",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 200
+    }
+   ]
+  },
+  {
+   "group": "portuguese",
+   "text": "mandei 200 pra minha mãe",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 200
+    }
+   ]
+  },
+  {
+   "group": "portuguese",
+   "text": "paguei o aluguel 1200",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 1200
+    }
+   ]
+  },
+  {
+   "group": "portuguese",
+   "text": "gastei 80 no mercado",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 80
+    }
+   ]
+  },
+  {
+   "group": "portuguese",
+   "text": "comprei um tênis 300 reais",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 300,
+     "currency": "BRL"
+    }
+   ]
+  },
+  {
+   "group": "portuguese",
+   "text": "salário 4 mil",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 4000
+    }
+   ]
+  },
+  {
+   "group": "portuguese",
+   "text": "vendi o celular por 900",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 900
+    }
+   ]
+  },
+  {
+   "group": "portuguese",
+   "text": "pix recebido 150",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 150
+    }
+   ]
+  },
+  {
+   "group": "portuguese",
+   "text": "fiz um pix de 50 pro João",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 50
+    }
+   ]
+  },
+  {
+   "group": "portuguese",
+   "text": "me devolveram 60",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 60
+    }
+   ]
+  },
+  {
+   "group": "portuguese",
+   "text": "emprestei 100 pro Pedro",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 100
+    }
+   ]
+  },
+  {
+   "group": "portuguese",
+   "text": "café 8 e pão 12",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 8
+    },
+    {
+     "dir": "out",
+     "amount": 12
+    }
+   ]
+  },
+  {
+   "group": "portuguese",
+   "text": "R$ 45,90 de gasolina",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 45.9,
+     "currency": "BRL"
+    }
+   ]
+  },
+  {
+   "group": "portuguese",
+   "text": "ganhei 500 de bônus",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 500
+    }
+   ]
+  },
+  {
+   "group": "portuguese",
+   "text": "conta de luz 180",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 180
+    }
+   ]
+  },
+  {
+   "group": "portuguese",
+   "text": "dois mil de aluguel",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 2000
+    }
+   ]
+  },
+  {
+   "group": "portuguese",
+   "text": "caiu o salário 3.200",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 3200
+    }
+   ]
+  },
+  {
+   "group": "chinese",
+   "text": "午饭35",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 35
+    }
+   ]
+  },
+  {
+   "group": "chinese",
+   "text": "打车20，咖啡18",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 20
+    },
+    {
+     "dir": "out",
+     "amount": 18
+    }
+   ]
+  },
+  {
+   "group": "chinese",
+   "text": "收到工资8000",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 8000
+    }
+   ]
+  },
+  {
+   "group": "chinese",
+   "text": "工资 1.2万",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 12000
+    }
+   ]
+  },
+  {
+   "group": "chinese",
+   "text": "妈妈给我转了2000",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 2000
+    }
+   ]
+  },
+  {
+   "group": "chinese",
+   "text": "给我妈转了500",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 500
+    }
+   ]
+  },
+  {
+   "group": "chinese",
+   "text": "花了三百五买衣服",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 350
+    }
+   ]
+  },
+  {
+   "group": "chinese",
+   "text": "买菜花了56块",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 56,
+     "currency": "CNY"
+    }
+   ]
+  },
+  {
+   "group": "chinese",
+   "text": "房租3千5",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 3500
+    }
+   ]
+  },
+  {
+   "group": "chinese",
+   "text": "卖了旧手机1200元",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 1200,
+     "currency": "CNY"
+    }
+   ]
+  },
+  {
+   "group": "chinese",
+   "text": "退款88",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 88
+    }
+   ]
+  },
+  {
+   "group": "chinese",
+   "text": "借给小王500",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 500
+    }
+   ]
+  },
+  {
+   "group": "chinese",
+   "text": "小王还我500",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 500
+    }
+   ]
+  },
+  {
+   "group": "chinese",
+   "text": "午饭25 地铁4 奶茶15",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 25
+    },
+    {
+     "dir": "out",
+     "amount": 4
+    },
+    {
+     "dir": "out",
+     "amount": 15
+    }
+   ]
+  },
+  {
+   "group": "chinese",
+   "text": "发红包200",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 200
+    }
+   ]
+  },
+  {
+   "group": "chinese",
+   "text": "收到红包66",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 66
+    }
+   ]
+  },
+  {
+   "group": "chinese",
+   "text": "奖金五千",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 5000
+    }
+   ]
+  },
+  {
+   "group": "chinese",
+   "text": "交了水电费230",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 230
+    }
+   ]
+  },
+  {
+   "group": "chinese",
+   "text": "两千五的房租",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 2500
+    }
+   ]
+  },
+  {
+   "group": "chinese",
+   "text": "赚了3万",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 30000
+    }
+   ]
+  },
+  {
+   "group": "chinese",
+   "text": "充值话费100",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 100
+    }
+   ]
+  },
+  {
+   "group": "chinese",
+   "text": "晚饭68元，电影票45元",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 68,
+     "currency": "CNY"
+    },
+    {
+     "dir": "out",
+     "amount": 45,
+     "currency": "CNY"
+    }
+   ]
+  },
+  {
+   "group": "japanese",
+   "text": "ランチ 850円",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 850,
+     "currency": "JPY"
+    }
+   ]
+  },
+  {
+   "group": "japanese",
+   "text": "コンビニ 620",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 620
+    }
+   ]
+  },
+  {
+   "group": "japanese",
+   "text": "給料 25万円",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 250000,
+     "currency": "JPY"
+    }
+   ]
+  },
+  {
+   "group": "japanese",
+   "text": "電車 180円、コーヒー 450円",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 180,
+     "currency": "JPY"
+    },
+    {
+     "dir": "out",
+     "amount": 450,
+     "currency": "JPY"
+    }
+   ]
+  },
+  {
+   "group": "japanese",
+   "text": "母から1万円もらった",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 10000,
+     "currency": "JPY"
+    }
+   ]
+  },
+  {
+   "group": "japanese",
+   "text": "母に1万円送った",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 10000,
+     "currency": "JPY"
+    }
+   ]
+  },
+  {
+   "group": "japanese",
+   "text": "家賃 7万5千円",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 75000,
+     "currency": "JPY"
+    }
+   ]
+  },
+  {
+   "group": "japanese",
+   "text": "本を1500円で買った",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 1500,
+     "currency": "JPY"
+    }
+   ]
+  },
+  {
+   "group": "japanese",
+   "text": "メルカリで3000円売れた",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 3000,
+     "currency": "JPY"
+    }
+   ]
+  },
+  {
+   "group": "japanese",
+   "text": "返金 1200円",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 1200,
+     "currency": "JPY"
+    }
+   ]
+  },
+  {
+   "group": "japanese",
+   "text": "ボーナス 30万",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 300000
+    }
+   ]
+  },
+  {
+   "group": "japanese",
+   "text": "飲み会 4千円払った",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 4000,
+     "currency": "JPY"
+    }
+   ]
+  },
+  {
+   "group": "japanese",
+   "text": "友達に5000円貸した",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 5000,
+     "currency": "JPY"
+    }
+   ]
+  },
+  {
+   "group": "japanese",
+   "text": "友達から5000円返してもらった",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 5000,
+     "currency": "JPY"
+    }
+   ]
+  },
+  {
+   "group": "japanese",
+   "text": "スイカに3000円チャージ",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 3000,
+     "currency": "JPY"
+    }
+   ]
+  },
+  {
+   "group": "japanese",
+   "text": "バイト代 8万円入った",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 80000,
+     "currency": "JPY"
+    }
+   ]
+  },
+  {
+   "group": "japanese",
+   "text": "電気代 6,800円",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 6800,
+     "currency": "JPY"
+    }
+   ]
+  },
+  {
+   "group": "japanese",
+   "text": "¥1,200 ランチ",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 1200,
+     "currency": "JPY"
+    }
+   ]
+  },
+  {
+   "group": "korean",
+   "text": "점심 8000원",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 8000,
+     "currency": "KRW"
+    }
+   ]
+  },
+  {
+   "group": "korean",
+   "text": "커피 4500원, 버스 1500원",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 4500,
+     "currency": "KRW"
+    },
+    {
+     "dir": "out",
+     "amount": 1500,
+     "currency": "KRW"
+    }
+   ]
+  },
+  {
+   "group": "korean",
+   "text": "월급 250만원",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 2500000,
+     "currency": "KRW"
+    }
+   ]
+  },
+  {
+   "group": "korean",
+   "text": "엄마가 5만원 줬어",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 50000,
+     "currency": "KRW"
+    }
+   ]
+  },
+  {
+   "group": "korean",
+   "text": "엄마한테 5만원 보냈어",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 50000,
+     "currency": "KRW"
+    }
+   ]
+  },
+  {
+   "group": "korean",
+   "text": "택시비 1만2천원",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 12000,
+     "currency": "KRW"
+    }
+   ]
+  },
+  {
+   "group": "korean",
+   "text": "용돈 3만원 받았어",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 30000,
+     "currency": "KRW"
+    }
+   ]
+  },
+  {
+   "group": "korean",
+   "text": "중고로 2만원에 팔았어",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 20000,
+     "currency": "KRW"
+    }
+   ]
+  },
+  {
+   "group": "korean",
+   "text": "환불 15000원",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 15000,
+     "currency": "KRW"
+    }
+   ]
+  },
+  {
+   "group": "korean",
+   "text": "친구한테 만원 빌려줬어",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 10000,
+     "currency": "KRW"
+    }
+   ]
+  },
+  {
+   "group": "korean",
+   "text": "친구가 만원 갚았어",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 10000,
+     "currency": "KRW"
+    }
+   ]
+  },
+  {
+   "group": "korean",
+   "text": "편의점 3,200원",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 3200,
+     "currency": "KRW"
+    }
+   ]
+  },
+  {
+   "group": "korean",
+   "text": "월세 50만원 냈어",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 500000,
+     "currency": "KRW"
+    }
+   ]
+  },
+  {
+   "group": "korean",
+   "text": "알바비 80만원 들어왔어",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 800000,
+     "currency": "KRW"
+    }
+   ]
+  },
+  {
+   "group": "korean",
+   "text": "교통카드 2만원 충전",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 20000,
+     "currency": "KRW"
+    }
+   ]
+  },
+  {
+   "group": "korean",
+   "text": "치킨 2만3천원 썼어",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 23000,
+     "currency": "KRW"
+    }
+   ]
+  },
+  {
+   "group": "korean",
+   "text": "오천원 김밥",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 5000,
+     "currency": "KRW"
+    }
+   ]
+  },
+  {
+   "group": "korean",
+   "text": "₩12,000 영화",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 12000,
+     "currency": "KRW"
+    }
+   ]
+  },
+  {
+   "group": "korean",
+   "text": "보너스 100만원",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 1000000,
+     "currency": "KRW"
+    }
+   ]
+  },
+  {
+   "group": "korean",
+   "text": "친구한테서 3만원 받았어",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 30000,
+     "currency": "KRW"
+    }
+   ]
+  },
+  {
+   "group": "hindi",
+   "text": "चाय 20 रुपये",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 20,
+     "currency": "INR"
+    }
+   ]
+  },
+  {
+   "group": "hindi",
+   "text": "ऑटो 80, खाना 150",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 80
+    },
+    {
+     "dir": "out",
+     "amount": 150
+    }
+   ]
+  },
+  {
+   "group": "hindi",
+   "text": "सैलरी 45 हज़ार",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 45000
+    }
+   ]
+  },
+  {
+   "group": "hindi",
+   "text": "मम्मी ने मुझे 2000 दिए",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 2000
+    }
+   ]
+  },
+  {
+   "group": "hindi",
+   "text": "मम्मी को 2000 भेजे",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 2000
+    }
+   ]
+  },
+  {
+   "group": "hindi",
+   "text": "किराया 12 हजार दिया",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 12000
+    }
+   ]
+  },
+  {
+   "group": "hindi",
+   "text": "500 रुपये मिले",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 500,
+     "currency": "INR"
+    }
+   ]
+  },
+  {
+   "group": "hindi",
+   "text": "सब्ज़ी पर 300 खर्च",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 300
+    }
+   ]
+  },
+  {
+   "group": "hindi",
+   "text": "पुराना फोन 8000 में बेचा",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 8000
+    }
+   ]
+  },
+  {
+   "group": "hindi",
+   "text": "2 लाख की बाइक खरीदी",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 200000
+    }
+   ]
+  },
+  {
+   "group": "hindi",
+   "text": "chai 20 samosa 30",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 20
+    },
+    {
+     "dir": "out",
+     "amount": 30
+    }
+   ]
+  },
+  {
+   "group": "hindi",
+   "text": "salary aayi 45 hazaar",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 45000
+    }
+   ]
+  },
+  {
+   "group": "hindi",
+   "text": "mummy ne mujhe 2000 diye",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 2000
+    }
+   ]
+  },
+  {
+   "group": "hindi",
+   "text": "mummy ko 2000 bheje",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 2000
+    }
+   ]
+  },
+  {
+   "group": "hindi",
+   "text": "kiraya 12 hazar diya",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 12000
+    }
+   ]
+  },
+  {
+   "group": "hindi",
+   "text": "500 rupaye mile",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 500,
+     "currency": "INR"
+    }
+   ]
+  },
+  {
+   "group": "hindi",
+   "text": "petrol pe 1500 kharch",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 1500
+    }
+   ]
+  },
+  {
+   "group": "hindi",
+   "text": "1.5 lakh ka loan chukaya",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 150000
+    }
+   ]
+  },
+  {
+   "group": "hindi",
+   "text": "रिफंड 499 आया",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 499
+    }
+   ]
+  },
+  {
+   "group": "hindi",
+   "text": "₹250 का रिचार्ज",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 250,
+     "currency": "INR"
+    }
+   ]
+  },
+  {
+   "group": "arabic",
+   "text": "غداء 45 درهم",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 45,
+     "currency": "AED"
+    }
+   ]
+  },
+  {
+   "group": "arabic",
+   "text": "تاكسي 30، قهوة 18",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 30
+    },
+    {
+     "dir": "out",
+     "amount": 18
+    }
+   ]
+  },
+  {
+   "group": "arabic",
+   "text": "استلمت الراتب 8000",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 8000
+    }
+   ]
+  },
+  {
+   "group": "arabic",
+   "text": "الراتب 12 ألف",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 12000
+    }
+   ]
+  },
+  {
+   "group": "arabic",
+   "text": "أمي حولت لي 500",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 500
+    }
+   ]
+  },
+  {
+   "group": "arabic",
+   "text": "حولت لأمي 500",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 500
+    }
+   ]
+  },
+  {
+   "group": "arabic",
+   "text": "دفعت الإيجار 3000",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 3000
+    }
+   ]
+  },
+  {
+   "group": "arabic",
+   "text": "صرفت 200 على الأكل",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 200
+    }
+   ]
+  },
+  {
+   "group": "arabic",
+   "text": "اشتريت حذاء 350 جنيه",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 350,
+     "currency": "EGP"
+    }
+   ]
+  },
+  {
+   "group": "arabic",
+   "text": "بعت الموبايل 2500",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 2500
+    }
+   ]
+  },
+  {
+   "group": "arabic",
+   "text": "رجعلي 100",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 100
+    }
+   ]
+  },
+  {
+   "group": "arabic",
+   "text": "سلفت أحمد 300",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 300
+    }
+   ]
+  },
+  {
+   "group": "arabic",
+   "text": "أحمد سلفني 300",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 300
+    }
+   ]
+  },
+  {
+   "group": "arabic",
+   "text": "فاتورة الكهرباء ٢٥٠",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 250
+    }
+   ]
+  },
+  {
+   "group": "arabic",
+   "text": "بنزين ١٢٠ و عشاء ٨٠",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 120
+    },
+    {
+     "dir": "out",
+     "amount": 80
+    }
+   ]
+  },
+  {
+   "group": "arabic",
+   "text": "كسبت 1000",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 1000
+    }
+   ]
+  },
+  {
+   "group": "arabic",
+   "text": "وصلني 750 من خالد",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 750
+    }
+   ]
+  },
+  {
+   "group": "arabic",
+   "text": "مكافأة 2000",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 2000
+    }
+   ]
+  },
+  {
+   "group": "arabic",
+   "text": "٥٠ ريال قهوة",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 50,
+     "currency": "SAR"
+    }
+   ]
+  },
+  {
+   "group": "arabic",
+   "text": "اشتراك النت 299 جنيه",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 299,
+     "currency": "EGP"
+    }
+   ]
+  },
+  {
+   "group": "swahili",
+   "text": "chakula 500",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 500
+    }
+   ]
+  },
+  {
+   "group": "swahili",
+   "text": "nauli 100, chai 50",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 100
+    },
+    {
+     "dir": "out",
+     "amount": 50
+    }
+   ]
+  },
+  {
+   "group": "swahili",
+   "text": "nimepokea 5000 kutoka kwa Juma",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 5000
+    }
+   ]
+  },
+  {
+   "group": "swahili",
+   "text": "mshahara elfu hamsini",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 50000
+    }
+   ]
+  },
+  {
+   "group": "swahili",
+   "text": "mama amenitumia 2000",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 2000
+    }
+   ]
+  },
+  {
+   "group": "swahili",
+   "text": "nimemtumia mama 2000",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 2000
+    }
+   ]
+  },
+  {
+   "group": "swahili",
+   "text": "nimelipa kodi 15000",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 15000
+    }
+   ]
+  },
+  {
+   "group": "swahili",
+   "text": "nimenunua viatu 3500",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 3500
+    }
+   ]
+  },
+  {
+   "group": "swahili",
+   "text": "nimeuza kuku 1200",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 1200
+    }
+   ]
+  },
+  {
+   "group": "swahili",
+   "text": "nimelipwa elfu 20",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 20000
+    }
+   ]
+  },
+  {
+   "group": "swahili",
+   "text": "vocha 200 shilingi",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 200,
+     "currency": "KES"
+    }
+   ]
+  },
+  {
+   "group": "swahili",
+   "text": "nimetumia 800 sokoni",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 800
+    }
+   ]
+  },
+  {
+   "group": "swahili",
+   "text": "Juma amenilipa 3000",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 3000
+    }
+   ]
+  },
+  {
+   "group": "swahili",
+   "text": "nimemkopesha Ali 1000",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 1000
+    }
+   ]
+  },
+  {
+   "group": "swahili",
+   "text": "umeme elfu tano",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 5000
+    }
+   ]
+  },
+  {
+   "group": "swahili",
+   "text": "laki 2 ya ada ya shule",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 200000
+    }
+   ]
+  },
+  {
+   "group": "swahili",
+   "text": "nimepata faida 4500",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 4500
+    }
+   ]
+  },
+  {
+   "group": "swahili",
+   "text": "boda 150 na chakula 300",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 150
+    },
+    {
+     "dir": "out",
+     "amount": 300
+    }
+   ]
+  },
+  {
+   "group": "swahili",
+   "text": "nimerudishiwa 600",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 600
+    }
+   ]
+  },
+  {
+   "group": "swahili",
+   "text": "Tsh 25,000 mafuta",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 25000,
+     "currency": "TZS"
+    }
+   ]
+  },
+  {
+   "group": "spanish+",
+   "text": "cena con amigos 350",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 350
+    }
+   ]
+  },
+  {
+   "group": "spanish+",
+   "text": "me depositaron la quincena 9500",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 9500
+    }
+   ]
+  },
+  {
+   "group": "spanish+",
+   "text": "le presté 200 a Carla",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 200
+    }
+   ]
+  },
+  {
+   "group": "spanish+",
+   "text": "uber 95 y propina 15",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 95
+    },
+    {
+     "dir": "out",
+     "amount": 15
+    }
+   ]
+  },
+  {
+   "group": "spanish+",
+   "text": "vendí unos tenis en 800 pesos",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 800,
+     "currency": "MXN"
+    }
+   ]
+  },
+  {
+   "group": "spanish+",
+   "text": "recarga de celular 100",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 100
+    }
+   ]
+  },
+  {
+   "group": "spanish+",
+   "text": "mi hermano me pagó los 500 que me debía",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 500
+    }
+   ]
+  },
+  {
+   "group": "spanish+",
+   "text": "pagué 1.800 de luz",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 1800
+    }
+   ]
+  },
+  {
+   "group": "spanish+",
+   "text": "tres mil del aguinaldo",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 3000
+    }
+   ]
+  },
+  {
+   "group": "french+",
+   "text": "restaurant 38 euros",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 38,
+     "currency": "EUR"
+    }
+   ]
+  },
+  {
+   "group": "french+",
+   "text": "mon frère m'a remboursé 60",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 60
+    }
+   ]
+  },
+  {
+   "group": "french+",
+   "text": "j'ai donné 20 à ma soeur",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 20
+    }
+   ]
+  },
+  {
+   "group": "french+",
+   "text": "essence 55 €, péage 12 €",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 55,
+     "currency": "EUR"
+    },
+    {
+     "dir": "out",
+     "amount": 12,
+     "currency": "EUR"
+    }
+   ]
+  },
+  {
+   "group": "french+",
+   "text": "j'ai touché ma paie 2100",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 2100
+    }
+   ]
+  },
+  {
+   "group": "french+",
+   "text": "crédit téléphone 1000 fcfa",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 1000,
+     "currency": "XOF"
+    }
+   ]
+  },
+  {
+   "group": "french+",
+   "text": "papa m'a donné 10 mille",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 10000
+    }
+   ]
+  },
+  {
+   "group": "french+",
+   "text": "abonnement netflix 13,49 €",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 13.49,
+     "currency": "EUR"
+    }
+   ]
+  },
+  {
+   "group": "french+",
+   "text": "j'ai perdu 20 euros",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 20,
+     "currency": "EUR"
+    }
+   ]
+  },
+  {
+   "group": "portuguese+",
+   "text": "mercado 230,40",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 230.4
+    }
+   ]
+  },
+  {
+   "group": "portuguese+",
+   "text": "meu chefe me pagou 1800",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 1800
+    }
+   ]
+  },
+  {
+   "group": "portuguese+",
+   "text": "paguei a internet 99,90",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 99.9
+    }
+   ]
+  },
+  {
+   "group": "portuguese+",
+   "text": "ônibus 5 e lanche 14",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 5
+    },
+    {
+     "dir": "out",
+     "amount": 14
+    }
+   ]
+  },
+  {
+   "group": "portuguese+",
+   "text": "recebi um pix de 300 da Ana",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 300
+    }
+   ]
+  },
+  {
+   "group": "portuguese+",
+   "text": "gastei 60 reais no cinema",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 60,
+     "currency": "BRL"
+    }
+   ]
+  },
+  {
+   "group": "portuguese+",
+   "text": "vendi uma bicicleta por 450",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 450
+    }
+   ]
+  },
+  {
+   "group": "portuguese+",
+   "text": "emprestei 50 pra minha irmã",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 50
+    }
+   ]
+  },
+  {
+   "group": "portuguese+",
+   "text": "três mil de salário",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 3000
+    }
+   ]
+  },
+  {
+   "group": "chinese+",
+   "text": "早餐12",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 12
+    }
+   ]
+  },
+  {
+   "group": "chinese+",
+   "text": "发工资了 9500",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 9500
+    }
+   ]
+  },
+  {
+   "group": "chinese+",
+   "text": "给爸爸转了1000",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 1000
+    }
+   ]
+  },
+  {
+   "group": "chinese+",
+   "text": "朋友还了我300",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 300
+    }
+   ]
+  },
+  {
+   "group": "chinese+",
+   "text": "网购衣服299元",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 299,
+     "currency": "CNY"
+    }
+   ]
+  },
+  {
+   "group": "chinese+",
+   "text": "加油300，停车费15",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 300
+    },
+    {
+     "dir": "out",
+     "amount": 15
+    }
+   ]
+  },
+  {
+   "group": "chinese+",
+   "text": "房租四千",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 4000
+    }
+   ]
+  },
+  {
+   "group": "chinese+",
+   "text": "兼职收入800",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 800
+    }
+   ]
+  },
+  {
+   "group": "chinese+",
+   "text": "请朋友吃饭花了两百三",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 230
+    }
+   ]
+  },
+  {
+   "group": "japanese+",
+   "text": "昼ごはん 900円",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 900,
+     "currency": "JPY"
+    }
+   ]
+  },
+  {
+   "group": "japanese+",
+   "text": "お小遣い 5千円もらった",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 5000,
+     "currency": "JPY"
+    }
+   ]
+  },
+  {
+   "group": "japanese+",
+   "text": "友達に2000円あげた",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 2000,
+     "currency": "JPY"
+    }
+   ]
+  },
+  {
+   "group": "japanese+",
+   "text": "定期券 1万2千円",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 12000,
+     "currency": "JPY"
+    }
+   ]
+  },
+  {
+   "group": "japanese+",
+   "text": "給料が入った 28万円",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 280000,
+     "currency": "JPY"
+    }
+   ]
+  },
+  {
+   "group": "japanese+",
+   "text": "スーパー 3,480円、ドラッグストア 1,200円",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 3480,
+     "currency": "JPY"
+    },
+    {
+     "dir": "out",
+     "amount": 1200,
+     "currency": "JPY"
+    }
+   ]
+  },
+  {
+   "group": "japanese+",
+   "text": "古本を800円で売った",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 800,
+     "currency": "JPY"
+    }
+   ]
+  },
+  {
+   "group": "japanese+",
+   "text": "映画 1900円",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 1900,
+     "currency": "JPY"
+    }
+   ]
+  },
+  {
+   "group": "korean+",
+   "text": "저녁 12000원",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 12000,
+     "currency": "KRW"
+    }
+   ]
+  },
+  {
+   "group": "korean+",
+   "text": "아빠가 용돈 10만원 주셨어",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 100000,
+     "currency": "KRW"
+    }
+   ]
+  },
+  {
+   "group": "korean+",
+   "text": "동생한테 3만원 줬어",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 30000,
+     "currency": "KRW"
+    }
+   ]
+  },
+  {
+   "group": "korean+",
+   "text": "지하철 1400원, 커피 5000원",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 1400,
+     "currency": "KRW"
+    },
+    {
+     "dir": "out",
+     "amount": 5000,
+     "currency": "KRW"
+    }
+   ]
+  },
+  {
+   "group": "korean+",
+   "text": "월급 들어왔어 320만원",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 3200000,
+     "currency": "KRW"
+    }
+   ]
+  },
+  {
+   "group": "korean+",
+   "text": "당근에서 5만원에 팔았어",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 50000,
+     "currency": "KRW"
+    }
+   ]
+  },
+  {
+   "group": "korean+",
+   "text": "통신비 6만5천원 냈어",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 65000,
+     "currency": "KRW"
+    }
+   ]
+  },
+  {
+   "group": "korean+",
+   "text": "이천원 떡볶이",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 2000,
+     "currency": "KRW"
+    }
+   ]
+  },
+  {
+   "group": "hindi+",
+   "text": "दूध 60",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 60
+    }
+   ]
+  },
+  {
+   "group": "hindi+",
+   "text": "पापा ने 5000 भेजे",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 5000
+    }
+   ]
+  },
+  {
+   "group": "hindi+",
+   "text": "दोस्त को 1000 दिए",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 1000
+    }
+   ]
+  },
+  {
+   "group": "hindi+",
+   "text": "बिजली का बिल 1800 भरा",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 1800
+    }
+   ]
+  },
+  {
+   "group": "hindi+",
+   "text": "tankhwah 30 hazar aayi",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 30000
+    }
+   ]
+  },
+  {
+   "group": "hindi+",
+   "text": "auto 60 chai 15",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 60
+    },
+    {
+     "dir": "out",
+     "amount": 15
+    }
+   ]
+  },
+  {
+   "group": "hindi+",
+   "text": "dost ne 500 wapas diye",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 500
+    }
+   ]
+  },
+  {
+   "group": "hindi+",
+   "text": "2 lakh ki gaadi kharidi",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 200000
+    }
+   ]
+  },
+  {
+   "group": "arabic+",
+   "text": "فطور 25",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 25
+    }
+   ]
+  },
+  {
+   "group": "arabic+",
+   "text": "نزل الراتب 9500",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 9500
+    }
+   ]
+  },
+  {
+   "group": "arabic+",
+   "text": "أعطيت أخي 200",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 200
+    }
+   ]
+  },
+  {
+   "group": "arabic+",
+   "text": "أخي أعطاني 200",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 200
+    }
+   ]
+  },
+  {
+   "group": "arabic+",
+   "text": "اشتريت خضار 60 جنيه",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 60,
+     "currency": "EGP"
+    }
+   ]
+  },
+  {
+   "group": "arabic+",
+   "text": "مواصلات ١٥، قهوة ٢٠",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 15
+    },
+    {
+     "dir": "out",
+     "amount": 20
+    }
+   ]
+  },
+  {
+   "group": "arabic+",
+   "text": "دفعت فاتورة النت 350",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 350
+    }
+   ]
+  },
+  {
+   "group": "arabic+",
+   "text": "بعت اللابتوب 5 آلاف",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 5000
+    }
+   ]
+  },
+  {
+   "group": "swahili+",
+   "text": "chai 30",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 30
+    }
+   ]
+  },
+  {
+   "group": "swahili+",
+   "text": "baba amenitumia elfu kumi",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 10000
+    }
+   ]
+  },
+  {
+   "group": "swahili+",
+   "text": "nimempa dada 500",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 500
+    }
+   ]
+  },
+  {
+   "group": "swahili+",
+   "text": "nimelipa umeme 2500",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 2500
+    }
+   ]
+  },
+  {
+   "group": "swahili+",
+   "text": "nimepokea mshahara 45000",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 45000
+    }
+   ]
+  },
+  {
+   "group": "swahili+",
+   "text": "matatu 80, chakula 250",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 80
+    },
+    {
+     "dir": "out",
+     "amount": 250
+    }
+   ]
+  },
+  {
+   "group": "swahili+",
+   "text": "nimeuza mayai 900",
+   "want": [
+    {
+     "dir": "in",
+     "amount": 900
+    }
+   ]
+  },
+  {
+   "group": "swahili+",
+   "text": "nimenunua vocha ya elfu moja",
+   "want": [
+    {
+     "dir": "out",
+     "amount": 1000
     }
    ]
   }

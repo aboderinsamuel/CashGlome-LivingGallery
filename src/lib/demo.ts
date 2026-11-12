@@ -41,7 +41,7 @@ const SUBS: T[] = [
 function round(n: number, code: string) {
   if (n >= 1000) return Math.round(n / 50) * 50;
   if (n >= 100) return Math.round(n);
-  return code === 'JPY' ? Math.round(n) : Math.round(n * 100) / 100;
+  return /^(JPY|KRW|XOF|TZS)$/.test(code) ? Math.round(n) : Math.round(n * 100) / 100;
 }
 
 export function demoEntries(currency: string): Entry[] {

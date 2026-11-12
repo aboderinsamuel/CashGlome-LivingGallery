@@ -14,18 +14,23 @@ export const CURRENCIES: { code: string; name: string; flag: string; scale: numb
   { code: 'MXN', name: 'Mexican Peso', flag: '🇲🇽', scale: 18 },
   { code: 'AED', name: 'UAE Dirham', flag: '🇦🇪', scale: 3.67 },
   { code: 'EGP', name: 'Egyptian Pound', flag: '🇪🇬', scale: 49 },
+  { code: 'CNY', name: 'Chinese Yuan', flag: '🇨🇳', scale: 7.2 },
+  { code: 'KRW', name: 'South Korean Won', flag: '🇰🇷', scale: 1380 },
+  { code: 'XOF', name: 'West African CFA Franc', flag: '🇸🇳', scale: 600 },
+  { code: 'TZS', name: 'Tanzanian Shilling', flag: '🇹🇿', scale: 2600 },
+  { code: 'SAR', name: 'Saudi Riyal', flag: '🇸🇦', scale: 3.75 },
 ];
 
 export function guessCurrency(): string {
   try {
     // Where the phone is says more than its language: most phones in Lagos are set to US English.
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
-    const zones: [RegExp, string][] = [[/^Africa\/Lagos$/, 'NGN'], [/^Africa\/Nairobi$/, 'KES'], [/^Africa\/Accra$/, 'GHS'], [/^Africa\/Johannesburg$/, 'ZAR'], [/^Africa\/Cairo$/, 'EGP'], [/^Asia\/(Kolkata|Calcutta)$/, 'INR'], [/^Asia\/Tokyo$/, 'JPY'], [/^Asia\/Dubai$/, 'AED'], [/^America\/(Sao_Paulo|Bahia|Fortaleza|Recife|Manaus)$/, 'BRL'], [/^America\/(Mexico_City|Monterrey|Cancun|Tijuana)$/, 'MXN'], [/^America\/(Toronto|Vancouver|Edmonton|Winnipeg|Halifax)$/, 'CAD'], [/^Australia\//, 'AUD'], [/^Europe\/London$/, 'GBP']];
+    const zones: [RegExp, string][] = [[/^Africa\/Lagos$/, 'NGN'], [/^Africa\/Nairobi$/, 'KES'], [/^Africa\/Accra$/, 'GHS'], [/^Africa\/Johannesburg$/, 'ZAR'], [/^Africa\/Cairo$/, 'EGP'], [/^Asia\/(Kolkata|Calcutta)$/, 'INR'], [/^Asia\/Tokyo$/, 'JPY'], [/^Asia\/(Shanghai|Chongqing|Urumqi|Harbin)$/, 'CNY'], [/^Asia\/Seoul$/, 'KRW'], [/^Africa\/(Dakar|Abidjan|Bamako|Lome|Porto-Novo|Ouagadougou|Niamey)$/, 'XOF'], [/^Africa\/Dar_es_Salaam$/, 'TZS'], [/^Asia\/Riyadh$/, 'SAR'], [/^Asia\/Dubai$/, 'AED'], [/^America\/(Sao_Paulo|Bahia|Fortaleza|Recife|Manaus)$/, 'BRL'], [/^America\/(Mexico_City|Monterrey|Cancun|Tijuana)$/, 'MXN'], [/^America\/(Toronto|Vancouver|Edmonton|Winnipeg|Halifax)$/, 'CAD'], [/^Australia\//, 'AUD'], [/^Europe\/London$/, 'GBP']];
     const byZone = zones.find(([re]) => re.test(tz))?.[1];
     if (byZone) return byZone;
     const loc = navigator.language || 'en-US';
     const region = loc.split('-')[1]?.toUpperCase();
-    const map: Record<string, string> = { NG: 'NGN', US: 'USD', GB: 'GBP', CA: 'CAD', AU: 'AUD', KE: 'KES', GH: 'GHS', ZA: 'ZAR', IN: 'INR', JP: 'JPY', BR: 'BRL', MX: 'MXN', AE: 'AED', EG: 'EGP', DE: 'EUR', FR: 'EUR', ES: 'EUR', IT: 'EUR', NL: 'EUR', IE: 'EUR', PT: 'EUR' };
+    const map: Record<string, string> = { NG: 'NGN', US: 'USD', GB: 'GBP', CA: 'CAD', AU: 'AUD', KE: 'KES', GH: 'GHS', ZA: 'ZAR', IN: 'INR', JP: 'JPY', BR: 'BRL', MX: 'MXN', AE: 'AED', EG: 'EGP', CN: 'CNY', KR: 'KRW', SN: 'XOF', CI: 'XOF', ML: 'XOF', BJ: 'XOF', TG: 'XOF', BF: 'XOF', NE: 'XOF', TZ: 'TZS', SA: 'SAR', DE: 'EUR', FR: 'EUR', ES: 'EUR', IT: 'EUR', NL: 'EUR', IE: 'EUR', PT: 'EUR' };
     return (region && map[region]) || 'USD';
   } catch {
     return 'USD';

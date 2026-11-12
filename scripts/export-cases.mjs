@@ -5,12 +5,14 @@
 import { writeFileSync } from 'node:fs';
 import { CASES as main } from '../tests/money-cases.mjs';
 import { CASES as holdout } from '../tests/holdout.mjs';
+import { CASES as languages } from '../tests/languages.mjs';
+import { CASES as languagesHoldout } from '../tests/languages-holdout.mjs';
 
 const want = (s) => s.split(',').map((tok) => {
   const m = tok.trim().match(/^([io])([\d.]+)(?::([A-Z]{3}))?$/);
   if (!m) throw new Error('Bad expectation: ' + tok);
   return { dir: m[1] === 'i' ? 'in' : 'out', amount: Number(m[2]), ...(m[3] ? { currency: m[3] } : {}) };
 });
-const cases = [...main, ...holdout].map(([group, text, expect]) => ({ group, text, want: want(expect) }));
-writeFileSync('tests/money-cases.json', JSON.stringify({ version: 1, count: cases.length, cases }, null, 1) + '\n');
+const cases = [...main, ...holdout, ...languages, ...languagesHoldout].map(([group, text, expect]) => ({ group, text, want: want(expect) }));
+writeFileSync('tests/money-cases.json', JSON.stringify({ version: 2, count: cases.length, cases }, null, 1) + '\n');
 console.log(`Wrote ${cases.length} cases to tests/money-cases.json`);

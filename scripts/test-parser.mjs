@@ -9,7 +9,8 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 // tests/holdout.mjs was written after the reader, without looking at its rules: its first score (68/71) is the honest one.
 const named = process.argv.filter((a) => a.endsWith('.mjs') && a.includes('tests'));
-const files = named.length ? named : ['tests/money-cases.mjs', 'tests/holdout.mjs'];
+// tests/languages-holdout.mjs likewise: its first score was 74/76.
+const files = named.length ? named : ['tests/money-cases.mjs', 'tests/holdout.mjs', 'tests/languages.mjs', 'tests/languages-holdout.mjs'];
 const CASES = (await Promise.all(files.map((f) => import(pathToFileURL(join(process.cwd(), f)).href)))).flatMap((m) => m.CASES);
 
 const verbose = process.argv.includes('-v');

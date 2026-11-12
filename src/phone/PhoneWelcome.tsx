@@ -23,7 +23,7 @@ const EXAMPLES: Record<string, string[]> = {
   INR: ['Lunch 220', 'Auto 80', 'Recharge 299', 'Got paid 60k'],
 };
 const DEFAULT_EXAMPLES = ['Lunch 14', 'Coffee 4.50', 'Bus 2.80', 'Got paid 3,200'];
-const NAMES: Record<string, string> = { NGN: 'naira', USD: 'dollars', EUR: 'euros', GBP: 'pounds', CAD: 'Canadian dollars', AUD: 'Australian dollars', KES: 'Kenyan shillings', GHS: 'cedis', ZAR: 'rand', INR: 'rupees', JPY: 'yen', BRL: 'reais', MXN: 'pesos', AED: 'dirhams', EGP: 'Egyptian pounds' };
+const NAMES: Record<string, string> = { NGN: 'naira', USD: 'dollars', EUR: 'euros', GBP: 'pounds', CAD: 'Canadian dollars', AUD: 'Australian dollars', KES: 'Kenyan shillings', GHS: 'cedis', ZAR: 'rand', INR: 'rupees', JPY: 'yen', BRL: 'reais', MXN: 'pesos', AED: 'dirhams', EGP: 'Egyptian pounds', CNY: 'yuan', KRW: 'won', XOF: 'CFA francs', TZS: 'Tanzanian shillings', SAR: 'riyals' };
 
 export function PhoneWelcome({ initialCurrency, onStart, onSample }: {
   initialCurrency: string;

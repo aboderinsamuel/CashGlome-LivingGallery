@@ -10,12 +10,15 @@ research before designing, test what you build.
 ## PRODUCT
 
 A private, local-first money diary for cash and bank-transfer economies
-(Nigeria first), where bank-linking apps fail. Three acts: Write, See,
-Ask.
+on every continent, wherever bank-linking apps fail. It is a worldwide
+app: never tailor copy, examples or evidence to one country. Three acts:
+Write, See, Ask.
 
 - Write: "bolt 6k, lunch 4.5k, got paid 350k" becomes three entries.
-  Understands k/m, pidgin and slang (danfo, suya), 15 currencies.
-  Voice and receipt photos too.
+  Understands k/m, slang and shorthand, 20 currencies. English and
+  pidgin work in the core engine today; every other major language
+  (Chinese, Korean, Spanish, French and more) must follow, in the
+  writer's own script. Voice and receipt photos too.
 - See: each month is a Chapter with a title (e.g. "The Homebody") and a
   public-domain masterpiece under old varnish. Every entry cleans a
   patch. Finished paintings hang in the gallery for good.
@@ -33,6 +36,10 @@ Ask.
   Babel), van Eyck (Arnolfini Portrait), Matsys (The Moneylender and
   His Wife), Caravaggio (The Calling of Saint Matthew), and many others.
   We could have a very, very large library for that later.
+- The library is the world's, not only Europe's: public-domain masters
+  from China, Korea, Japan, India, Persia, Spain, France, Africa and the
+  Americas hang beside the Flemish ones, and their scripts may appear
+  as part of the art.
 - Serif headlines with one italic word ("Your money, painted."),
   museum-label captions (artist, title, year), dates in words
   ("Tuesday, the tenth of November"), a calm and kind voice.

@@ -9,6 +9,7 @@
 import { CATEGORIES, cat } from './categories';
 import type { Dir, Feeling, Parsed } from './types';
 import { todayISO } from './format';
+import { plain, tongueCategory, tongueDir, YESTERDAY } from './tongues';
 
 export interface ReadOptions { /** The person's own currency: settles what a bare "$" or "£" means. */ home?: string }
 
@@ -83,13 +84,13 @@ const blank = (m: string) => ' '.repeat(m.length);
 const mask = (s: string, masks = MASKS) => masks.reduce((t, r) => t.replace(r, blank), s);
 
 /* ——— Amounts ——— */
-const CUR_PRE = 'R\\$|MX\\$|CA\\$|C\\$|AU\\$|A\\$|US\\$|GH₵|GH¢|GHC|E£|=N=|[₦$€£¥₹₵#]|NGN|USD|EUR|GBP|CAD|AUD|KES|KSH|GHS|ZAR|INR|JPY|BRL|MXN|AED|EGP|RS\\.?|N(?=\\d)|R(?=\\d)';
+const CUR_PRE = 'R\\$|MX\\$|CA\\$|C\\$|AU\\$|A\\$|US\\$|GH₵|GH¢|GHC|E£|=N=|[₦$€£¥₹₵₩#]|NGN|USD|EUR|GBP|CAD|AUD|KES|KSH|GHS|ZAR|INR|JPY|BRL|MXN|AED|EGP|CNY|RMB|KRW|XOF|FCFA|CFA|TZS|TSH|SAR|RS\\.?|N(?=\\d)|R(?=\\d)';
 // 1.500,00 (comma decimals) · 1,500.00 · 1500.00
 const NUM = '\\d{1,3}(?:\\.\\d{3})*,\\d{2}(?!\\d)|\\d{1,3}(?:,\\d{3})+(?:\\.\\d+)?|\\d+(?:\\.\\d+)?';
 const HEAD = new RegExp(`(?<![\\p{L}\\d.,])(?:(?<cur>${CUR_PRE})\\s?)?(?<num>${NUM})`, 'giu');
 const SPACED = /(?: \d{3})+(?![\d,.])/y; // "R 5 000": spaces as thousands, only beside a currency
 const MULT_RE = /(?:\s?(thousand|grand|million|mil|billion|bn)|\s?([km])(\d(?!\d))?|(b))(?![\p{L}\d])/iuy;
-const SUF_RE = /\s?\(?(egyptian pounds?|canadian dollars?|australian dollars?|us dollars?|kenyan? shillings?|ghana(?:ian)? cedis?|south african rands?|mexican pesos?|naira|ngn|dollars?|usd|bucks?|euros?|eur|pounds?|gbp|quid|cad|aud|kes|ksh|shillings?|bob|ghs|cedis?|zar|rands?|inr|rupees?|jpy|yen|brl|reais|mxn|pesos?|aed|dirhams?|dhs|egp)\)?(?![\p{L}])/iuy;
+const SUF_RE = /\s?\(?(egyptian pounds?|canadian dollars?|australian dollars?|us dollars?|kenyan? shillings?|ghana(?:ian)? cedis?|south african rands?|mexican pesos?|naira|ngn|dollars?|usd|bucks?|euros?|eur|pounds?|gbp|quid|cad|aud|kes|ksh|shillings?|bob|ghs|cedis?|zar|rands?|inr|rupees?|jpy|yen|brl|reais|mxn|pesos?|aed|dirhams?|dhs|egp|yuan|kuai|rmb|cny|won|krw|fcfa|f cfa|cfa|francs?|xof|tsh|tzs|shilingi|riyals?|sar|rupaye|rupay|rupiya|ريال|درهم|دراهم|جنيه|रुपये|रुपए|रुपया|रु|[€₩])\)?(?![\p{L}\p{M}])|\s?(元|块钱|块|塊|人民币|円|圓|원)/iuy;
 const MULT: Record<string, number> = { k: 1e3, m: 1e6, b: 1e9, bn: 1e9, thousand: 1e3, grand: 1e3, million: 1e6, mil: 1e6, billion: 1e9 };
 const NOT_MONEY_AFTER = /^\s*(days?|weeks?|months?|years?|yrs?|hrs?|hours?|mins?|minutes?|nights?|times?|trips?|x\b|pcs|pieces|people|persons?|plates?|bottles?|packs?|cartons?|crates?|bags?|kg|g\b|gb|mb|liters?|litres?|am\b|pm\b|st\b|nd\b|rd\b|th\b|%)/i;
 
@@ -107,12 +108,19 @@ function currencyOf(token: string, home?: string): string | undefined {
   if (/^(ksh|kes|bob|shillings?|kenyan? shillings?)$/.test(t)) return 'KES';
   if (/^(gh₵|gh¢|ghc|₵|ghs|cedis?|ghana(ian)? cedis?)$/.test(t)) return 'GHS';
   if (/^(r|zar|rands?|south african rands?)$/.test(t)) return 'ZAR';
-  if (/^(₹|inr|rs|rupees?)$/.test(t)) return 'INR';
-  if (/^(¥|jpy|yen)$/.test(t)) return 'JPY';
+  if (/^(₹|inr|rs|rupees?|rupaye|rupay|rupiya|रुपये|रुपए|रुपया|रु)$/.test(t)) return 'INR';
+  if (t === '¥') return home === 'CNY' ? 'CNY' : 'JPY';
+  if (/^(jpy|yen|円|圓)$/.test(t)) return 'JPY';
+  if (/^(cny|rmb|yuan|kuai|元|块钱|块|塊|人民币)$/.test(t)) return 'CNY';
+  if (/^(₩|krw|won|원)$/.test(t)) return 'KRW';
+  if (/^(xof|fcfa|f cfa|cfa|francs?)$/.test(t)) return 'XOF';
+  if (/^(tzs|tsh)$/.test(t)) return 'TZS';
+  if (t === 'shilingi') return home === 'TZS' ? 'TZS' : 'KES';
+  if (/^(sar|riyals?|ريال)$/.test(t)) return 'SAR';
   if (/^(r\$|brl|reais)$/.test(t)) return 'BRL';
   if (/^(mx\$|mxn|pesos?|mexican pesos?)$/.test(t)) return 'MXN';
-  if (/^(aed|dhs|dirhams?)$/.test(t)) return 'AED';
-  if (/^(e£|egp|egyptian pounds?)$/.test(t)) return 'EGP';
+  if (/^(aed|dhs|dirhams?|درهم|دراهم)$/.test(t)) return 'AED';
+  if (/^(e£|egp|egyptian pounds?|جنيه)$/.test(t)) return 'EGP';
   return undefined;
 }
 
@@ -144,7 +152,7 @@ export function findAmounts(text: string, home?: string): AmountHit[] {
     }
     SUF_RE.lastIndex = end;
     const sm = SUF_RE.exec(text);
-    if (sm) { currency = currencyOf(sm[1], home) ?? currency; end += sm[0].length; strong = true; }
+    if (sm) { currency = currencyOf(sm[1] ?? sm[2], home) ?? currency; end += sm[0].length; strong = true; }
     HEAD.lastIndex = end;
     const after = text.slice(end);
     // "2gb", "3rd", "5pm", "ps5": a number glued to letters is a thing, not a price ("5,000.00CR" on an alert is)
@@ -235,6 +243,8 @@ function direction(seg: string, money: AmountHit[]): { dir: Dir; cue: Cue } {
   const w = t.toLowerCase().replace(/’/g, "'").replace(/[^\p{L}\p{N}§'\s]/gu, ' ').split(/\s+/).filter(Boolean);
   const flat = w.join(' ');
   const yes = (dir: Dir, cue: Cue = 'verb') => ({ dir, cue });
+  const far = tongueDir(t); // Spanish, Chinese, Arabic and the rest: each language's own verbs decide
+  if (far) return yes(far);
   if (LOAN_IN.test(flat) || LANDED.test(flat)) return yes('in');
 
   const subject = (i: number): 'me' | 'thing' | 'other' => {
@@ -306,7 +316,7 @@ const WEEKDAYS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'frida
 export function parseDate(text: string, now = new Date()): string {
   const t = text.toLowerCase();
   const d = new Date(now);
-  if (/\byesterday\b|\blast night\b/.test(t)) { d.setDate(d.getDate() - 1); return todayISO(d); }
+  if (/\byesterday\b|\blast night\b/.test(t) || YESTERDAY.test(t)) { d.setDate(d.getDate() - 1); return todayISO(d); }
   const ago = t.match(/\b(\d+|a|one|two|three|four|five|six)\s+(day|days|week|weeks)\s+ago\b/);
   if (ago) {
     const words: Record<string, number> = { a: 1, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6 };
@@ -335,6 +345,7 @@ function scoreCategory(text: string, dir: Dir) {
     if (s > best.score) best = { id: c.id, score: s };
   }
   // "Got paid 350k" on its own reads as wages; "got paid for X" as work done for someone.
+  if (best.score === 0) { const far = tongueCategory(text, dir); if (far) best = { id: far, score: 1 }; }
   if (dir === 'in' && best.score === 0 && /\b(got paid|paid me|pay ?day|earned)\b/.test(t)) best = { id: /\bfor\b/.test(t) ? 'craft' : 'salary', score: 0.5 };
   return best;
 }
@@ -450,13 +461,13 @@ function segments(text: string, home?: string): string[] {
 }
 
 export function splitStory(text: string): string[] {
-  return alertChunks(text).flatMap((c) => (isAlert(c) ? [c.trim()] : segments(c)));
+  return alertChunks(plain(text)).flatMap((c) => (isAlert(c) ? [c.trim()] : segments(c)));
 }
 
 /** Everything in a piece of writing that moved money, in the order it was written. */
 export function parseStory(text: string, opts: ReadOptions = {}): Parsed[] {
   const out: Parsed[] = [];
-  for (const chunk of alertChunks(text)) {
+  for (const chunk of alertChunks(plain(text, opts.home))) {
     if (isAlert(chunk)) { const a = readAlert(chunk, opts.home); if (a) { out.push(a); continue; } }
     let prev: Read | undefined;
     for (const seg of segments(chunk, opts.home)) {
@@ -470,7 +481,7 @@ export function parseStory(text: string, opts: ReadOptions = {}): Parsed[] {
 
 /** Reads the text as a single entry (the first amount that counts). */
 export function parseOne(text: string, opts: ReadOptions = {}): Parsed | null {
-  const raw = text.trim();
+  const raw = plain(text, opts.home).trim();
   if (!raw) return null;
   if (isAlert(raw)) { const a = readAlert(raw, opts.home); if (a) return a; }
   return readSegment(mask(spokenToDigits(raw)), raw, opts.home)?.parsed ?? null;
