@@ -30,8 +30,6 @@ interface SidebarProps {
   chapters: { month: string; title: string }[];
   counts: { ledger: number; stickers: string };
   name: string;
-  rank: string;
-  streak: number;
   onEdition: () => void;
   onSettings: () => void;
   wall?: string;
@@ -69,7 +67,7 @@ export function Sidebar(p: SidebarProps) {
         <span className="avatar">{(p.name || 'Y').charAt(0).toUpperCase()}</span>
         <span style={{ minWidth: 0, flex: 1, overflow: 'hidden' }}>
           <span style={{ display: 'block', fontWeight: 600, fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name || 'You'}</span>
-          <span className="small" style={{ display: 'block', whiteSpace: 'nowrap' }}>{p.rank}, candle at {p.streak}</span>
+          <span className="small" style={{ display: 'block', whiteSpace: 'nowrap' }}>On this device</span>
         </span>
         <Icon.gear size={16} />
       </button>

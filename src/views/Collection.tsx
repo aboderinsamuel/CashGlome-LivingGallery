@@ -1,24 +1,20 @@
 import { motion } from 'framer-motion';
 import { useMemo, useRef } from 'react';
-import { badgesOf, computeStats, levelOf, LEVELS, xpOf } from '../lib/analytics';
-import { candleOf, paintingOf, restorationOf, PATCHES } from '../lib/art';
+import { badgesOf, computeStats } from '../lib/analytics';
+import { paintingOf, restorationOf, PATCHES } from '../lib/art';
 import { money, monthLabel, monthOf, todayISO } from '../lib/format';
 import type { State } from '../lib/types';
 import { Sticker } from '../components/Stickers';
-import { Candle, Seal } from '../components/Candle';
 import { RestorationPlate } from '../components/Restoration';
 import { Photo, usePicture } from '../components/Photo';
 import { Icon } from '../components/Icons';
 import type { Entry } from '../lib/types';
 
-/** The gallery: one painting per month on a salon wall, the candle, your rank and the sticker book. */
+/** The gallery: one painting per month on a salon wall, and the sticker book. */
 export function Collection({ state, onOpen, onCamera }: { state: State; onOpen: (month: string) => void; onCamera: () => void }) {
   const ref = useRef<HTMLDivElement>(null);
   const phone = document.documentElement.dataset.phone !== undefined;
   const calm = state.settings.calm;
-  const xp = xpOf(state.entries);
-  const lv = levelOf(xp);
-  const c = useMemo(() => candleOf(state.entries), [state.entries]);
   const badges = badgesOf(state);
   const earned = badges.filter((b) => b.done).length;
   const months = useMemo(() => {
@@ -34,48 +30,13 @@ export function Collection({ state, onOpen, onCamera }: { state: State; onOpen: 
 
   return (
     <div className="page" ref={ref}>
-      {phone ? (
-        /* On a phone the gallery is only what hangs in it: no ranks, no points, no days in a row. */
-        <div>
-          <div className="kicker"><span style={{ font: 'italic 400 17px var(--serif)', color: 'var(--gold)' }}>The gallery</span></div>
-          <h1 className="display" style={{ marginTop: 10 }}>{months.length === 1 ? 'One painting' : `${months.length} paintings`}, <em>yours</em>.</h1>
-          <p className="lede" style={{ marginTop: 14 }}>
-            {done ? `${done} fully restored. ` : ''}{state.entries.length} {state.entries.length === 1 ? 'line' : 'lines'} written over {daysWritten} {daysWritten === 1 ? 'day' : 'days'}. A finished painting hangs here for good.
-          </p>
-        </div>
-      ) : (<>
-      <div className="two-col" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 40, alignItems: 'end' }}>
-        <div>
-          <div className="kicker"><span style={{ font: 'italic 400 17px var(--serif)', color: 'var(--gold)' }}>The gallery</span></div>
-          <h1 className="display" style={{ fontSize: 'clamp(48px, 5.6vw, 92px)', marginTop: 18 }}>{lv.title}<em>.</em></h1>
-          <p className="lede" style={{ marginTop: 22 }}>
-            {months.length} {months.length === 1 ? 'painting' : 'paintings'} on the wall, {done} fully restored. {state.entries.length} entries over {daysWritten} days.
-            {' '}{lv.nextTitle ? <>{lv.next - xp} more points to reach <i>{lv.nextTitle}</i>.</> : 'You have reached the top of the guild.'}
-          </p>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 14 }}>
-          <Candle streak={c.streak} lit={c.litToday} size={150} calm={calm} />
-          <div>
-            <div style={{ font: '330 96px/0.8 var(--serif)', letterSpacing: '-0.05em' }} className="num">{c.streak}</div>
-            <div className="label" style={{ marginTop: 10 }}>{c.streak === 1 ? 'day' : 'days'} burning</div>
-            <div style={{ display: 'flex', gap: 5, marginTop: 10, alignItems: 'center' }}><Seal size={20} filled={c.seals >= 1} /><Seal size={20} filled={c.seals >= 2} /><span className="small" style={{ marginLeft: 4 }}>Best {c.best}</span></div>
-          </div>
-        </div>
+      <div>
+        <div className="kicker"><span style={{ font: 'italic 400 17px var(--serif)', color: 'var(--gold)' }}>The gallery</span></div>
+        <h1 className="display" style={{ marginTop: 10 }}>{months.length === 1 ? 'One painting' : `${months.length} paintings`}, <em>yours</em>.</h1>
+        <p className="lede" style={{ marginTop: 14 }}>
+          {done ? `${done} fully restored. ` : ''}{state.entries.length} {state.entries.length === 1 ? 'line' : 'lines'} written over {daysWritten} {daysWritten === 1 ? 'day' : 'days'}. A finished painting hangs here for good.
+        </p>
       </div>
-
-      {/* Guild ranks */}
-      <div style={{ marginTop: 48, display: 'grid', gridTemplateColumns: `repeat(${LEVELS.length}, 1fr)`, gap: 6 }}>
-        {LEVELS.map((L, i) => (
-          <div key={L.title}>
-            <div style={{ height: 6, borderRadius: 3, background: 'var(--fill-2)', overflow: 'hidden' }}>
-              <motion.div initial={{ width: 0 }} animate={{ width: i < lv.index ? '100%' : i === lv.index ? `${lv.progress * 100}%` : '0%' }} transition={{ duration: 1, delay: i * 0.08 }} style={{ height: '100%', background: 'linear-gradient(90deg, #B08A3A, #E2C27A)' }} />
-            </div>
-            <div className="small" style={{ marginTop: 8, color: i === lv.index ? 'var(--ink)' : undefined, fontWeight: i === lv.index ? 600 : 400 }}>{L.title}</div>
-          </div>
-        ))}
-      </div>
-
-      </>)}
 
       {/* The salon wall */}
       <section className="section">

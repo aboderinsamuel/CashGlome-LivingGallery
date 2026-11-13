@@ -2,11 +2,11 @@ import { AnimatePresence, MotionConfig, motion } from 'framer-motion';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useGlomeStore, toEntry } from './lib/store';
 import { aiEnabled, readMoney } from './lib/ai';
-import { badgesOf, chapterOf, computeStats, levelOf, xpOf } from './lib/analytics';
+import { badgesOf, chapterOf, computeStats } from './lib/analytics';
 import { chapterIsStale, chapterStep, loadChapters, museChapter, saveChapters, validChapter, type SavedChapter } from './lib/muse-story';
 import { cat } from './lib/categories';
 import { demoEntries } from './lib/demo';
-import { artSrc, candleOf, isGilded, paintingOf, restorationOf, seasonalWallpaper } from './lib/art';
+import { artSrc, isGilded, paintingOf, restorationOf, seasonalWallpaper } from './lib/art';
 import { money, monthLabel, monthOf, shiftMonth, todayISO, uid } from './lib/format';
 import { setSound, sfx } from './lib/sound';
 import type { Entry, Parsed } from './lib/types';
@@ -120,8 +120,7 @@ export default function App() {
   const muse = useMemo(() => Object.fromEntries(months.map((m) => [m, validChapter(saved[m], firstOf[m]?.id, firstOf[m]?.n ?? 0)])), [months, saved, firstOf]);
   const chapters = useMemo(() => months.map((m) => ({ month: m, title: (muse[m]?.title ?? chapterOf(state, computeStats(state.entries, m)).title).map((x) => x.t).join('') })), [months, state, muse]);
   const badges = useMemo(() => badgesOf(state), [state]);
-  const lv = levelOf(xpOf(state.entries));
-  const candle = useMemo(() => candleOf(state.entries), [state.entries]);
+  const wroteToday = useMemo(() => state.entries.some((e) => e.date === todayISO()), [state.entries]);
   const monthCount = useMemo(() => state.entries.filter((e) => monthOf(e.date) === state.month).length, [state.entries, state.month]);
   const wall = !state.settings.wallpaper || state.settings.wallpaper === 'season' ? seasonalWallpaper() : state.settings.wallpaper;
 
@@ -155,12 +154,12 @@ export default function App() {
 
   useEffect(() => { if (!notice) return; const t = setTimeout(() => setNotice(null), 7000); return () => clearTimeout(t); }, [notice]);
 
-  // ——— Evening reminder, only when the candle is still unlit ———
+  // ——— Evening reminder, only on a day nothing has been written ———
   useEffect(() => {
     const r = state.settings.reminder;
     if (!r?.on || typeof Notification === 'undefined') return;
     const check = () => {
-      if (Notification.permission !== 'granted' || candle.litToday) return;
+      if (Notification.permission !== 'granted' || wroteToday) return;
       const now = new Date();
       const [h, m] = r.time.split(':').map(Number);
       if (now.getHours() * 60 + now.getMinutes() < h * 60 + m) return;
@@ -171,7 +170,7 @@ export default function App() {
     check();
     const t = setInterval(check, 60000);
     return () => clearInterval(t);
-  }, [state.settings.reminder, candle.litToday]);
+  }, [state.settings.reminder, wroteToday]);
 
   // ——— Routines: written down for you, or asked about with one tap ———
   const latest = useRef(state);
@@ -434,7 +433,7 @@ export default function App() {
       <Sidebar
         view={view} setView={setView} month={state.month} setMonth={setMonth} chapters={chapters}
         counts={{ ledger: monthCount, stickers: `${months.length}` }}
-        name={state.profile.name} rank={lv.title} streak={candle.streak}
+        name={state.profile.name}
         onEdition={() => setEdition(true)} onSettings={() => openSettings()} wall={artSrc(wall, 'sm')}
       />
 

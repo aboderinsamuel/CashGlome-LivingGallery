@@ -110,7 +110,7 @@ function Reminder({ state, dispatch }: { state: State; dispatch: (a: Action) => 
     dispatch({ type: 'settings', patch: { reminder: { ...r, on } } });
   };
   return (
-    <Group note={denied ? 'Notifications are blocked for CashGlome. Allow them in your browser or system settings to get the reminder.' : 'One quiet note a day, only if your candle is still unlit. Nothing on days you have already written.'}>
+    <Group note={denied ? 'Notifications are blocked for CashGlome. Allow them in your browser or system settings to get the reminder.' : 'One quiet note in the evening, only on days you haven’t written. Missing a day costs nothing.'}>
       <Row label="Evening reminder" sub="One quiet question in the evening: what did today cost?"><Toggle label="Evening reminder" on={r.on && !denied} set={set} /></Row>
       {r.on && !denied && (
         <Row label="Remind me at">

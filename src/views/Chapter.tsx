@@ -2,7 +2,7 @@ import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { cat } from '../lib/categories';
 import { chapterOf, computeStats, momentsOf, projection, recurringOf, spaceSegs, type Chapter as Ch, type Stats } from '../lib/analytics';
-import { candleOf, dayCardOf, paintingOf, restorationOf, PATCHES, type Restoration } from '../lib/art';
+import { dayCardOf, paintingOf, restorationOf, PATCHES, type Restoration } from '../lib/art';
 import { money, monthLabel, shiftMonth, todayISO } from '../lib/format';
 import { useInView, useStages } from '../lib/inview';
 import type { State } from '../lib/types';
@@ -11,7 +11,6 @@ import { Sticker } from '../components/Stickers';
 import { Icon } from '../components/Icons';
 import { LivingArt } from '../components/LivingArt';
 import { PlateLabel, RestorationPlate, revealTime, warmPlate } from '../components/Restoration';
-import { Candle, Seal } from '../components/Candle';
 import { WhatIf } from './WhatIf';
 import { Coins } from '../components/Coins';
 import { voiceSupport } from '../lib/speech';
@@ -197,7 +196,7 @@ export function Chapter({ state, dispatch, museChapter, onOpenCategory, onEditio
   );
 }
 
-/* ——— Today: candle, the day's card, and today's cleaning ——— */
+/* ——— Today: the day's card and today's cleaning ——— */
 /** One key holds the date the card was last turned over (older versions kept a key per day). */
 const CARD_KEY = 'cg-card';
 function cardFlippedToday() {
@@ -212,28 +211,12 @@ function cardFlippedToday() {
   } catch { return false; }
 }
 function Today({ state, r, calm, onWrite }: { state: State; r: Restoration; calm: boolean; onWrite: (h?: string) => void }) {
-  const c = useMemo(() => candleOf(state.entries), [state.entries]);
   const card = useMemo(() => dayCardOf(state), [state]);
   const [flipped, setFlipped] = useState(cardFlippedToday);
   const flip = () => { setFlipped(true); try { localStorage.setItem(CARD_KEY, todayISO()); } catch { /* fine */ } };
   const left = Math.max(0, r.todayCap - Math.min(r.todayCap, r.today));
   return (
     <motion.section className="today" {...reveal}>
-      <div className="tcard" style={{ display: 'flex', gap: 18, alignItems: 'flex-end' }}>
-        <div style={{ flex: 'none', marginBottom: -4 }}><Candle streak={c.streak} lit={c.litToday} size={132} calm={calm} /></div>
-        <div style={{ minWidth: 0, flex: 1 }}>
-          <div className="kicker">Your candle</div>
-          <div style={{ font: '360 46px/1 var(--serif)', letterSpacing: '-0.03em', marginTop: 10 }} className="num">{c.streak} <span style={{ fontSize: 22, fontStyle: 'italic' }}>{c.streak === 1 ? 'day' : 'days'}</span></div>
-          <div className="small" style={{ marginTop: 8, lineHeight: 1.45 }}>
-            {c.litToday ? 'Lit for today. Come back tomorrow to keep it burning.' : c.streak ? 'Still unlit today. One line before midnight keeps it going.' : 'Write a line to light it. It grows a little every day you come back.'}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 14 }}>
-            <Seal size={22} filled={c.seals >= 1} /><Seal size={22} filled={c.seals >= 2} />
-            <span className="small" style={{ marginLeft: 4 }}>{c.seals >= 2 ? 'Two seals held' : `${c.toNextSeal} ${c.toNextSeal === 1 ? 'day' : 'days'} to a seal`}</span>
-          </div>
-        </div>
-      </div>
-
       <div className={'flip tcard' + (flipped ? ' on' : '')} style={{ padding: 0, border: 0, background: 'transparent' }}>
         <div className="flip-inner" style={{ minHeight: 230 }}>
           <button className="flip-face" onClick={flip} disabled={!card} style={{ cursor: card ? 'pointer' : 'default', textAlign: 'left' }}>

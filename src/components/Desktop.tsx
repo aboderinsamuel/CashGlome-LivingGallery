@@ -1,12 +1,11 @@
 import { AnimatePresence, motion, useDragControls, useMotionValue, useSpring, useTransform, type MotionValue } from 'framer-motion';
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode, type PointerEvent as RPointerEvent } from 'react';
-import { candleOf, dayCardOf, paintingOf, restorationOf, seasonalWallpaper, artSrc } from '../lib/art';
+import { dayCardOf, paintingOf, restorationOf, seasonalWallpaper, artSrc } from '../lib/art';
 import { computeStats } from '../lib/analytics';
 import { money, monthOf, todayISO } from '../lib/format';
 import type { State } from '../lib/types';
 import { LivingArt } from './LivingArt';
 import { AppIcon, LilyGlyph } from './Logo';
-import { Candle } from './Candle';
 import { RestorationPlate } from './Restoration';
 import { Icon } from './Icons';
 
@@ -117,7 +116,6 @@ function MenuBar({ menus, aiOn, state, onOpen }: { menus: Menu[]; aiOn: boolean;
     window.addEventListener('mousedown', away); window.addEventListener('keydown', esc);
     return () => { window.removeEventListener('mousedown', away); window.removeEventListener('keydown', esc); };
   }, [open]);
-  const c = useMemo(() => candleOf(state.entries), [state.entries]);
   const all: Menu[] = [{ title: '', items: menus[0]?.items ?? [] }, ...menus.slice(1)];
   return (
     <div className="menubar" ref={bar}>
@@ -138,10 +136,6 @@ function MenuBar({ menus, aiOn, state, onOpen }: { menus: Menu[]; aiOn: boolean;
         </div>
       ))}
       <span style={{ flex: 1 }} />
-      <span className="mb-item" title={c.litToday ? 'Candle lit for today' : 'Candle unlit today'}>
-        <svg width="9" height="14" viewBox="0 0 9 14" aria-hidden><path d="M4.5 0C6.6 2.5 6.8 4.6 4.5 6.2 2.2 4.6 2.4 2.5 4.5 0z" fill={c.litToday ? '#FFD27A' : 'rgba(255,255,255,.5)'} /><rect x="2.5" y="7" width="4" height="7" rx="1" fill="currentColor" /></svg>
-        <span className="num">{c.streak}</span>
-      </span>
       <span className="mb-item" title={aiOn ? 'Meta Muse connected' : 'Reading on this device'}><span style={{ width: 6, height: 6, borderRadius: 3, background: aiOn ? '#7BE0AE' : 'rgba(255,255,255,.55)' }} />Muse</span>
       <span className="mb-item num">{now.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' })}&nbsp;&nbsp;{now.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}</span>
     </div>
@@ -228,7 +222,6 @@ function DockIcon({ id, painting }: { id: DockTarget; painting: string }) {
 function Widgets({ state, calm, onOpen }: { state: State; calm: boolean; onOpen: (t: DockTarget) => void }) {
   const month = monthOf(todayISO());
   const s = useMemo(() => computeStats(state.entries, month), [state.entries, month]);
-  const c = useMemo(() => candleOf(state.entries), [state.entries]);
   const r = useMemo(() => restorationOf(state.entries, month), [state.entries, month]);
   const card = useMemo(() => dayCardOf(state), [state]);
   const painting = paintingOf(s);
@@ -238,14 +231,6 @@ function Widgets({ state, calm, onOpen }: { state: State; calm: boolean; onOpen:
   );
   return (
     <div style={{ position: 'absolute', right: 24, top: 48, width: 224, display: 'grid', gap: 14, zIndex: 2 }}>
-      <W d={0} onClick={() => onOpen('gallery')} style={{ display: 'flex', gap: 12, alignItems: 'flex-end' }}>
-        <Candle streak={c.streak} lit={c.litToday} size={74} calm={calm} />
-        <span>
-          <span className="wl" style={{ display: 'block' }}>Candle</span>
-          <span style={{ display: 'block', font: '360 34px/1 var(--serif)', marginTop: 6 }} className="num">{c.streak} <i style={{ fontSize: 16 }}>{c.streak === 1 ? 'day' : 'days'}</i></span>
-          <span style={{ display: 'block', font: '500 11.5px var(--ui)', opacity: 0.75, marginTop: 4 }}>{c.litToday ? 'Lit today' : 'Unlit today'}</span>
-        </span>
-      </W>
       <W d={1} onClick={() => onOpen('app')} style={{ padding: 12 }}>
         <div style={{ ['--card' as string]: 'rgba(0,0,0,0)' }}><RestorationPlate painting={painting} r={r} seen={r.restored} drift={false} ratio={16 / 11} calm /></div>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10, gap: 8, alignItems: 'baseline' }}>

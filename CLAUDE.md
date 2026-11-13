@@ -24,8 +24,11 @@ Write, See, Ask.
   patch. Finished paintings hang in the gallery for good.
 - Ask: Muse (cloud AI) only plans the query; the device does every sum
   exactly and shows its working.
-- Rules we don't bend: entries stay on the device, no account, no ads,
+- Rules we don't bend: entries live on the device and work offline; no
+  sign-up before the first entry (the account comes after it, one tap,
+  and can be skipped); backup is encrypted so we can't read it; no ads,
   no bank login, no guilt, no streaks. Missing a day costs nothing.
+- The plan in force is docs/plan-money-and-brain.md.
 
 ## RENAISSANCE THEME (locked; extend it, never replace it)
 
