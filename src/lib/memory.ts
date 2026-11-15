@@ -295,7 +295,9 @@ export function affordability(s: State, amount = 0, label = 'this', today = toda
   } else if (verdict === 'tight') {
     text = `Only just. After ${what} and your routines ${until}${routineBits}, you'd be down to about ${m(low.after)} at the lowest point ${onDay(low.date, today)}.`;
   } else {
-    text = `Yes. You have about ${m(bal.amount)}. After ${what} and the ${m(committed)} your routines need ${until}, about ${m(low.after)} would still be free.`;
+    text = committed
+      ? `Yes. You have about ${m(bal.amount)}. After ${what} and the ${m(committed)} your routines need ${until}, about ${m(low.after)} would still be free.`
+      : `Yes. You have about ${m(bal.amount)}. After ${what}, about ${m(low.after)} would still be free ${until}.`;
   }
   return { amount, balance: bal.amount, payday, days, committed, lowest: low.after, lowestDate: low.date, verdict, text: text + ' This is from what you have told me, not financial advice.' };
 }

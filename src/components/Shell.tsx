@@ -4,7 +4,7 @@ import { ROMAN } from '../lib/analytics';
 import { monthLabel } from '../lib/format';
 import { useWindow } from './Desktop';
 
-export type View = 'chapter' | 'shelf' | 'ledger' | 'plans' | 'memory' | 'collection';
+export type View = 'chapter' | 'shelf' | 'ledger' | 'plans' | 'memory' | 'collection' | 'accounts';
 
 const isDesktop = !!window.glome?.isDesktop;
 const isMacDesktop = isDesktop && window.glome?.platform === 'darwin';
@@ -54,6 +54,7 @@ export function Sidebar(p: SidebarProps) {
         <button className="side-item" onClick={p.onEdition}><Icon.play size={15} /> <span style={{ marginLeft: 2 }}>Play the Edition</span></button>
         <div className="side-label">Money</div>
         <Item v="ledger" icon={<Icon.list size={17} />} label="Ledger" count={p.counts.ledger} />
+        <Item v="accounts" icon={<Icon.person size={17} />} label="Accounts" />
         <Item v="plans" icon={<Icon.flag size={17} />} label="Plans" />
         <Item v="memory" icon={<Icon.quill size={17} />} label="Memory" />
         <Item v="collection" icon={<Icon.seal size={17} />} label="Gallery" count={p.counts.stickers} />
@@ -85,6 +86,7 @@ export function TabBar({ view, setView, onEdition, onHome }: { view: View; setVi
       <button onClick={onHome}><Icon.sun />Today</button>
       <B v="chapter" icon={<Icon.book />} label="Chapter" />
       <B v="ledger" icon={<Icon.list />} label="Ledger" />
+      <B v="accounts" icon={<Icon.person />} label="Accounts" />
       <button onClick={onEdition}><Icon.play />Edition</button>
       <B v="plans" icon={<Icon.flag />} label="Plans" />
       <B v="memory" icon={<Icon.quill />} label="Memory" />

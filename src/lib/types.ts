@@ -99,6 +99,22 @@ export interface State {
   gone: { kind: 'entry' | 'goal'; id: string; at: number }[];
   /** Cash taken out and not yet accounted for: asked about later, the gap filed as cash spending. */
   cash?: { id: string; amount: number; left: number; date: string; askedOn?: string; closed?: boolean }[];
+  /** Rotating savings circles the person belongs to (tontine, susu, tanda, hui, kye, chit fund, stokvel…). */
+  circles?: Circle[];
+}
+
+/** A rotating savings circle: everyone pays in each round, and one member takes the whole pot in turn. */
+export interface Circle {
+  id: string;
+  name: string; // the person's own word for it: "ajo", "tanda", "계", "chit fund"…
+  members: number;
+  contribution: number; // what each member pays each round
+  every: 'week' | 'month';
+  start: string; // YYYY-MM-DD of the first round
+  myTurn: number; // 1-based round in which the person takes the pot
+  text: string; // the sentence it was read from
+  createdAt: number;
+  updatedAt: number;
 }
 
 export interface Parsed {

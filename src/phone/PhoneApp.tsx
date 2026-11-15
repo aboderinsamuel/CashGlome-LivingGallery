@@ -26,7 +26,7 @@ interface Props {
   museChapter?: { title: Ch['title']; lede: string } | null;
   /** The writing box, built by App (it owns saving). Shown on today's chapter only. */
   composer: ReactNode;
-  pages: Record<'ledger' | 'collection' | PhonePage, ReactNode>;
+  pages: Record<'ledger' | 'collection' | 'accounts' | PhonePage, ReactNode>;
   online: boolean;
   /** Back to the living painting. */
   onHome: () => void;
@@ -45,10 +45,10 @@ export function PhoneApp(p: Props) {
   const [more, setMore] = useState(false);
   const [page, setPage] = useState<PhonePage | null>(null);
   const isNow = state.month === monthOf(todayISO());
-  const tab: 'chapter' | 'ledger' | 'collection' = view === 'ledger' ? 'ledger' : view === 'collection' ? 'collection' : 'chapter';
+  const tab: 'chapter' | 'ledger' | 'collection' | 'accounts' = view === 'ledger' ? 'ledger' : view === 'collection' ? 'collection' : view === 'accounts' ? 'accounts' : 'chapter';
   // Views the desktop reaches from its sidebar arrive here as pushed pages.
   const pushed: PhonePage | null = page ?? (view === 'plans' ? 'plans' : view === 'memory' ? 'memory' : view === 'shelf' ? 'shelf' : null);
-  const go = (v: 'chapter' | 'ledger' | 'collection') => { haptic(); setPage(null); p.setView(v); };
+  const go = (v: 'chapter' | 'ledger' | 'collection' | 'accounts') => { haptic(); setPage(null); p.setView(v); };
   const back = () => { setPage(null); if (view === 'plans' || view === 'memory' || view === 'shelf') p.setView('chapter'); };
   const open = (pg: PhonePage) => { setMore(false); setPage(pg); };
   useEffect(() => { setPage(null); }, [state.month]);
@@ -91,6 +91,7 @@ export function PhoneApp(p: Props) {
           <button onClick={p.onHome}><Icon.sun size={20} /><span>Today</span></button>
           <button className={tab === 'chapter' ? 'on' : ''} onClick={() => go('chapter')}><Icon.book size={20} /><span>Chapter</span></button>
           <button className={tab === 'ledger' ? 'on' : ''} onClick={() => go('ledger')}><Icon.list size={20} /><span>Ledger</span></button>
+          <button className={tab === 'accounts' ? 'on' : ''} onClick={() => go('accounts')}><Icon.person size={20} /><span>Accounts</span></button>
           <button className={tab === 'collection' ? 'on' : ''} onClick={() => go('collection')}><Icon.seal size={20} /><span>Gallery</span></button>
         </nav>
       )}

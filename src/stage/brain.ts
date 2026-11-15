@@ -23,7 +23,12 @@ const RECAPTCHA = env.VITE_RECAPTCHA_SITE_KEY;
 export const brainConfigured = !!(CONFIG.apiKey && CONFIG.projectId && CONFIG.appId);
 const CLOUD_MODEL = env.VITE_GEMINI_MODEL || 'gemini-3.5-flash-lite';
 
-interface Models { prefer: GenerativeModel; device: GenerativeModel; cloud: GenerativeModel; json: { device: GenerativeModel; cloud: GenerativeModel } }
+interface Models {
+  prefer: GenerativeModel; device: GenerativeModel; cloud: GenerativeModel;
+  json: { device: GenerativeModel; cloud: GenerativeModel };
+  plan: { device: GenerativeModel; cloud: GenerativeModel };
+  ai: typeof import('firebase/ai'); backend: ReturnType<typeof import('firebase/ai').getAI>;
+}
 let models: Promise<Models | null> | null = null;
 let deviceState: 'unknown' | 'downloading' | 'ready' | 'none' = 'unknown';
 let progress = 0;
@@ -61,17 +66,44 @@ function load(): Promise<Models | null> {
         },
       }),
     });
-    const jsonCfg = { responseMimeType: 'application/json', responseSchema: entries, temperature: 0 };
-    const mk = (mode: (typeof InferenceMode)[keyof typeof InferenceMode], json = false) => ai.getGenerativeModel(backend, {
+    // A question, planned as searches the device will run. The plan holds no numbers from the diary.
+    const plan = Schema.object({
+      properties: {
+        kind: Schema.enumString({ enum: ['search', 'afford', 'free', 'other'], description: 'afford = can I buy/spend X; free = how much can I spend / is left until payday; search = anything answered by searching entries; other = not about their money' }),
+        amount: Schema.number({ description: 'For afford: the price asked about, expanded (50k = 50000). 0 otherwise.' }),
+        what: Schema.string({ description: 'For afford: the thing, in the asker’s words. Empty otherwise.' }),
+        searches: Schema.array({
+          description: 'For search: one to three searches over the entries. Each is summed exactly by the device.',
+          items: Schema.object({
+            properties: {
+              from: Schema.string({ description: 'YYYY-MM-DD or empty' }),
+              to: Schema.string({ description: 'YYYY-MM-DD or empty' }),
+              dir: Schema.enumString({ enum: ['in', 'out', 'any'] }),
+              categories: Schema.array({ items: Schema.enumString({ enum: ENTRY_SCHEMA_IDS }) }),
+              search: Schema.array({ items: Schema.string(), description: 'Words to find in what they wrote, with variants and their own language' }),
+              group_by: Schema.enumString({ enum: ['none', 'category', 'month', 'week', 'day', 'weekday', 'label'] }),
+              sort: Schema.enumString({ enum: ['newest', 'largest'] }),
+              title: Schema.string({ description: 'Three to six words naming this search, e.g. "Food this month"' }),
+            },
+            optionalProperties: ['from', 'to', 'categories', 'search'],
+          }),
+        }),
+      },
+      optionalProperties: ['amount', 'what', 'searches'],
+    });
+    const cfg = (schema: unknown) => ({ responseMimeType: 'application/json', responseSchema: schema, temperature: 0 });
+    const mk = (mode: (typeof InferenceMode)[keyof typeof InferenceMode], schema?: unknown) => ai.getGenerativeModel(backend, {
       mode,
-      inCloudParams: { model: CLOUD_MODEL, generationConfig: json ? jsonCfg : { temperature: 0.9, maxOutputTokens: 80 } },
-      onDeviceParams: { promptOptions: json ? { responseConstraint: entries } : undefined, createOptions: { expectedInputs: [{ type: 'text', languages: ['en'] }] } } as never,
+      inCloudParams: { model: CLOUD_MODEL, generationConfig: schema ? cfg(schema) : { temperature: 0.9, maxOutputTokens: 120 } } as never,
+      onDeviceParams: { promptOptions: schema ? { responseConstraint: schema } : undefined, createOptions: { expectedInputs: [{ type: 'text', languages: ['en'] }] } } as never,
     });
     return {
       prefer: mk(InferenceMode.PREFER_ON_DEVICE),
       device: mk(InferenceMode.ONLY_ON_DEVICE),
       cloud: mk(InferenceMode.ONLY_IN_CLOUD),
-      json: { device: mk(InferenceMode.ONLY_ON_DEVICE, true), cloud: mk(InferenceMode.ONLY_IN_CLOUD, true) },
+      json: { device: mk(InferenceMode.ONLY_ON_DEVICE, entries), cloud: mk(InferenceMode.ONLY_IN_CLOUD, entries) },
+      plan: { device: mk(InferenceMode.ONLY_ON_DEVICE, plan), cloud: mk(InferenceMode.ONLY_IN_CLOUD, plan) },
+      ai, backend,
     };
   })().catch((e) => { console.warn('[brain]', e); return null; }));
 }
@@ -152,4 +184,55 @@ export async function museumLabel(kinds: string[], weekday: string, paintingTitl
     const t = r.response.text().trim().split('\n')[0].replace(/^["“]|["”]$/g, '');
     return t ? { text: t, where: whereOf(r.response.inferenceSource) } : null;
   } catch (e) { console.warn('[brain] label', e); return null; }
+}
+
+export interface PlannedSearch { from?: string; to?: string; dir?: 'in' | 'out' | 'any'; categories?: string[]; search?: string[]; group_by?: string; sort?: string; title?: string }
+export interface Plan { kind: 'search' | 'afford' | 'free' | 'other'; amount?: number; what?: string; searches?: PlannedSearch[] }
+
+/**
+ * Turns a question into searches. The model sees the question, today's date and the category names; never
+ * an entry, a total or a balance. The device runs the searches and does every sum.
+ */
+export async function planQuestion(question: string, today: string, weekday: string): Promise<{ plan: Plan; where: Where } | null> {
+  const m = await load();
+  if (!m) return null;
+  const prompt = `You plan searches over a person's private money diary. You never see the diary; the device runs your searches and adds everything up exactly. Today is ${weekday} ${today}.
+Category ids: ${ENTRY_SCHEMA_IDS.join(', ')}. "Spending" is money out; savings is money put aside.
+Rules: resolve every period to dates ("this month" = first of this month to today, "last week" = the Monday-to-Sunday before this one). With no period, use this month for spending and budgets, all time for "ever" or "usually". Use search words for people, shops and things ("mum" -> ["mum","mom","mother","mama"]), in the asker's language too. Comparisons need two searches.
+Question: ${question}`;
+  const run = async (model: GenerativeModel) => {
+    const r = await model.generateContent(prompt);
+    return { plan: JSON.parse(r.response.text()) as Plan, where: whereOf(r.response.inferenceSource) };
+  };
+  try { if (deviceUsable()) return await run(m.plan.device); } catch (e) { console.warn('[brain] device plan', e); }
+  try { return await run(m.plan.cloud); } catch (e) { console.warn('[brain] cloud plan', e); return null; }
+}
+
+/** On the device only: a sitter puts the device's exact figures into words. The cloud is never asked this. */
+export async function phraseOnDevice(p: Persona, question: string, facts: string): Promise<string | null> {
+  if (!deviceUsable()) return null;
+  const m = await load();
+  if (!m) return null;
+  try {
+    const r = await m.device.generateContent(`You are ${p.name}, ${p.role}, in "${p.painting}" by ${p.artist}. Answer the person's question in two short sentences, warmly and a little dry, in their language. Use ONLY these exact figures, copied as written; never add or change a number. No advice, no emoji.\nQuestion: ${question}\nFigures: ${facts}\nAnswer:`);
+    const t = r.response.text().trim();
+    return t || null;
+  } catch (e) { console.warn('[brain] phrase', e); return null; }
+}
+
+const IMAGE_MODEL = env.VITE_GEMINI_IMAGE_MODEL || 'gemini-nano-banana-2.1';
+/**
+ * A small still life of the thing just bought, painted in the manner of the month's painting, to hang in the
+ * scene. Image generation runs in the cloud only, so it is told the kind of thing (e.g. "lunch"), never a
+ * sum, a name or the line itself.
+ */
+export async function paintStillLife(thing: string, painting: string, artist: string): Promise<string | null> {
+  const m = await load();
+  if (!m) return null;
+  try {
+    const model = m.ai.getGenerativeModel(m.backend, { model: IMAGE_MODEL, generationConfig: { responseModalities: [m.ai.ResponseModality.TEXT, m.ai.ResponseModality.IMAGE] } } as never);
+    const r = await model.generateContent(`A small oil-on-panel still life of ${thing.slice(0, 40)}, painted in the manner of ${artist}'s "${painting}": same palette, varnish, light and brushwork, plain dark background, no people, no text, no frame. Square.`);
+    const part = r.response.inlineDataParts?.()?.[0]?.inlineData;
+    return part ? `data:${part.mimeType};base64,${part.data}` : null;
+  } catch (e) { console.warn('[brain] still life', e); return null; }
 }

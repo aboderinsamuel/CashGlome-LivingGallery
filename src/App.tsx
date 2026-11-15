@@ -26,6 +26,7 @@ import { Chapter } from './views/Chapter';
 import { Shelf } from './views/Shelf';
 import { Ledger } from './views/Ledger';
 import { Plans } from './views/Plans';
+import { Accounts } from './stage/Accounts';
 import { Collection } from './views/Collection';
 import { SettingsSheet } from './views/Settings';
 import { Edition } from './views/Edition';
@@ -44,7 +45,7 @@ import { WITHDRAWAL, cashEntry, dueCash, markOffered, newPocket, recurringOffer,
 import { daysPhrase } from './lib/memory';
 import { Stage } from './stage/Stage';
 
-const TITLES: Record<View, string> = { chapter: 'Chapter', shelf: 'All chapters', ledger: 'Ledger', plans: 'Plans', memory: 'Memory', collection: 'Gallery' };
+const TITLES: Record<View, string> = { chapter: 'Chapter', shelf: 'All chapters', ledger: 'Ledger', plans: 'Plans', memory: 'Memory', collection: 'Gallery', accounts: 'Accounts' };
 const isMac = /Mac|iPhone|iPad/.test(navigator.platform) || window.glome?.platform === 'darwin';
 const kbd = (k: string) => (isMac ? `⌘${k}` : `Ctrl+${k}`);
 type Pane = 'general' | 'account' | 'appearance' | 'music' | 'muse' | 'data' | 'about';
@@ -420,6 +421,7 @@ export default function App() {
             {view === 'shelf' && <Shelf state={state} months={months} onOpen={(m) => { setMonth(m); setView('chapter'); }} />}
             {view === 'ledger' && <Ledger state={state} dispatch={dispatch} filter={filter} setFilter={setFilter} query={query} onAttach={(e) => setCapture({ file: null, attach: e })} />}
             {view === 'plans' && <Plans state={state} dispatch={dispatch} />}
+            {view === 'accounts' && <Accounts state={state} dispatch={dispatch} onToday={() => setHome(true)} />}
             {view === 'memory' && <MemoryView state={state} dispatch={dispatch} notify={(text, undo) => setNotice({ text, undo: undo ? () => { undo(); setNotice(null); } : undefined })} />}
             {view === 'collection' && <Collection state={state} onOpen={(m) => { setMonth(m); setView('chapter'); }} onCamera={() => setCapture({ file: null })} />}
         </motion.div>
@@ -482,6 +484,7 @@ export default function App() {
         collection: <Collection state={state} onOpen={(m) => { setMonth(m); setView('chapter'); }} onCamera={() => setCapture({ file: null })} />,
         read: <Chapter state={state} dispatch={dispatch} museChapter={muse[state.month] ?? null} onOpenCategory={(id) => { setFilter(id); setView('ledger'); }} onEdition={() => setEdition(true)} onWrite={(h) => composer.current?.fill(h ?? '')} onPlans={goView('plans')} onGallery={goView('collection')} onSay={() => composer.current?.speak()} onSnap={() => setCapture({ file: null })} onShare={() => setSharing(true)} />,
         plans: <Plans state={state} dispatch={dispatch} />,
+        accounts: <Accounts state={state} dispatch={dispatch} onToday={() => setHome(true)} />,
         memory: <MemoryView state={state} dispatch={dispatch} notify={(text, undo) => setNotice({ text, undo: undo ? () => { undo(); setNotice(null); } : undefined })} />,
         shelf: <Shelf state={state} months={months} onOpen={(m) => { setMonth(m); setView('chapter'); }} />,
       }}

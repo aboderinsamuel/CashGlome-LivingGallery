@@ -1,0 +1,79 @@
+/* The counting house. Parchment folios, each headed by an Old Master. Tokens from styles.css. */
+.acc { max-width: 980px; }
+.acc-head { margin-bottom: 34px; }
+.acc-head .kicker { font: 500 12px/1 var(--ui); letter-spacing: .12em; text-transform: uppercase; color: var(--gold); }
+.acc-head h1 { font: 400 clamp(40px, 6vw, 64px)/1.02 var(--serif); letter-spacing: -.02em; margin: 12px 0 10px; color: var(--ink); }
+.acc-head h1 i, .acc-folio h2 i { font-style: italic; color: var(--gold); }
+.acc-head p { font: 400 17px/1.5 var(--serif); color: var(--ink-2); margin: 0; max-width: 560px; }
+
+.acc-folio { display: grid; grid-template-columns: 300px 1fr; gap: 30px; padding: 30px 0; border-top: 1px solid var(--line); }
+.acc-vig { margin: 0; position: relative; }
+.acc-vig img { display: block; width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 3px; box-shadow: 0 0 0 6px color-mix(in srgb, var(--gold) 28%, transparent), 0 0 0 7px color-mix(in srgb, var(--gold) 55%, transparent), var(--shadow-2); filter: saturate(.92); }
+.acc-vig figcaption { font: 400 12.5px/1.4 var(--serif); color: var(--ink-3); margin-top: 16px; }
+.acc-body .numeral { font: italic 400 15px/1 var(--serif); color: var(--gold); }
+.acc-folio h2 { font: 400 34px/1.1 var(--serif); letter-spacing: -.01em; margin: 6px 0 14px; color: var(--ink); }
+.acc-big { font: 400 48px/1 var(--serif); font-variant-numeric: tabular-nums; color: var(--ink); letter-spacing: -.02em; }
+.acc-big span { font: italic 400 18px var(--serif); color: var(--ink-2); margin-left: 8px; letter-spacing: 0; }
+.acc-note { font: 400 16px/1.55 var(--serif); color: var(--ink-2); margin: 12px 0; }
+.acc-note b { color: var(--ink); font-weight: 500; }
+.acc-empty { font: italic 400 17px/1.55 var(--serif); color: var(--ink-2); margin: 6px 0; max-width: 520px; }
+.acc-work { font: 400 14px/1.55 var(--ui); color: var(--ink-2); background: var(--fill); border-radius: 10px; padding: 12px 14px; }
+.acc-link { border: 0; background: none; padding: 0; font: 500 14px var(--ui); color: var(--gold); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.acc-err { font: 400 14px/1.5 var(--ui); color: var(--vermilion); }
+
+.acc-rows { list-style: none; padding: 0; margin: 8px 0 0; }
+.acc-rows li { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.acc-rows .initial { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; flex: none; font: italic 500 17px var(--serif); color: #2A2016; background: radial-gradient(circle at 35% 30%, #F1D99A, #C9A24B 70%); }
+.acc-rows .who { flex: 1; min-width: 0; font: 400 17px/1.25 var(--serif); color: var(--ink); }
+.acc-rows .who small { display: block; font: 400 12.5px/1.4 var(--ui); color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.acc-rows .amt { font: 500 15px var(--serif); font-variant-numeric: tabular-nums; color: var(--ink-2); text-align: right; }
+.acc-rows .amt.owed { color: var(--gold); }
+.acc-rows .amt.owe { color: var(--ink); font-style: italic; }
+.acc-rows .amt em { font-style: italic; color: var(--gold); margin-left: 6px; }
+
+.acc-circle { position: relative; display: flex; gap: 20px; align-items: center; padding: 16px; margin: 12px 0; border-radius: 14px; background: var(--fill); }
+.acc-circle .ring { position: relative; width: 84px; height: 84px; flex: none; display: grid; place-items: center; }
+.acc-circle .ring .dot { position: absolute; left: 50%; top: 50%; width: 9px; height: 9px; margin: -4.5px; border-radius: 50%; border: 1px solid var(--gold); background: transparent; transform-origin: center; }
+.acc-circle .ring .dot.past { background: color-mix(in srgb, var(--gold) 45%, transparent); }
+.acc-circle .ring .dot.mine { width: 13px; height: 13px; margin: -6.5px; background: radial-gradient(circle at 35% 30%, #F6E2A8, #C9A24B 70%); box-shadow: 0 0 10px rgba(201,162,75,.6); }
+.acc-circle .ring b { font: 400 24px/1 var(--serif); color: var(--ink); }
+.acc-circle .ring b small { font-size: 13px; color: var(--ink-3); }
+.acc-circle .info { flex: 1; min-width: 0; }
+.acc-circle .name { font: 400 20px/1.2 var(--serif); color: var(--ink); }
+.acc-circle .name small { font: 400 13px var(--ui); color: var(--ink-3); margin-left: 6px; }
+.acc-circle .line { font: 400 15px/1.45 var(--serif); color: var(--ink-2); margin-top: 4px; }
+.acc-circle .line.soft { font-size: 13.5px; color: var(--ink-3); }
+.acc-x { position: absolute; top: 8px; right: 10px; border: 0; background: none; font-size: 20px; color: var(--ink-3); cursor: pointer; width: 32px; height: 32px; }
+.acc-add { display: flex; gap: 8px; margin-top: 12px; }
+.acc-add input { flex: 1; min-width: 0; font: 400 16px var(--serif); padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); color: var(--ink); }
+.acc-add button, .acc-print { font: 600 14px var(--ui); padding: 0 18px; min-height: 44px; border-radius: 12px; border: 0; cursor: pointer; color: #1D160F; background: linear-gradient(180deg, #EBD08C, #C9A24B); }
+.acc-add button:disabled { opacity: .45; cursor: default; }
+
+.acc-table { width: 100%; border-collapse: collapse; margin: 10px 0 16px; font: 400 15px/1.4 var(--serif); color: var(--ink); }
+.acc-table th { font: 600 11px var(--ui); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--ink-4); }
+.acc-table td { padding: 10px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.acc-table td:first-child { white-space: nowrap; }
+.acc-table td:nth-child(2) { color: var(--ink-2); font-size: 13.5px; }
+.acc-table .r { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.acc-table tfoot td { font-weight: 500; border-bottom: 0; }
+
+.acc-back { display: block; margin: 36px auto 0; border: 1px solid var(--line); background: var(--fill); color: var(--ink); font: italic 400 16px var(--serif); padding: 12px 22px; border-radius: 999px; cursor: pointer; }
+
+@media (max-width: 760px) {
+  .acc-folio { grid-template-columns: 1fr; gap: 16px; }
+  .acc-vig { margin: 0 7px; }
+  .acc-vig img { aspect-ratio: 16 / 9; }
+  .acc-circle { gap: 14px; padding: 14px 12px; }
+  .acc-circle .name small { display: block; margin: 2px 0 0; }
+  .acc-circle .info { padding-right: 18px; }
+  .acc-big { font-size: 40px; }
+  .acc-table td:nth-child(2) { display: none; }
+  .acc-table th:nth-child(2) { display: none; }
+}
+
+@media print {
+  body.printing-record * { visibility: hidden; }
+  body.printing-record .acc-record, body.printing-record .acc-record * { visibility: visible; color: #000 !important; }
+  body.printing-record .acc-record { position: absolute; inset: 0; display: block; }
+  body.printing-record .acc-record .acc-vig, body.printing-record .acc-print { display: none; }
+}

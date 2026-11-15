@@ -12,7 +12,11 @@ import { LivingCanvas, strokeFor, type Stroke } from './LivingCanvas';
 import { moodOf, nightOf, stageName, stageOf } from './mood';
 import { castOf, labelOf, sitterLine } from './voices';
 import { dateInWords, examplesFor } from './words';
-import { brainConfigured, brainStatus, museumLabel, onBrain, readLine, sitterSays, warmUp } from './brain';
+import { brainConfigured, brainStatus, museumLabel, onBrain, paintStillLife, readLine, sitterSays, warmUp } from './brain';
+import { askPainting, safeToSpend, type PaintingAnswer } from './askPainting';
+import { mentionsCircle, readCircle } from './books';
+import { isQuestion } from '../lib/ask';
+import { describeMemory, readMemory, relDay } from '../lib/memory';
 import { Icon } from '../components/Icons';
 import type { View } from '../components/Shell';
 import './stage.css';
@@ -29,6 +33,9 @@ const num = (k: string) => (Q.has(k) ? Number(Q.get(k)) : undefined);
 const MOODS = { calm: { calm: 1, rush: 0, weight: 0, plenty: 0 }, rush: { calm: 0, rush: 1, weight: 0, plenty: 0 }, weight: { calm: 0.2, rush: 0, weight: 1, plenty: 0 }, plenty: { calm: 0.5, rush: 0, weight: 0, plenty: 1 } } as const;
 type Seal = 'device' | 'cloud' | 'rules';
 const SEAL_TEXT: Record<Seal, string> = { device: 'Read on this device', cloud: 'Read in the cloud', rules: 'Read by the rules, on this device' };
+const PLAN_TEXT: Record<Seal, string> = { device: 'Planned and counted on this device', cloud: 'Planned in the cloud, counted on this device', rules: 'Counted on this device' };
+/** Sentences that tell the painting something to remember, rather than something spent. */
+const TELLS = /^\s*(remember\b|note\b|i have\b|i've got\b|i get paid\b|my (salary|pay|balance|rent)\b|i'm paid\b|i am paid\b|.*\bevery (day|week|weekday|month|monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b|.*\bon the \d+(st|nd|rd|th)\b)/i;
 
 interface Props {
   state: State;
@@ -59,12 +66,16 @@ export function Stage({ state, dispatch, onRooms }: Props) {
 
   const [text, setText] = useState('');
   const [flash, setFlash] = useState(0);
-  const [slip, setSlip] = useState<{ who: string; role: string; text: string; seal: Seal; key: number } | null>(null);
+  const [slip, setSlip] = useState<{ who: string; role: string; text: string; seal: Seal; key: number; answer?: PaintingAnswer; q?: string; sealText?: string } | null>(null);
+  const [working, setWorking] = useState(false);
+  const [still, setStill] = useState<{ src: string; thing: string } | null>(null);
   const [plaque, setPlaque] = useState<string | null>(null);
   const [glReady, setGlReady] = useState(false);
   const [glFailed, setGlFailed] = useState(false);
   const input = useRef<HTMLInputElement>(null);
-  useEffect(() => { if (!slip) return; const t = setTimeout(() => setSlip(null), 11_000); return () => clearTimeout(t); }, [slip]);
+  // A sitter's remark fades on its own; an answer stays until it's dismissed or the next line is written.
+  useEffect(() => { if (!slip || slip.answer) return; const t = setTimeout(() => setSlip(null), 11_000); return () => clearTimeout(t); }, [slip]);
+  const safe = useMemo(() => safeToSpend(state, today), [state, today]);
 
   const todays = state.entries.filter((e) => e.date === today).sort((a, b) => b.createdAt - a.createdAt);
   const spent = todays.filter((e) => e.dir === 'out').reduce((s, e) => s + e.amount, 0);
@@ -76,6 +87,44 @@ export function Stage({ state, dispatch, onRooms }: Props) {
 
   // The rooms open from the painting. Before the first line there's nothing in them yet, but they open anyway.
   const go = (v: View) => { if (!state.profile.onboarded) dispatch({ type: 'onboard', name: state.profile.name || '', currency: cur }); onRooms(v); };
+
+  async function submit(line = text) {
+    const t = line.trim();
+    if (!t) return;
+    const who = castOf(painting.id);
+    const say = (text: string, seal: Seal = 'rules', extra: Partial<NonNullable<typeof slip>> = {}) => setSlip({ who: who.name, role: who.role, text, seal, key: Date.now(), ...extra });
+    // A savings circle in one sentence.
+    if (mentionsCircle(t) && /\b(people|members|of us|hands|turn|of \d+)\b/i.test(t)) {
+      const c = readCircle(t, today);
+      if (c) {
+        dispatch({ type: 'circle', circle: c }); setText(''); sfx.brush(true);
+        say(`${/^[aeiou]/i.test(c.name) ? 'An' : 'A'} ${c.name.toLowerCase()} of ${c.members}, ${money(c.contribution, cur)} a ${c.every}. Your turn is round ${c.myTurn}; the pot will be ${money(c.contribution * c.members, cur)}. It's in the accounts.`);
+        return;
+      }
+    }
+    // Something to remember: a balance, a pay day, a routine.
+    if (TELLS.test(t) && !isQuestion(t)) {
+      const mem = readMemory(t);
+      if (mem.kind !== 'note' && mem.amount) {
+        if (!state.profile.onboarded) dispatch({ type: 'onboard', name: state.profile.name || '', currency: cur });
+        dispatch({ type: 'remember', memory: mem }); setText(''); sfx.brush(true);
+        say(`Noted: ${describeMemory(mem, cur)}`);
+        return;
+      }
+    }
+    // A question for the painting.
+    if (isQuestion(t)) {
+      setReading(true); setText('');
+      const p0 = PAINTINGS[painting.id];
+      try {
+        const a = await askPainting(state, t, { name: who.name, role: who.role, painting: p0.title, artist: p0.artist, year: p0.year });
+        setWorking(false);
+        say(a.text, a.planned, { answer: a, q: t, sealText: PLAN_TEXT[a.planned] + (a.wordsBy === 'device' ? '; words by the on-device model' : '') });
+      } finally { setReading(false); }
+      return;
+    }
+    await keep(t);
+  }
 
   async function keep(line = text) {
     // The rules read English and pidgin shorthand instantly, offline. Anything they can't read, or any line in
@@ -117,6 +166,14 @@ export function Stage({ state, dispatch, onRooms }: Props) {
     show(voiced?.text ?? said.text, voiced?.where ?? where);
     const l = await museumLabel(Array.from(new Set(todayAll.map((e) => cat(e.category).name.toLowerCase()))), weekday, p.title);
     if (l) setPlaque(l.text);
+    // A small still life of what was bought, painted in the manner of the month's master. The cloud is told
+    // only the kind of thing, never the sum or the line.
+    const thing = kept.find((e) => e.dir === 'out');
+    if (thing && !Q.has('nostill')) {
+      const kind = cat(thing.category).name.toLowerCase();
+      const src = await paintStillLife(kind === 'everything else' ? thing.label.toLowerCase() : kind, p.title, p.artist);
+      if (src) setStill({ src, thing: kind === 'everything else' ? thing.label.toLowerCase() : kind });
+    }
   }
 
   return (
@@ -140,8 +197,16 @@ export function Stage({ state, dispatch, onRooms }: Props) {
             initial={{ opacity: 0, scaleY: 0.2, y: -10 }} animate={{ opacity: 1, scaleY: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.55, ease }}>
             <div className="who">{slip.who}<span>{slip.role}</span></div>
-            <div className="say">“{slip.text}”</div>
-            <div className="seal"><span className={`st-wax ${slip.seal}`}>C</span>{SEAL_TEXT[slip.seal]}</div>
+            {slip.q && <div className="q">{slip.q}</div>}
+            <div className="say">{slip.answer ? slip.text : `“${slip.text}”`}</div>
+            {slip.answer && slip.answer.figures.length > 0 && (
+              <details className="work" open={working} onToggle={(e) => setWorking((e.target as HTMLDetailsElement).open)}>
+                <summary>Show the working</summary>
+                <dl>{slip.answer.figures.map((f, i) => <div key={i}><dt>{f.label}</dt><dd>{f.value}</dd></div>)}</dl>
+                {slip.answer.rows.length > 0 && <ul>{slip.answer.rows.slice(0, 5).map((e) => <li key={e.id}><span>{e.label}</span><span>{e.date.slice(5)}</span><span>{money(e.amount, cur)}</span></li>)}</ul>}
+              </details>
+            )}
+            <div className="seal"><span className={`st-wax ${slip.seal}`}>C</span>{slip.sealText ?? SEAL_TEXT[slip.seal]}{slip.answer && <button className="close" onClick={() => setSlip(null)} aria-label="Close the answer">×</button>}</div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -151,6 +216,16 @@ export function Stage({ state, dispatch, onRooms }: Props) {
           <motion.div key={plaque} className="st-plaque" initial={{ opacity: 0, x: -14 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.6, ease, delay: 1.4 }}>
             <b>Today’s label</b>{plaque}
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {still && (
+          <motion.figure key={still.src.length} className="st-still" initial={{ opacity: 0, scale: 0.85, rotate: -2 }} animate={{ opacity: 1, scale: 1, rotate: 0 }} exit={{ opacity: 0 }} transition={{ duration: 1.1, ease }}>
+            <img src={still.src} alt={`A still life of ${still.thing}, painted in the manner of ${p.artist}`} />
+            <figcaption><i>Still life with {still.thing}</i><span>after {p.artist} · painted in the cloud</span></figcaption>
+            <button onClick={() => setStill(null)} aria-label="Put the still life away">×</button>
+          </motion.figure>
         )}
       </AnimatePresence>
 
@@ -172,24 +247,25 @@ export function Stage({ state, dispatch, onRooms }: Props) {
       <div className="st-bottom">
         {!todays.length && (
           <div className="st-examples">
-            {examplesFor(cur).map((x) => <button key={x} onClick={() => { setText(x); input.current?.focus(); }}>{x}</button>)}
+            {[...examplesFor(cur).slice(0, 2), `Can I afford ${cur === 'NGN' ? '50k' : '200'}?`].map((x) => <button key={x} onClick={() => { setText(x); input.current?.focus(); }}>{x}</button>)}
           </div>
         )}
-        <form className="st-quill" onSubmit={(e) => { e.preventDefault(); if (text.trim()) keep(); }}>
+        <form className="st-quill" onSubmit={(e) => { e.preventDefault(); if (text.trim()) void submit(); }}>
           <span className="cur" aria-hidden>{currencySymbol(cur)}</span>
-          <input ref={input} value={text} onFocus={() => void warmUp()} onPointerDown={() => void warmUp()} readOnly={reading} onChange={(e) => setText(e.target.value)} placeholder="What did today cost?" aria-label="What did today cost?" autoComplete="off" autoFocus />
+          <input ref={input} value={text} onFocus={() => void warmUp()} onPointerDown={() => void warmUp()} readOnly={reading} onChange={(e) => setText(e.target.value)} placeholder={typeof window !== 'undefined' && window.innerWidth < 440 ? 'What did today cost? Or ask.' : 'What did today cost? Or ask the painting.'} aria-label="What did today cost? Or ask the painting." autoComplete="off" autoFocus />
           <button className="go" type="submit" disabled={!text.trim()}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M20 3c-6 1-11 6-13 13l-2 5 5-2c7-2 12-7 13-13" /><path d="M7 16l5-5" /></svg>
             <span>Keep</span>
           </button>
         </form>
         <div className="st-meta">
-          <span>{todays.length ? <>Spent today <em>{money(spent, cur)}</em>{came > 0 && <> · came in <em>{money(came, cur)}</em></>}</> : 'Nothing written today yet. That’s fine.'}</span>
+          <span>{todays.length ? <>Spent today <em>{money(spent, cur)}</em>{came > 0 && <> · came in <em>{money(came, cur)}</em></>}</> : 'Nothing written today yet. That’s fine.'}{safe && <> · <button className="st-safe" onClick={() => go('accounts')}>safe to spend <em>{money(safe.perDay, cur)}</em> a day{safe.until ? ` until ${relDay(safe.until)}` : ''}</button></>}</span>
           <span className="stage-name"><BrainNote s={brain} reading={reading} /><span title={stageName(stage).note}>{stageName(stage).name}, day {Number(today.slice(8))}</span></span>
         </div>
         <nav className="st-rooms-bar" aria-label="Rooms">
           <button className="on" aria-current="page"><Icon.sun size={18} /><span>Today</span></button>
           <button onClick={() => go('ledger')}><Icon.list size={18} /><span>Ledger</span></button>
+          <button onClick={() => go('accounts')}><Icon.person size={18} /><span>Accounts</span></button>
           <button onClick={() => go('chapter')}><Icon.book size={18} /><span>Chapter</span></button>
           <button onClick={() => go('collection')}><Icon.seal size={18} /><span>Gallery</span></button>
         </nav>

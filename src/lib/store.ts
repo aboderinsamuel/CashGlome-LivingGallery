@@ -68,6 +68,8 @@ export type Action =
   | { type: 'mark'; key: string; mark: RoutineMark | null }
   | { type: 'merge'; remote: Remote } // changes pulled from the cloud; newest edit wins
   | { type: 'replace'; state: State }
+  | { type: 'circle'; circle: import('./types').Circle }
+  | { type: 'removeCircle'; id: string }
   | { type: 'reset' };
 
 export const toEntry = (p: Parsed): Entry => ({ id: uid(), text: p.text, label: p.label, amount: p.amount, dir: p.dir, category: p.category, feeling: p.feeling, date: p.date, createdAt: Date.now(), source: p.source, confidence: p.confidence });
@@ -82,6 +84,8 @@ export function reducer(s: State, a: Action): State {
     case 'ai': return { ...s, settings: { ...s.settings, ai: { ...s.settings.ai, ...a.patch } } };
     case 'profile': return { ...s, profile: { ...s.profile, ...a.patch } };
     case 'month': return { ...s, month: a.month };
+    case 'circle': return { ...s, circles: [...(s.circles ?? []).filter((c) => c.id !== a.circle.id), { ...a.circle, updatedAt: Date.now() }] };
+    case 'removeCircle': return { ...s, circles: (s.circles ?? []).filter((c) => c.id !== a.id) };
     case 'goal': return { ...s, goals: [...s.goals.filter((g) => g.id !== a.goal.id), { ...a.goal, updatedAt: Date.now() }] };
     case 'removeGoal': return { ...s, goals: s.goals.filter((g) => g.id !== a.id), gone: [...s.gone, { kind: 'goal' as const, id: a.id, at: Date.now() }].slice(-500) };
     case 'remember': {

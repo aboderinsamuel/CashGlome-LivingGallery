@@ -139,3 +139,33 @@
   .st-rooms-bar button { flex-direction: column; gap: 4px; font-size: 11.5px; min-height: 52px; }
   .st-ledger { bottom: 236px; }
 }
+
+/* An answer from the painting: the question in small caps, the answer, and the working folded underneath. */
+.st-slip .q { font: 600 10.5px/1.3 var(--ui); letter-spacing: .1em; text-transform: uppercase; color: rgba(42,32,22,.5); margin-top: 8px; }
+.st-slip .work { margin-top: 10px; font: 400 13px/1.4 var(--ui); color: rgba(42,32,22,.78); }
+.st-slip .work summary { cursor: pointer; font: 500 12.5px var(--ui); color: #8A6418; list-style: none; }
+.st-slip .work summary::-webkit-details-marker { display: none; }
+.st-slip .work summary::before { content: '›'; display: inline-block; margin-right: 6px; transition: transform .2s; }
+.st-slip .work[open] summary::before { transform: rotate(90deg); }
+.st-slip .work dl { margin: 8px 0 0; padding: 8px 10px; background: rgba(42,32,22,.06); border-radius: 6px; }
+.st-slip .work dl div { display: flex; justify-content: space-between; gap: 12px; padding: 3px 0; }
+.st-slip .work dt { white-space: pre; }
+.st-slip .work dd { margin: 0; font: 500 13px var(--serif); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.st-slip .work ul { list-style: none; margin: 6px 0 0; padding: 0; }
+.st-slip .work li { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; padding: 3px 2px; border-bottom: 1px dotted rgba(42,32,22,.18); }
+.st-slip .work li span:nth-child(2) { color: rgba(42,32,22,.5); }
+.st-slip .seal .close { margin-left: auto; border: 0; background: none; font-size: 18px; line-height: 1; color: rgba(42,32,22,.5); cursor: pointer; width: 32px; height: 32px; margin-right: -8px; }
+.st-safe { border: 0; background: none; padding: 0; color: inherit; font: inherit; cursor: pointer; text-decoration: underline; text-decoration-color: rgba(226,194,122,.4); text-underline-offset: 3px; }
+.st-safe:hover { color: var(--bone); }
+
+/* The still life: a small painting in a gilt frame, hung on the scene. */
+.st-still { position: absolute; z-index: 3; right: clamp(16px, 4vw, 44px); top: clamp(96px, 16vh, 150px); width: 168px; margin: 0; }
+.st-still img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 2px;
+  box-shadow: 0 0 0 5px #6E4E1C, 0 0 0 7px #D9B562, 0 0 0 9px #7A5A22, 0 24px 40px -14px rgba(0,0,0,.8); }
+.st-still figcaption { margin-top: 16px; font: italic 400 13px/1.3 var(--serif); color: var(--bone); text-shadow: 0 1px 8px rgba(0,0,0,.8); }
+.st-still figcaption span { display: block; font: 500 10px/1.4 var(--ui); font-style: normal; letter-spacing: .08em; text-transform: uppercase; opacity: .7; margin-top: 3px; }
+.st-still button { position: absolute; top: -14px; right: -14px; width: 28px; height: 28px; border-radius: 50%; border: 0; background: rgba(14,10,6,.7); color: var(--bone); cursor: pointer; }
+@media (max-width: 640px) {
+  .st-still { width: 112px; top: 120px; }
+  .st-slip .work dl { max-height: 160px; overflow: auto; }
+}
