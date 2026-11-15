@@ -32,6 +32,8 @@ interface SidebarProps {
   name: string;
   onEdition: () => void;
   onSettings: () => void;
+  /** Back to the living painting. */
+  onHome: () => void;
   wall?: string;
 }
 
@@ -45,6 +47,7 @@ export function Sidebar(p: SidebarProps) {
       {p.wall && <div className="side-wall" style={{ backgroundImage: `url(${p.wall})` }} aria-hidden />}
       <div className="lights" onPointerDown={(e) => win?.startDrag(e)} onDoubleClick={() => win?.zoom()}><TrafficLights /></div>
       <div className="side-scroll nodrag">
+        <button className="side-item" onClick={p.onHome}><Icon.sun size={17} />Today’s painting</button>
         <div className="side-label">Story</div>
         <Item v="chapter" icon={<Icon.book size={17} />} label="This chapter" />
         <Item v="shelf" icon={<Icon.shelf size={17} />} label="All chapters" />
@@ -75,10 +78,11 @@ export function Sidebar(p: SidebarProps) {
   );
 }
 
-export function TabBar({ view, setView, onEdition }: { view: View; setView: (v: View) => void; onEdition: () => void }) {
+export function TabBar({ view, setView, onEdition, onHome }: { view: View; setView: (v: View) => void; onEdition: () => void; onHome: () => void }) {
   const B = ({ v, icon, label }: { v: View; icon: ReactNode; label: string }) => <button className={view === v ? 'on' : ''} onClick={() => setView(v)}>{icon}{label}</button>;
   return (
     <nav className="tabbar glass">
+      <button onClick={onHome}><Icon.sun />Today</button>
       <B v="chapter" icon={<Icon.book />} label="Chapter" />
       <B v="ledger" icon={<Icon.list />} label="Ledger" />
       <button onClick={onEdition}><Icon.play />Edition</button>

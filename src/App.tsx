@@ -42,6 +42,7 @@ import { PhoneWelcome } from './phone/PhoneWelcome';
 import { haptic, useKeyboardViewport, useOnline, usePhone } from './phone/device';
 import { WITHDRAWAL, cashEntry, dueCash, markOffered, newPocket, recurringOffer, routineFrom } from './phone/moments';
 import { daysPhrase } from './lib/memory';
+import { Stage } from './stage/Stage';
 
 const TITLES: Record<View, string> = { chapter: 'Chapter', shelf: 'All chapters', ledger: 'Ledger', plans: 'Plans', memory: 'Memory', collection: 'Gallery' };
 const isMac = /Mac|iPhone|iPad/.test(navigator.platform) || window.glome?.platform === 'darwin';
@@ -51,6 +52,8 @@ type Pane = 'general' | 'account' | 'appearance' | 'music' | 'muse' | 'data' | '
 export default function App() {
   const [state, dispatch] = useGlomeStore();
   const [view, setViewRaw] = useState<View>('chapter');
+  // Home is the living painting; the rooms (ledger, chapters, gallery) are one tap away.
+  const [home, setHome] = useState(true);
   const [filter, setFilter] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [settings, setSettingsPane] = useState<Pane | null>(null);
@@ -394,34 +397,7 @@ export default function App() {
     return () => window.removeEventListener('keydown', k);
   }, [edition, state.month, setMonth, setView, openSettings]);
 
-  if (!state.profile.onboarded && phone) {
-    return (
-      <PhoneWelcome initialCurrency={cur}
-        onStart={(currency, first) => {
-          dispatch({ type: 'onboard', name: '', currency });
-          dispatch({ type: 'addEntries', entries: first.map(toEntry) });
-          sfx.brush(true);
-          prevLen.current = Number.MAX_SAFE_INTEGER;
-        }}
-        onSample={(currency) => {
-          dispatch({ type: 'onboard', name: '', currency });
-          dispatch({ type: 'addEntries', entries: demoEntries(currency) });
-          prevLen.current = Number.MAX_SAFE_INTEGER;
-        }} />
-    );
-  }
-  if (!state.profile.onboarded) {
-    return (
-      <>
-        <StickerDefs />
-        <Welcome initialCurrency={cur} onDone={(name, currency, sample) => {
-          dispatch({ type: 'onboard', name, currency });
-          if (sample) dispatch({ type: 'addEntries', entries: demoEntries(currency) });
-          prevLen.current = Number.MAX_SAFE_INTEGER;
-        }} />
-      </>
-    );
-  }
+  if (home || !state.profile.onboarded) return <Stage state={state} dispatch={dispatch} onRooms={(v) => { setView(v); setHome(false); }} />;
 
   const numeral = chapterOf(state, computeStats(state.entries, state.month)).numeral;
   const isNow = state.month === monthOf(todayISO());
@@ -434,7 +410,7 @@ export default function App() {
         view={view} setView={setView} month={state.month} setMonth={setMonth} chapters={chapters}
         counts={{ ledger: monthCount, stickers: `${months.length}` }}
         name={state.profile.name}
-        onEdition={() => setEdition(true)} onSettings={() => openSettings()} wall={artSrc(wall, 'sm')}
+        onEdition={() => setEdition(true)} onSettings={() => openSettings()} wall={artSrc(wall, 'sm')} onHome={() => setHome(true)}
       />
 
       <main className="main" ref={main}>
@@ -485,14 +461,14 @@ export default function App() {
       <MusicDock state={state} open={music} onClose={closeMusic} onChange={() => { setMusic(false); openSettings('music'); }} />
       <Composer ref={composer} currency={cur} aiOn={ai} busy={busy} notice={notice} onSubmit={submit} onCamera={(file) => setCapture({ file: file ?? null })} onAsk={(q) => setAsk({ first: q })} usuals={usual} onRepeat={repeat} onRemember={remember}
         above={<CheckIns list={checkins} cur={cur} onYes={(c, a) => answerCheckIn(c, true, a)} onNo={(c) => answerCheckIn(c, false)} onAllYes={allYes} />} />
-      <TabBar view={view} setView={setView} onEdition={() => setEdition(true)} />
+      <TabBar view={view} setView={setView} onEdition={() => setEdition(true)} onHome={() => setHome(true)} />
     </div>
   );
 
   const phoneWindow = phone && (
     <PhoneApp
       state={state} dispatch={dispatch} view={view} setView={setView} setMonth={setMonth} museChapter={muse[state.month] ?? null} online={online}
-      onAsk={() => setAsk({ first: null })} onEdition={() => setEdition(true)} onShare={() => setSharing(true)} onSettings={() => openSettings()} onMusic={() => openSettings('music')}
+      onHome={() => setHome(true)} onAsk={() => setAsk({ first: null })} onEdition={() => setEdition(true)} onShare={() => setSharing(true)} onSettings={() => openSettings()} onMusic={() => openSettings('music')}
       composer={
         <Composer ref={composer} currency={cur} aiOn={ai} busy={busy} notice={notice} onSubmit={submit} onCamera={(file) => setCapture({ file: file ?? null })} onAsk={(q) => setAsk({ first: q })} onRemember={remember}
           idle={<Chips state={state} onRepeat={repeat} onFill={(t) => composer.current?.fill(t)} />}

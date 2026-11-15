@@ -28,6 +28,8 @@ interface Props {
   composer: ReactNode;
   pages: Record<'ledger' | 'collection' | PhonePage, ReactNode>;
   online: boolean;
+  /** Back to the living painting. */
+  onHome: () => void;
   onAsk: () => void;
   onEdition: () => void;
   onShare: () => void;
@@ -86,6 +88,7 @@ export function PhoneApp(p: Props) {
 
       {!pushed && (
         <nav className="ph-tabs" aria-label="Sections">
+          <button onClick={p.onHome}><Icon.sun size={20} /><span>Today</span></button>
           <button className={tab === 'chapter' ? 'on' : ''} onClick={() => go('chapter')}><Icon.book size={20} /><span>Chapter</span></button>
           <button className={tab === 'ledger' ? 'on' : ''} onClick={() => go('ledger')}><Icon.list size={20} /><span>Ledger</span></button>
           <button className={tab === 'collection' ? 'on' : ''} onClick={() => go('collection')}><Icon.seal size={20} /><span>Gallery</span></button>
