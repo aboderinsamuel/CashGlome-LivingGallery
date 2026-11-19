@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState, type ReactNode } from 'react';
-import { CATEGORIES, cat } from '../lib/categories';
+import { cat, choosable } from '../lib/categories';
 import { money, todayISO } from '../lib/format';
 import { parseStory } from '../lib/parser';
 import { isQuestion } from '../lib/ask';
@@ -31,8 +31,6 @@ interface Props {
   onFocusChange?: (focused: boolean) => void;
 }
 
-const HINTS_NG = ['Spent 4,500 on suya', 'Got paid 350k', 'Bolt 6k, data 3k', 'Sent mum 20k'];
-const HINTS = ['Lunch 14', 'Got paid 3,200', 'Uber 18, coffee 6.50', 'Netflix 15.49'];
 const touch = typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches;
 
 export const Composer = forwardRef<ComposerHandle, Props>(function Composer({ currency, aiOn, busy, notice, onSubmit, onCamera, onAsk, usuals = [], onRepeat, above, onRemember, idle, onFocusChange }, ref) {
@@ -46,10 +44,7 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer({ cu
   const ta = useRef<HTMLTextAreaElement>(null);
   const fileIn = useRef<HTMLInputElement>(null);
   const session = useRef<Listening | null>(null);
-  const hints = currency === 'NGN' ? HINTS_NG : HINTS;
-  const [hint, setHint] = useState(0);
   const canSpeak = useMemo(() => voiceSupport() !== null, []);
-  useEffect(() => { const t = setInterval(() => setHint((h) => (h + 1) % hints.length), 4200); return () => clearInterval(t); }, [hints.length]);
   useEffect(() => { if (!note) return; const t = setTimeout(() => setNote(null), 6000); return () => clearTimeout(t); }, [note]);
   useEffect(() => () => session.current?.stop(), []);
 
@@ -78,9 +73,8 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer({ cu
     if (memo) { session.current?.stop(); onRemember!(text.trim()); setText(''); return; }
     if (question) { session.current?.stop(); onAsk(text.trim()); setText(''); return; } session.current?.stop(); onSubmit(text.trim(), over); setText(''); };
   const camera = () => (touch ? fileIn.current?.click() : onCamera());
-  const narrow = typeof window !== 'undefined' && window.innerWidth < 640;
   const listening = voice !== 'off';
-  const placeholder = busy ? (aiOn ? 'Muse is reading…' : 'Reading…') : voice === 'starting' ? 'Getting ready…' : voice === 'on' ? 'Listening…' : narrow ? hints[hint] : `What came in or went out? ${hints[hint]}`;
+  const placeholder = busy ? (aiOn ? 'Muse is reading…' : 'Reading…') : voice === 'starting' ? 'Getting ready…' : voice === 'on' ? 'Listening…' : 'What did today cost?';
   const shown = note ? { text: note } : notice;
 
   return (
@@ -131,7 +125,7 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer({ cu
                   {p.date !== todayISO() && <span className="small">{new Date(p.date + 'T12:00').toLocaleDateString(undefined, { weekday: 'short', day: 'numeric' })}</span>}
                   {menu === i && (
                     <div className="menu popover" onMouseLeave={() => setMenu(null)}>
-                      {CATEGORIES.filter((x) => x.dir === p.dir).map((x) => (
+                      {choosable(p.dir).map((x) => (
                         <button key={x.id} className={x.id === p.category ? 'on' : ''} onClick={() => { setOver({ ...over, [i]: { ...over[i], category: x.id } }); setMenu(null); }}>
                           <span style={{ width: 10, height: 10, borderRadius: 5, background: x.color, display: 'inline-block' }} />{x.name}
                         </button>

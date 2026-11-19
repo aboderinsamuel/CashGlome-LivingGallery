@@ -5,7 +5,7 @@ import { paintParchment, paintRenaissance } from '../lib/paint';
 import { readPicture, warmReader, type Reading } from '../lib/receipt';
 import { aiEnabled } from '../lib/ai';
 import { parseOne } from '../lib/parser';
-import { CATEGORIES, cat } from '../lib/categories';
+import { cat, choosable } from '../lib/categories';
 import { dayLabel, money, todayISO, uid } from '../lib/format';
 import type { Parsed, Settings } from '../lib/types';
 import { sfx } from '../lib/sound';
@@ -121,7 +121,7 @@ export function CaptureSheet({ file: initial, settings, currency, attachTo, onDo
                       <label className="popup">
                         <span className="dotc" style={{ background: cat(parsed?.category ?? category ?? 'other').color }} />
                         <select value={parsed?.category ?? category ?? 'other'} onChange={(e) => setCategory(e.target.value)} aria-label="Category">
-                          {CATEGORIES.filter((c) => c.dir === 'out').map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                          {choosable('out').map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                         </select>
                         <Icon.chevronDown size={11} />
                       </label>

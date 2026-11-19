@@ -4,7 +4,11 @@ import { ROMAN } from '../lib/analytics';
 import { monthLabel } from '../lib/format';
 import { useWindow } from './Desktop';
 
-export type View = 'chapter' | 'shelf' | 'ledger' | 'plans' | 'memory' | 'collection' | 'accounts';
+/** The five places, and the pages reached from them. 'accounts' is kept as another name for People. */
+export type View = 'today' | 'ledger' | 'ask' | 'people' | 'chapter' | 'shelf' | 'collection' | 'plans' | 'memory' | 'accounts';
+export type Place = 'today' | 'ledger' | 'ask' | 'people' | 'chapter';
+/** Which of the five places a page belongs to. */
+export const placeOf = (v: View): Place => (v === 'shelf' || v === 'collection' ? 'chapter' : v === 'accounts' ? 'people' : v === 'plans' || v === 'memory' ? 'today' : v);
 
 const isDesktop = !!window.glome?.isDesktop;
 const isMacDesktop = isDesktop && window.glome?.platform === 'darwin';
@@ -22,75 +26,107 @@ export function TrafficLights() {
   );
 }
 
+const PLACES: { v: Place; label: string; icon: (size: number) => ReactNode }[] = [
+  { v: 'today', label: 'Today', icon: (z) => <Icon.sun size={z} /> },
+  { v: 'ledger', label: 'Ledger', icon: (z) => <Icon.list size={z} /> },
+  { v: 'ask', label: 'Ask', icon: (z) => <Icon.ask size={z} /> },
+  { v: 'people', label: 'People', icon: (z) => <Icon.person size={z} /> },
+  { v: 'chapter', label: 'Chapter', icon: (z) => <Icon.book size={z} /> },
+];
+
 interface SidebarProps {
   view: View;
   setView: (v: View) => void;
   month: string;
   setMonth: (m: string) => void;
   chapters: { month: string; title: string }[];
-  counts: { ledger: number; stickers: string };
+  counts: { ledger: number };
   name: string;
   onEdition: () => void;
-  onSettings: () => void;
-  /** Back to the living painting. */
-  onHome: () => void;
+  /** Your book: name, currency, categories, routines, plans, backup, look and sound. */
+  onBook: () => void;
+  onMusic: () => void;
+  musicOn: boolean;
   wall?: string;
 }
 
 export function Sidebar(p: SidebarProps) {
   const win = useWindow();
-  const Item = ({ v, icon, label, count }: { v: View; icon: ReactNode; label: string; count?: string | number }) => (
-    <button className={'side-item' + (p.view === v ? ' on' : '')} onClick={() => p.setView(v)}>{icon}{label}{count !== undefined && <span className="count">{count}</span>}</button>
+  const place = placeOf(p.view);
+  const Sub = ({ v, label, icon }: { v: View; label: string; icon: ReactNode }) => (
+    <button className={'side-sub' + (p.view === v ? ' on' : '')} onClick={() => p.setView(v)}>{icon}{label}</button>
   );
   return (
     <aside className="sidebar glass drag">
       {p.wall && <div className="side-wall" style={{ backgroundImage: `url(${p.wall})` }} aria-hidden />}
       <div className="lights" onPointerDown={(e) => win?.startDrag(e)} onDoubleClick={() => win?.zoom()}><TrafficLights /></div>
       <div className="side-scroll nodrag">
-        <button className="side-item" onClick={p.onHome}><Icon.sun size={17} />Today’s painting</button>
-        <div className="side-label">Story</div>
-        <Item v="chapter" icon={<Icon.book size={17} />} label="This chapter" />
-        <Item v="shelf" icon={<Icon.shelf size={17} />} label="All chapters" />
-        <button className="side-item" onClick={p.onEdition}><Icon.play size={15} /> <span style={{ marginLeft: 2 }}>Play the Edition</span></button>
-        <div className="side-label">Money</div>
-        <Item v="ledger" icon={<Icon.list size={17} />} label="Ledger" count={p.counts.ledger} />
-        <Item v="accounts" icon={<Icon.person size={17} />} label="Accounts" />
-        <Item v="plans" icon={<Icon.flag size={17} />} label="Plans" />
-        <Item v="memory" icon={<Icon.quill size={17} />} label="Memory" />
-        <Item v="collection" icon={<Icon.seal size={17} />} label="Gallery" count={p.counts.stickers} />
-        <div className="side-label">Contents</div>
-        {p.chapters.map((c) => (
-          <button key={c.month} className={'toc' + (p.view === 'chapter' && p.month === c.month ? ' on' : '')} onClick={() => { p.setMonth(c.month); p.setView('chapter'); }} title={c.title}>
-            <span>{monthLabel(c.month).split(' ')[0]}{c.month.slice(0, 4) !== String(new Date().getFullYear()) ? ` ’${c.month.slice(2, 4)}` : ''}</span>
-            <span className="lead" />
-            <span className="rn">{ROMAN[Number(c.month.slice(5, 7)) - 1]}</span>
-          </button>
+        <div className="side-brand">CashGlome</div>
+        {PLACES.map((x) => (
+          <div key={x.v}>
+            <button className={'side-item place' + (place === x.v ? ' on' : '')} onClick={() => p.setView(x.v)} aria-current={place === x.v ? 'page' : undefined}>
+              {x.icon(17)}{x.label}{x.v === 'ledger' && p.counts.ledger > 0 && <span className="count">{p.counts.ledger}</span>}
+            </button>
+            {x.v === 'chapter' && place === 'chapter' && (
+              <div className="side-subs">
+                <Sub v="chapter" label="This month" icon={<Icon.book size={14} />} />
+                <Sub v="shelf" label="All chapters" icon={<Icon.shelf size={14} />} />
+                <Sub v="collection" label="Gallery" icon={<Icon.seal size={14} />} />
+                <button className="side-sub" onClick={p.onEdition}><Icon.play size={12} />Play the Edition</button>
+              </div>
+            )}
+          </div>
         ))}
+        {place === 'chapter' && p.chapters.length > 1 && (
+          <>
+            <div className="side-label">Contents</div>
+            {p.chapters.map((c) => (
+              <button key={c.month} className={'toc' + (p.view === 'chapter' && p.month === c.month ? ' on' : '')} onClick={() => { p.setMonth(c.month); p.setView('chapter'); }} title={c.title}>
+                <span>{monthLabel(c.month).split(' ')[0]}{c.month.slice(0, 4) !== String(new Date().getFullYear()) ? ` ’${c.month.slice(2, 4)}` : ''}</span>
+                <span className="lead" />
+                <span className="rn">{ROMAN[Number(c.month.slice(5, 7)) - 1]}</span>
+              </button>
+            ))}
+          </>
+        )}
       </div>
-      <button className="me nodrag" onClick={p.onSettings}>
+      <button className={'side-music nodrag' + (p.musicOn ? ' on' : '')} onClick={p.onMusic}><Icon.music size={15} />Music{p.musicOn && <span className="music-live" aria-hidden />}</button>
+      <button className="me nodrag" onClick={p.onBook} aria-label="Your book: settings, categories, routines and backup">
         <span className="avatar">{(p.name || 'Y').charAt(0).toUpperCase()}</span>
         <span style={{ minWidth: 0, flex: 1, overflow: 'hidden' }}>
-          <span style={{ display: 'block', fontWeight: 600, fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name || 'You'}</span>
-          <span className="small" style={{ display: 'block', whiteSpace: 'nowrap' }}>On this device</span>
+          <span style={{ display: 'block', fontWeight: 600, fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name || 'Your book'}</span>
+          <span className="small" style={{ display: 'block', whiteSpace: 'nowrap' }}>Categories, routines, settings</span>
         </span>
-        <Icon.gear size={16} />
+        <Icon.right size={14} />
       </button>
     </aside>
   );
 }
 
-export function TabBar({ view, setView, onEdition, onHome }: { view: View; setView: (v: View) => void; onEdition: () => void; onHome: () => void }) {
-  const B = ({ v, icon, label }: { v: View; icon: ReactNode; label: string }) => <button className={view === v ? 'on' : ''} onClick={() => setView(v)}>{icon}{label}</button>;
+/** The five places along the bottom, labelled. Used on narrow windows and on phones. */
+export function TabBar({ view, setView, className = 'tabbar glass' }: { view: View; setView: (v: View) => void; className?: string }) {
+  const place = placeOf(view);
   return (
-    <nav className="tabbar glass">
-      <button onClick={onHome}><Icon.sun />Today</button>
-      <B v="chapter" icon={<Icon.book />} label="Chapter" />
-      <B v="ledger" icon={<Icon.list />} label="Ledger" />
-      <B v="accounts" icon={<Icon.person />} label="Accounts" />
-      <button onClick={onEdition}><Icon.play />Edition</button>
-      <B v="plans" icon={<Icon.flag />} label="Plans" />
-      <B v="memory" icon={<Icon.quill />} label="Memory" />
-      <B v="collection" icon={<Icon.seal />} label="Gallery" />
+    <nav className={className} aria-label="Places">
+      {PLACES.map((x) => (
+        <button key={x.v} className={place === x.v ? 'on' : ''} onClick={() => setView(x.v)} aria-current={place === x.v ? 'page' : undefined}>
+          {x.icon(20)}<span>{x.label}</span>
+        </button>
+      ))}
     </nav>
+  );
+}
+
+/** The Chapter's three rooms, and two ways to look at the month. */
+export function ChapterTabs({ view, setView, onEdition, onLiving }: { view: View; setView: (v: View) => void; onEdition: () => void; onLiving: () => void }) {
+  const T = ({ v, label }: { v: View; label: string }) => <button role="tab" aria-selected={view === v} className={view === v ? 'on' : ''} onClick={() => setView(v)}>{label}</button>;
+  return (
+    <div className="ch-tabs">
+      <div className="ch-seg" role="tablist" aria-label="Chapter"><T v="chapter" label="This month" /><T v="shelf" label="All chapters" /><T v="collection" label="Gallery" /></div>
+      <div className="ch-acts">
+        <button onClick={onLiving}><Icon.sun size={15} />See it alive</button>
+        <button onClick={onEdition}><Icon.play size={12} />Play the Edition</button>
+      </div>
+    </div>
   );
 }

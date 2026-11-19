@@ -1,0 +1,106 @@
+/* The shell: five labelled places, Your book, the Chapter's rooms, and the living painting as an overlay. */
+
+/* Money in is gold leaf, never green; nothing here is a red/green scorecard. */
+:root { --green: #9A7424; --green-soft: rgba(176, 138, 58, 0.12); }
+:root[data-theme='dark'] { --green: #D9B35E; --green-soft: rgba(217, 179, 94, 0.14); }
+
+/* ——— Sidebar ——— */
+.side-brand { font: 400 22px/1 var(--serif); letter-spacing: -.01em; padding: 6px 10px 16px; color: var(--ink); }
+.side-item.place { height: 38px; font-size: 14px; border-radius: 11px; gap: 11px; }
+.side-item.place svg { color: var(--ink-2); }
+.side-item.place.on { background: var(--fill-2); font-weight: 600; }
+.side-item.place.on svg { color: var(--gold); }
+.side-subs { display: grid; gap: 1px; padding: 2px 0 6px 28px; }
+.side-sub { display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 10px; border-radius: 9px; font-size: 13px; color: var(--ink-2); text-align: left; }
+.side-sub:hover { background: var(--fill); color: var(--ink); }
+.side-sub.on { color: var(--ink); font-weight: 600; }
+.side-sub svg { color: var(--gold); flex: none; }
+.side-music { display: flex; align-items: center; gap: 9px; width: 100%; height: 34px; padding: 0 12px; border-radius: 11px; font-size: 13px; color: var(--ink-2); position: relative; }
+.side-music:hover { background: var(--fill); color: var(--ink); }
+.side-music svg { color: var(--gold); }
+.side-music .music-live { position: static; margin-left: auto; }
+
+/* ——— Narrow windows: the five places along the bottom, as a gilt rail ——— */
+@media (max-width: 900px) {
+  .tabbar { justify-content: space-between !important; padding: 0 8px !important; }
+  .tabbar button { flex: 1; font: 600 11px/1 var(--grot) !important; padding: 7px 4px !important; background: none !important; color: var(--ink-3) !important; position: relative; }
+  .tabbar button.on { color: var(--ink) !important; }
+  .tabbar button.on svg { color: var(--gold); }
+  .tabbar button.on::after { content: ''; position: absolute; bottom: 2px; left: 50%; width: 26px; height: 3px; margin-left: -13px; border-radius: 2px; background: linear-gradient(90deg, transparent, var(--gold) 20%, var(--gold-2) 50%, var(--gold) 80%, transparent); }
+}
+
+/* ——— Phone ——— */
+.ph-tabs button { gap: 4px; }
+.ph-tabs button span { font: 600 11px/1 var(--grot); }
+.ph-tabs button.on svg { color: var(--gold); }
+.ph-place { padding-left: 10px; font: 400 24px/1 var(--serif); letter-spacing: -.01em; color: var(--ink); }
+.ph-brand { font: 400 21px/1 var(--serif); }
+.ph-book { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 12px 0 4px; margin-right: 6px; border-radius: 18px; background: var(--fill); font: 600 13px/1 var(--grot); color: var(--ink); }
+.ph-book-face { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font: italic 500 14px var(--serif); color: #3A2A0E; background: radial-gradient(circle at 35% 30%, #F6E2A8, #C9A253 60%, #8C6A24); }
+.ph-back { display: inline-flex; align-items: center; gap: 2px; height: 40px; padding: 0 10px 0 4px; font: 600 15px/1 var(--grot); color: var(--ink); width: 64px; }
+.first-lines .ph-chip { font-style: italic; }
+
+/* ——— Chapter rooms ——— */
+.ch-tabs { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; max-width: 1060px; margin: 0 auto; padding: 70px 52px 0; }
+.ch-seg { display: inline-flex; padding: 3px; border-radius: 12px; background: var(--fill); }
+.ch-seg button { height: 34px; padding: 0 14px; border-radius: 9px; font: 600 13px var(--grot); color: var(--ink-2); }
+.ch-seg button.on { background: var(--card); color: var(--ink); box-shadow: var(--shadow-1); }
+.ch-acts { display: flex; gap: 8px; }
+.ch-acts button { display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 14px; border-radius: 18px; border: 1px solid var(--ink-4); font: 600 13px var(--grot); color: var(--ink); }
+.ch-acts button svg { color: var(--gold); }
+.ch-tabs + .page { padding-top: 26px; }
+.ph-main .ch-tabs { padding: 6px 16px 4px; }
+.ph-main .ch-seg { flex: 1; }
+.ph-main .ch-seg button { flex: 1; padding: 0 6px; font-size: 12.5px; }
+.ph-main .ch-acts { width: 100%; }
+.ph-main .ch-acts button { flex: 1; justify-content: center; height: 34px; font-size: 12.5px; }
+
+/* ——— The living painting, over everything, with a way back ——— */
+.living { position: fixed; inset: 0; z-index: 90; }
+.st-back { display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 14px 0 10px; border-radius: 19px; font: 600 14px/1 var(--ui); color: var(--bone, #F6EEDC); background: rgba(20, 16, 11, .5); backdrop-filter: blur(8px); }
+.st-back i { font: italic 400 15px/1 var(--serif); opacity: .75; margin-left: 4px; }
+@media (max-width: 760px) { .st-back i { display: none; } }
+
+/* ——— Your book ——— */
+.book-title { font: 400 24px/1 var(--serif); padding: 0 10px 14px; color: var(--ink); }
+.book-title i { color: var(--gold); }
+.sheet-panes { display: contents; }
+.in-sheet .page { padding: 0 !important; max-width: none !important; margin: 0 !important; }
+.in-sheet .page > header:first-child { display: none; }
+
+.cats-seg { display: inline-flex; padding: 3px; border-radius: 11px; background: var(--fill); margin-bottom: 10px; }
+.cats-seg button { height: 32px; padding: 0 16px; border-radius: 8px; font: 600 13px var(--grot); color: var(--ink-2); }
+.cats-seg button.on { background: var(--card); color: var(--ink); box-shadow: var(--shadow-1); }
+.cats-note { font: 400 15px/1.5 var(--serif); color: var(--ink-2); margin: 4px 0 12px; max-width: 520px; }
+.cats-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+.cats-list li { border-bottom: 1px solid var(--line); }
+.cats-list li.hidden .nm { opacity: .5; }
+.cats-row { display: flex; align-items: center; gap: 12px; min-height: 54px; padding: 6px 2px; }
+.cats-row .sw { width: 12px; height: 30px; border-radius: 2px; flex: none; box-shadow: inset 0 0 0 1px rgba(0,0,0,.1); }
+.cats-row .nm { flex: 1; min-width: 0; font: 400 16px/1.2 var(--serif); color: var(--ink); }
+.cats-row .nm small { font: 600 10px var(--ui); letter-spacing: .08em; text-transform: uppercase; color: var(--gold); margin-left: 8px; }
+.cats-row .nm em { display: block; font: 400 12px var(--ui); font-style: normal; color: var(--ink-3); margin-top: 2px; }
+.cats-row button { font: 600 12.5px var(--grot); color: var(--ink-2); height: 32px; padding: 0 12px; border-radius: 16px; border: 1px solid var(--ink-4); }
+.cats-row button:hover { color: var(--ink); border-color: var(--gold); }
+.cats-new { display: inline-flex; align-items: center; gap: 8px; margin: 2px 0 14px; height: 40px; padding: 0 16px; border-radius: 20px; font: 600 13.5px var(--grot); color: #1D160F; background: linear-gradient(180deg, #EBD08C, #C9A24B); }
+.cats-add { margin-bottom: 14px; }
+.cats-form { display: grid; gap: 12px; padding: 14px; border-radius: 12px; background: var(--fill); margin: 8px 0; }
+.cats-form label { display: grid; gap: 6px; font: 600 12px var(--ui); color: var(--ink-2); }
+.cats-form label small { font-weight: 400; color: var(--ink-3); }
+.cats-form input, .cats-remove select { font: 400 16px var(--serif); padding: 10px 12px; border-radius: 10px; border: 1px solid var(--ink-4); background: var(--card); color: var(--ink); }
+.cats-pigments { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.cats-pigments button { width: 30px; height: 30px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,.15); }
+.cats-pigments button.on { box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--gold); }
+.cats-pigments .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.pig-name { font: italic 400 14px var(--serif); color: var(--ink-2); margin-left: 4px; }
+.cats-btns { display: flex; gap: 8px; justify-content: flex-end; }
+.cats-btns button { height: 36px; padding: 0 16px; border-radius: 18px; font: 600 13px var(--grot); border: 1px solid var(--ink-4); }
+.cats-btns .gilt { border: 0; color: #1D160F; background: linear-gradient(180deg, #EBD08C, #C9A24B); }
+.cats-btns .gilt:disabled { opacity: .4; }
+.cats-btns .danger { border: 0; color: #FFF6EA; background: #8E2A20; }
+.cats-remove { padding: 12px 2px; display: grid; gap: 10px; }
+.cats-remove p { margin: 0; font: 400 15px/1.45 var(--serif); color: var(--ink); }
+
+/* People and reports pages sit under the shell like the rest. */
+.acc-reports { padding-top: 10px; }
+.acc-reports .acc-folio:first-child { border-top: 1px solid var(--line); }

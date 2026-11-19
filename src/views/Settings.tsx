@@ -1,3 +1,6 @@
+import { CategoriesPane } from './Categories';
+import { MemoryView } from './Memory';
+import { Plans } from './Plans';
 import { motion } from 'framer-motion';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { DEFAULT_BASE, MUSE_MODELS, SHARED_MUSE, testConnection, usingShared } from '../lib/ai';
@@ -11,23 +14,32 @@ import { AppIcon } from '../components/Logo';
 import { artSrc, PAINTINGS, seasonalWallpaper, WALLPAPERS } from '../lib/art';
 import { canLinkSpotify, linkSpotify, MUSIC_PICKS, myPlaylists, parseSpotify, spotifyLinked, unlinkSpotify, type MyPlaylist } from '../lib/spotify';
 
-export type Pane = 'general' | 'account' | 'appearance' | 'music' | 'muse' | 'data' | 'about';
-const PANES: { id: Pane; label: string; icon: ReactNode; tint: string }[] = [
-  { id: 'general', label: 'General', icon: <Icon.person size={14} />, tint: '#7A6A52' },
-  { id: 'account', label: 'Account & sync', icon: <Icon.cloud size={14} />, tint: '#3D6FB6' },
-  { id: 'appearance', label: 'Appearance', icon: <Icon.sun size={14} />, tint: '#2B3FA8' },
-  { id: 'music', label: 'Music', icon: <Icon.music size={14} />, tint: '#1DB954' },
-  { id: 'muse', label: 'Meta Muse', icon: <Icon.bolt size={14} />, tint: '#6A3FA0' },
-  { id: 'data', label: 'Your data', icon: <Icon.download size={14} />, tint: '#2F6B4A' },
-  { id: 'about', label: 'About', icon: <Icon.book size={14} />, tint: '#B08A3A' },
+export type Pane = 'general' | 'categories' | 'routines' | 'plans' | 'account' | 'appearance' | 'music' | 'muse' | 'data' | 'about';
+// Tints are pigments from the paintings: umber, ochre, lapis, verdigris, vermilion, madder, gold.
+const PANES: { id: Pane; label: string; icon: ReactNode; tint: string; group?: string }[] = [
+  { id: 'general', label: 'You and your money', icon: <Icon.person size={14} />, tint: '#7A5534' },
+  { id: 'categories', label: 'Categories & income', icon: <Icon.list size={14} />, tint: '#C9962E' },
+  { id: 'routines', label: 'Routines & memory', icon: <Icon.repeat size={14} />, tint: '#3E8C86' },
+  { id: 'plans', label: 'Plans', icon: <Icon.flag size={14} />, tint: '#A3384F' },
+  { id: 'account', label: 'Backup & account', icon: <Icon.cloud size={14} />, tint: '#2B3FA8', group: 'Settings' },
+  { id: 'music', label: 'Music', icon: <Icon.music size={14} />, tint: '#8E2A20' },
+  { id: 'appearance', label: 'Look & sound', icon: <Icon.sun size={14} />, tint: '#B08A3A' },
+  { id: 'muse', label: 'The AI', icon: <Icon.bolt size={14} />, tint: '#2A2620' },
+  { id: 'data', label: 'Your data', icon: <Icon.download size={14} />, tint: '#5E4A2E' },
+  { id: 'about', label: 'About', icon: <Icon.book size={14} />, tint: '#7A6A52' },
 ];
 
 export function SettingsSheet({ state, dispatch, close, initial = 'general' }: { state: State; dispatch: (a: Action) => void; close: () => void; initial?: Pane }) {
   const [pane, setPane] = useState<Pane>(initial);
   const P = PANES.find((p) => p.id === pane)!;
+  useEffect(() => {
+    const k = (e: KeyboardEvent) => { if (e.key === 'Escape') close(); };
+    window.addEventListener('keydown', k);
+    return () => window.removeEventListener('keydown', k);
+  }, [close]);
   return (
     <motion.div className="scrim" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onMouseDown={(e) => e.target === e.currentTarget && close()}>
-      <motion.div className="sheet glass" role="dialog" aria-label="Settings" initial={{ opacity: 0, scale: 0.96, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.97 }} transition={{ type: 'spring', stiffness: 380, damping: 32 }}>
+      <motion.div className="sheet glass" role="dialog" aria-label="Your book" initial={{ opacity: 0, scale: 0.96, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.97 }} transition={{ type: 'spring', stiffness: 380, damping: 32 }}>
         <nav className="sheet-nav" style={{ display: 'flex', flexDirection: 'column', gap: 2, padding: '14px 10px', borderRight: '1px solid var(--line)', background: 'var(--fill)' }}>
           <button className="sheet-done" onClick={close}>Done</button>
           <div className="sheet-lights" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '2px 6px 14px' }}>
@@ -35,15 +47,21 @@ export function SettingsSheet({ state, dispatch, close, initial = 'general' }: {
             <span style={{ width: 12, height: 12, borderRadius: 6, background: 'var(--fill-2)' }} />
             <span style={{ width: 12, height: 12, borderRadius: 6, background: 'var(--fill-2)' }} />
           </div>
-          {PANES.map((p) => (
-            <button key={p.id} className={'side-item' + (pane === p.id ? ' on' : '')} onClick={() => setPane(p.id)} style={{ whiteSpace: 'nowrap' }}>
+          <div className="book-title">Your <i>book</i></div>
+          <div className="sheet-panes">
+          {PANES.map((p) => (<div key={p.id} style={{ display: 'contents' }}>{p.group && <div className="side-label">{p.group}</div>}
+            <button className={'side-item' + (pane === p.id ? ' on' : '')} onClick={() => setPane(p.id)} style={{ whiteSpace: 'nowrap' }}>
               <span style={{ width: 22, height: 22, borderRadius: 6, background: p.tint, color: '#fff', display: 'grid', placeItems: 'center', flex: 'none' }}>{p.icon}</span>{p.label}
-            </button>
+            </button></div>
           ))}
+          </div>
         </nav>
         <div style={{ overflowY: 'auto', padding: '22px 28px 30px', minWidth: 0 }}>
           <div style={{ font: '600 20px var(--ui)', letterSpacing: '-0.02em', marginBottom: 18 }}>{P.label}</div>
           {pane === 'general' && <General state={state} dispatch={dispatch} />}
+          {pane === 'categories' && <CategoriesPane state={state} dispatch={dispatch} />}
+          {pane === 'routines' && <div className="in-sheet"><MemoryView state={state} dispatch={dispatch} notify={() => {}} /></div>}
+          {pane === 'plans' && <div className="in-sheet"><Plans state={state} dispatch={dispatch} /></div>}
           {pane === 'account' && <Group><div style={{ padding: 16 }}><Account /></div></Group>}
           {pane === 'appearance' && <Appearance state={state} dispatch={dispatch} />}
           {pane === 'music' && <Music state={state} dispatch={dispatch} />}

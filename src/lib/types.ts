@@ -101,6 +101,9 @@ export interface State {
   cash?: { id: string; amount: number; left: number; date: string; askedOn?: string; closed?: boolean }[];
   /** Rotating savings circles the person belongs to (tontine, susu, tanda, hui, kye, chit fund, stokvel…). */
   circles?: Circle[];
+  /** The person's own categories (money in and money out), and built-in ones they've hidden. */
+  categories?: import('./categories').Category[];
+  hiddenCategories?: string[];
 }
 
 /** A rotating savings circle: everyone pays in each round, and one member takes the whole pot in turn. */

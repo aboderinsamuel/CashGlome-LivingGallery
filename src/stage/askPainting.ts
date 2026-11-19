@@ -15,6 +15,8 @@ export interface PaintingAnswer {
   planned: Where;
   /** The device model wrote the words from the figures; otherwise the app's own sentence. */
   wordsBy: 'device' | 'app';
+  /** The days until payday, when the question was about affording something. */
+  runway?: Answer['runway'];
 }
 
 const MONEY_Q = /\b(spen[dt]|cost|paid|pay|afford|buy|left|save|saved|income|earn|came in|owe|money|budget|how much|biggest|most|where did)\b/i;
@@ -42,7 +44,7 @@ export async function askPainting(state: State, question: string, sitter: Person
   const today = todayISO();
   const weekday = new Date().toLocaleDateString('en', { weekday: 'long' });
   const local = () => answerLocally(state, question);
-  const fromLocal = (a: Answer): PaintingAnswer => ({ text: a.text, figures: a.figures ?? [], rows: a.rows ?? [], planned: 'rules', wordsBy: 'app' });
+  const fromLocal = (a: Answer): PaintingAnswer => ({ text: a.text, figures: a.figures ?? [], rows: a.rows ?? [], planned: 'rules', wordsBy: 'app', runway: a.runway });
 
   // The model plans when there is one; the rules plan when there isn't, or when the model can't.
   const planned = brainConfigured ? await Promise.race([planQuestion(question, today, weekday), new Promise<null>((r) => setTimeout(() => r(null), 9000))]) : null;
@@ -58,11 +60,12 @@ export async function askPainting(state: State, question: string, sitter: Person
   }
   const { plan, where } = planned;
   let text = '', figures: Figure[] = [], rows: Entry[] = [];
+  let runway: Answer['runway'];
 
   if (plan.kind === 'afford' || plan.kind === 'free') {
     // Affordability is the app's own arithmetic; the rules phrase it. The model only read the price.
     const a = local();
-    if (a && (a.runway || a.figures?.length)) { text = a.text; figures = a.figures ?? []; }
+    if (a && (a.runway || a.figures?.length)) { text = a.text; figures = a.figures ?? []; runway = a.runway; }
     else {
       const free = safeToSpend(state, today);
       text = free ? `About ${m(free.free)} is free, around ${m(free.perDay)} a day${free.until ? ' until payday' : ' for the rest of the month'}.` : 'Tell me what you have first, like “I have 40k”, and I can answer that exactly.';
@@ -92,5 +95,5 @@ export async function askPainting(state: State, question: string, sitter: Person
   }
   // The device model may put the device's figures into the sitter's words. The cloud never sees them.
   const said = figures.length ? await Promise.race([phraseOnDevice(sitter, question, figures.map((f) => `${f.label.trim()}: ${f.value}`).join('; ')), new Promise<null>((r) => setTimeout(() => r(null), 6000))]) : null;
-  return { text: said ?? text, figures, rows, planned: where, wordsBy: said ? 'device' : 'app' };
+  return { text: said ?? text, figures, rows, planned: where, wordsBy: said ? 'device' : 'app', runway };
 }

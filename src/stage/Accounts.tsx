@@ -20,19 +20,15 @@ function Vignette({ id, focus = '50% 40%' }: { id: string; focus?: string }) {
   );
 }
 
-/** The counting house: what is safe to spend, who owes whom, the circles, prices, and the income record. */
-export function Accounts({ state, dispatch, onToday }: { state: State; dispatch: Dispatch<Action>; onToday: () => void }) {
+/** People: who owes whom, and the savings circles you belong to. */
+export function PeoplePage({ state, dispatch }: { state: State; dispatch: Dispatch<Action> }) {
   const cur = state.profile.currency;
   const m = (n: number) => money(n, cur);
   const today = todayISO();
-  const safe = useMemo(() => safeToSpend(state, today), [state, today]);
   const people = useMemo(() => peopleOf(state.entries), [state.entries]);
   const circles = useMemo(() => (state.circles ?? []).map((c) => circleStatus(c, state.entries, today)), [state.circles, state.entries, today]);
-  const prices = useMemo(() => pricesOf(state.entries, today), [state.entries, today]);
-  const record = useMemo(() => incomeRecord(state.entries, 6, today), [state.entries, today]);
   const [circleLine, setCircleLine] = useState('');
   const [circleErr, setCircleErr] = useState('');
-  const [showWork, setShowWork] = useState(false);
 
   const addCircle = () => {
     const c = readCircle(circleLine, today);
@@ -40,41 +36,19 @@ export function Accounts({ state, dispatch, onToday }: { state: State; dispatch:
     dispatch({ type: 'circle', circle: c }); setCircleLine(''); setCircleErr('');
   };
   const owedToYou = people.reduce((a, p) => a + p.owesYou, 0), youOwe = people.reduce((a, p) => a + p.youOwe, 0);
-  const recordTotal = record.reduce((a, r) => a + r.total, 0);
-  const recordMonths = record.filter((r) => r.total > 0).length;
 
   return (
     <div className="page acc">
       <header className="acc-head">
         <div className="kicker">{dateInWords()}</div>
-        <h1>The <i>accounts</i></h1>
-        <p>Counted on this device from what you have written. Nothing here needs a form.</p>
+        <h1>People <i>&amp; circles</i></h1>
+        <p>Written the way you’d say it, “lent Ada 5k” or “split dinner 12k with Mei”, and kept here without a form.</p>
       </header>
-
-      {/* I. Safe to spend */}
-      <section className="acc-folio">
-        <Vignette id="moneylender" focus="50% 62%" />
-        <div className="acc-body">
-          <div className="numeral">I</div>
-          <h2>Safe to <i>spend</i></h2>
-          {safe ? (
-            <>
-              <div className="acc-big">{m(safe.perDay)}<span> a day</span></div>
-              <p className="acc-note">{safe.until ? `Until payday ${relDay(safe.until)}, after every routine you've told me about.` : 'For the rest of this month, after the bills that usually still come.'} About {m(safe.free)} is free in all.</p>
-              <button className="acc-link" onClick={() => setShowWork((v) => !v)}>{showWork ? 'Hide the working' : 'Show the working'}</button>
-              {showWork && <p className="acc-work">{safe.basis === 'balance' ? 'Your remembered balance, moved on by every entry since, minus each routine due before your next pay, at its lowest point, spread over the days until pay.' : 'Money in this month, minus spending and savings so far, minus the bills your month usually still has, spread over the days left.'}</p>}
-            </>
-          ) : (
-            <p className="acc-empty">Write what came in this month, or tell the painting what you have (“I have 40k”), and I’ll count what is safe each day.</p>
-          )}
-        </div>
-      </section>
-
       {/* II. People */}
       <section className="acc-folio">
         <Vignette id="taxcollectors" focus="50% 45%" />
         <div className="acc-body">
-          <div className="numeral">II</div>
+          <div className="numeral">I</div>
           <h2>Who owes <i>whom</i></h2>
           {people.length ? (
             <>
@@ -99,7 +73,7 @@ export function Accounts({ state, dispatch, onToday }: { state: State; dispatch:
       <section className="acc-folio">
         <Vignette id="jumak" focus="50% 50%" />
         <div className="acc-body">
-          <div className="numeral">III</div>
+          <div className="numeral">II</div>
           <h2>Savings <i>circles</i></h2>
           <p className="acc-note">Tontine, susu, tanda, hui, kye, chit fund, stokvel, arisan, partner: everyone pays in each round, and one takes the pot.</p>
           {circles.map((s) => (
@@ -124,11 +98,27 @@ export function Accounts({ state, dispatch, onToday }: { state: State; dispatch:
         </div>
       </section>
 
+    </div>
+  );
+}
+
+/** Beneath the ledger: your own prices over time, and the income record to print. */
+export function LedgerReports({ state }: { state: State }) {
+  const cur = state.profile.currency;
+  const m = (n: number) => money(n, cur);
+  const today = todayISO();
+  const prices = useMemo(() => pricesOf(state.entries, today), [state.entries, today]);
+  const record = useMemo(() => incomeRecord(state.entries, 6, today), [state.entries, today]);
+  const recordTotal = record.reduce((a, r) => a + r.total, 0);
+  const recordMonths = record.filter((r) => r.total > 0).length;
+
+  return (
+    <div className="page acc acc-reports">
       {/* IV. Prices */}
       <section className="acc-folio">
         <Vignette id="market" focus="50% 55%" />
         <div className="acc-body">
-          <div className="numeral">IV</div>
+          <div className="numeral">I</div>
           <h2>Your own <i>prices</i></h2>
           {prices.rate !== null ? (
             <>
@@ -150,7 +140,7 @@ export function Accounts({ state, dispatch, onToday }: { state: State; dispatch:
       <section className="acc-folio acc-record">
         <Vignette id="balance" focus="50% 40%" />
         <div className="acc-body">
-          <div className="numeral">V</div>
+          <div className="numeral">II</div>
           <h2>The income <i>record</i></h2>
           <p className="acc-note">Up to six months of money in, set out for a landlord, a lender or a visa office. Printed from this device; nothing is uploaded.</p>
           <table className="acc-table">
@@ -166,7 +156,6 @@ export function Accounts({ state, dispatch, onToday }: { state: State; dispatch:
         </div>
       </section>
 
-      <button className="acc-back" onClick={onToday}>Back to today’s painting</button>
     </div>
   );
 }

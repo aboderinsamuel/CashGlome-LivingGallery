@@ -10,6 +10,10 @@ export interface Category {
   nature: Nature;
   sticker: string;
   words: string[];
+  /** Made by the person, not shipped with the app. */
+  custom?: boolean;
+  /** Hidden from pickers and from reading new lines; old entries keep it. */
+  hidden?: boolean;
 }
 
 export const CATEGORIES: Category[] = [
@@ -69,3 +73,35 @@ export const CATEGORIES: Category[] = [
 
 export const CAT: Record<string, Category> = Object.fromEntries(CATEGORIES.map((c) => [c.id, c]));
 export const cat = (id: string): Category => CAT[id] ?? CAT.other;
+
+/** Pigments a person can give their own categories: the colours of the paintings. */
+export const PIGMENTS: { name: string; color: string; ink: string }[] = [
+  { name: 'Ochre', color: '#C9962E', ink: '#1E1B16' },
+  { name: 'Umber', color: '#7A5534', ink: '#FFF6EA' },
+  { name: 'Lapis', color: '#2B3FA8', ink: '#FFF6EA' },
+  { name: 'Vermilion', color: '#C8402A', ink: '#FFF6EA' },
+  { name: 'Verdigris', color: '#3E8C86', ink: '#FFF6EA' },
+  { name: 'Madder', color: '#A3384F', ink: '#FFF6EA' },
+  { name: 'Lead white', color: '#E8DCC0', ink: '#1E1B16' },
+  { name: 'Gold leaf', color: '#E2C27A', ink: '#1E1B16' },
+];
+
+const BUILT_IN = CATEGORIES.slice();
+let applied = '';
+/** Brings the person's own categories and hidden ones into the shared list, in place, so every reader sees them. */
+export function applyCategories(custom: Category[] = [], hidden: string[] = []) {
+  const key = JSON.stringify([custom, hidden]);
+  if (key === applied) return;
+  applied = key;
+  const hide = new Set(hidden);
+  const next = [...BUILT_IN.map((c) => ({ ...c, hidden: hide.has(c.id) || undefined })), ...custom.map((c) => ({ ...c, custom: true, hidden: hide.has(c.id) || undefined }))];
+  // Within each direction: your own first, then the built-in ones, and the catch-alls
+  // ("Everything else", "Other income") last.
+  const rank = (c: Category) => (c.id === 'other' || c.id === 'windfall' ? 2 : c.custom ? 0 : 1);
+  const ordered = (['out', 'in'] as const).flatMap((d) => next.filter((c) => c.dir === d).map((c, i) => ({ c, i })).sort((a, b) => rank(a.c) - rank(b.c) || a.i - b.i).map((x) => x.c));
+  CATEGORIES.splice(0, CATEGORIES.length, ...ordered);
+  for (const k of Object.keys(CAT)) delete CAT[k];
+  for (const c of CATEGORIES) CAT[c.id] = c;
+}
+/** Categories offered when choosing one: not hidden. */
+export const choosable = (dir?: 'in' | 'out') => CATEGORIES.filter((c) => !c.hidden && (!dir || c.dir === dir));

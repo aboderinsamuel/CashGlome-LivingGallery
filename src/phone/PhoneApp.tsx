@@ -11,11 +11,11 @@ import type { Action } from '../lib/store';
 import type { Entry, State } from '../lib/types';
 import { Icon } from '../components/Icons';
 import { RestorationPlate, revealTime } from '../components/Restoration';
-import type { View } from '../components/Shell';
+import { ChapterTabs, TabBar, placeOf, type Place, type View } from '../components/Shell';
 import { cardSeason, chipsFor, closeDay, dateInWords, dayClosed, monthName, partOfDay, promptFor, type CashPocket, type Chip } from './moments';
 import { haptic } from './device';
 
-export type PhonePage = 'read' | 'plans' | 'memory' | 'shelf';
+export type PhonePage = 'read' | 'plans' | 'memory';
 
 interface Props {
   state: State;
@@ -24,116 +24,88 @@ interface Props {
   setView: (v: View) => void;
   setMonth: (m: string) => void;
   museChapter?: { title: Ch['title']; lede: string } | null;
-  /** The writing box, built by App (it owns saving). Shown on today's chapter only. */
+  /** The writing box, built by App (it owns saving). On every place but Ask, which has its own. */
   composer: ReactNode;
-  pages: Record<'ledger' | 'collection' | 'accounts' | PhonePage, ReactNode>;
+  pages: Record<'today' | 'ledger' | 'ask' | 'people' | 'shelf' | 'collection' | PhonePage, ReactNode>;
   online: boolean;
-  /** Back to the living painting. */
-  onHome: () => void;
-  onAsk: () => void;
+  /** Your book: settings, categories, routines, plans, backup. */
+  onBook: () => void;
   onEdition: () => void;
   onShare: () => void;
-  onSettings: () => void;
-  onMusic: () => void;
+  /** The living painting, full size. */
+  onLiving: () => void;
 }
 
-const PAGE_TITLE: Record<PhonePage, string> = { read: 'The chapter', plans: 'Plans', memory: 'Routines & memory', shelf: 'All chapters' };
-const sheetSpring = { type: 'spring', stiffness: 380, damping: 36 } as const;
+const PAGE_TITLE: Record<PhonePage, string> = { read: 'The chapter', plans: 'Plans', memory: 'Routines & memory' };
+const PLACE_TITLE: Record<Place, string> = { today: 'Today', ledger: 'Ledger', ask: 'Ask', people: 'People', chapter: 'Chapter' };
 
 export function PhoneApp(p: Props) {
   const { state, view } = p;
-  const [more, setMore] = useState(false);
   const [page, setPage] = useState<PhonePage | null>(null);
   const isNow = state.month === monthOf(todayISO());
-  const tab: 'chapter' | 'ledger' | 'collection' | 'accounts' = view === 'ledger' ? 'ledger' : view === 'collection' ? 'collection' : view === 'accounts' ? 'accounts' : 'chapter';
-  // Views the desktop reaches from its sidebar arrive here as pushed pages.
-  const pushed: PhonePage | null = page ?? (view === 'plans' ? 'plans' : view === 'memory' ? 'memory' : view === 'shelf' ? 'shelf' : null);
-  const go = (v: 'chapter' | 'ledger' | 'collection' | 'accounts') => { haptic(); setPage(null); p.setView(v); };
-  const back = () => { setPage(null); if (view === 'plans' || view === 'memory' || view === 'shelf') p.setView('chapter'); };
-  const open = (pg: PhonePage) => { setMore(false); setPage(pg); };
+  const place = placeOf(view);
+  // Plans and routines arrive from Your book as pushed pages.
+  const pushed: PhonePage | null = page ?? (view === 'plans' ? 'plans' : view === 'memory' ? 'memory' : null);
+  const go = (v: View) => { haptic(); setPage(null); p.setView(v); };
+  const back = () => { setPage(null); if (view === 'plans' || view === 'memory') p.setView('today'); };
   useEffect(() => { setPage(null); }, [state.month]);
+  const months = place === 'ledger' || (place === 'chapter' && view === 'chapter');
+  const first = state.profile.name?.split(' ')[0];
 
   return (
     <div className="ph-app">
       <header className="ph-top">
         {pushed ? (
           <>
-            <button className="ph-icon" onClick={back} aria-label="Back"><Icon.left size={20} /></button>
+            <button className="ph-back" onClick={back}><Icon.left size={18} /><span>Back</span></button>
             <span className="ph-top-title">{PAGE_TITLE[pushed]}</span>
-            <span className="ph-icon" aria-hidden />
+            <span style={{ width: 64 }} aria-hidden />
           </>
         ) : (
           <>
-            <div className="ph-month">
-              <button className="ph-icon sm" aria-label="Previous month" onClick={() => p.setMonth(shiftMonth(state.month, -1))}><Icon.left size={17} /></button>
-              <button className="ph-month-name" onClick={() => open('shelf')} aria-label="All chapters">{monthName(state.month)}{state.month.slice(0, 4) !== todayISO().slice(0, 4) ? ` ${state.month.slice(0, 4)}` : ''}</button>
-              <button className="ph-icon sm" aria-label="Next month" disabled={isNow} onClick={() => !isNow && p.setMonth(shiftMonth(state.month, 1))}><Icon.right size={17} /></button>
-              {!isNow && <button className="ph-today" onClick={() => p.setMonth(monthOf(todayISO()))}>Today</button>}
-            </div>
+            {months ? (
+              <div className="ph-month">
+                <button className="ph-icon sm" aria-label="Previous month" onClick={() => p.setMonth(shiftMonth(state.month, -1))}><Icon.left size={17} /></button>
+                <span className="ph-month-name">{monthName(state.month)}{state.month.slice(0, 4) !== todayISO().slice(0, 4) ? ` ${state.month.slice(0, 4)}` : ''}</span>
+                <button className="ph-icon sm" aria-label="Next month" disabled={isNow} onClick={() => !isNow && p.setMonth(shiftMonth(state.month, 1))}><Icon.right size={17} /></button>
+                {!isNow && <button className="ph-today" onClick={() => p.setMonth(monthOf(todayISO()))}>Now</button>}
+              </div>
+            ) : (
+              <span className="ph-place">{place === 'today' ? <span className="ph-brand">CashGlome</span> : PLACE_TITLE[place]}</span>
+            )}
             {!p.online && <span className="ph-offline" role="status">Offline</span>}
             <span style={{ flex: 1 }} />
-            <button className="ph-icon" onClick={p.onAsk} aria-label="Ask about your money"><Icon.ask size={19} /></button>
-            <button className="ph-icon" onClick={() => setMore(true)} aria-label="More" aria-expanded={more}><MoreGlyph /></button>
+            <button className="ph-book" onClick={p.onBook} aria-label="Your book: settings, categories, routines and backup">
+              <span className="ph-book-face" aria-hidden>{(first || 'Y').charAt(0).toUpperCase()}</span>
+              <span>Your book</span>
+            </button>
           </>
         )}
       </header>
 
-      <main className="ph-main" key={pushed ?? tab}>
-        {pushed ? <div className="ph-page">{p.pages[pushed]}</div>
-          : tab === 'chapter' ? <PhoneHome key={state.month} state={state} dispatch={p.dispatch} museChapter={p.museChapter} isNow={isNow} onRead={() => open('read')} onLedger={() => go('ledger')} onShare={p.onShare} />
-          : <div className="ph-page">{p.pages[tab]}</div>}
+      <main className="ph-main" key={pushed ?? view}>
+        {pushed ? <div className="ph-page">{pushed === 'read' ? p.pages.read : p.pages[pushed]}</div>
+          : place === 'chapter' ? (
+            <>
+              <ChapterTabs view={view} setView={go} onEdition={p.onEdition} onLiving={p.onLiving} />
+              {view === 'chapter' ? <PhoneHome key={state.month} state={state} dispatch={p.dispatch} museChapter={p.museChapter} isNow={isNow} onRead={() => setPage('read')} onLedger={() => go('ledger')} onShare={p.onShare} onLiving={p.onLiving} />
+                : <div className="ph-page">{view === 'shelf' ? p.pages.shelf : p.pages.collection}</div>}
+            </>
+          )
+          : <div className="ph-page">{p.pages[place === 'people' ? 'people' : place]}</div>}
       </main>
 
-      {!pushed && tab === 'chapter' && isNow && p.composer}
+      {!pushed && place !== 'ask' && p.composer}
 
-      {!pushed && (
-        <nav className="ph-tabs" aria-label="Sections">
-          <button onClick={p.onHome}><Icon.sun size={20} /><span>Today</span></button>
-          <button className={tab === 'chapter' ? 'on' : ''} onClick={() => go('chapter')}><Icon.book size={20} /><span>Chapter</span></button>
-          <button className={tab === 'ledger' ? 'on' : ''} onClick={() => go('ledger')}><Icon.list size={20} /><span>Ledger</span></button>
-          <button className={tab === 'accounts' ? 'on' : ''} onClick={() => go('accounts')}><Icon.person size={20} /><span>Accounts</span></button>
-          <button className={tab === 'collection' ? 'on' : ''} onClick={() => go('collection')}><Icon.seal size={20} /><span>Gallery</span></button>
-        </nav>
-      )}
-
-      <AnimatePresence>
-        {more && (
-          <motion.div className="ph-scrim" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setMore(false)}>
-            <motion.div className="ph-sheet" role="dialog" aria-label="More" initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={sheetSpring} onClick={(e) => e.stopPropagation()}>
-              <div className="ph-grab" aria-hidden />
-              <Row icon={<Icon.book size={19} />} title="Read the chapter" sub="Where it went, day by day, and how it felt" onClick={() => open('read')} />
-              <Row icon={<Icon.play size={17} />} title="Play the Edition" sub="The month as a short story, in seven parts" onClick={() => { setMore(false); p.onEdition(); }} />
-              <Row icon={<Icon.share size={18} />} title="Share this chapter" sub="The painting and its title. Amounts stay hidden" onClick={() => { setMore(false); p.onShare(); }} />
-              <div className="ph-rule" />
-              <Row icon={<Icon.flag size={18} />} title="Plans" sub="What the month could turn into" onClick={() => open('plans')} />
-              <Row icon={<Icon.quill size={18} />} title="Routines & memory" sub="Things that write themselves, and what you’ve told it" onClick={() => open('memory')} />
-              <div className="ph-rule" />
-              <Row icon={<Icon.music size={18} />} title="Music" onClick={() => { setMore(false); p.onMusic(); }} />
-              <Row icon={<Icon.gear size={18} />} title="Settings" onClick={() => { setMore(false); p.onSettings(); }} />
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {!pushed && <TabBar view={view} setView={go} className="ph-tabs" />}
     </div>
   );
 }
 
-const MoreGlyph = () => <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden><path d="M4 6.5h12M4 10h12M4 13.5h7" /></svg>;
-
-function Row({ icon, title, sub, onClick }: { icon: ReactNode; title: string; sub?: string; onClick: () => void }) {
-  return (
-    <button className="ph-row" onClick={onClick}>
-      <span className="ph-row-icon">{icon}</span>
-      <span className="ph-row-text"><b>{title}</b>{sub && <small>{sub}</small>}</span>
-      <Icon.right size={15} />
-    </button>
-  );
-}
-
 /* ——— Home: the title, the painting, one question ——— */
-function PhoneHome({ state, dispatch, museChapter, isNow, onRead, onLedger, onShare }: {
+function PhoneHome({ state, dispatch, museChapter, isNow, onRead, onLedger, onShare, onLiving }: {
   state: State; dispatch: (a: Action) => void; museChapter?: { title: Ch['title']; lede: string } | null; isNow: boolean;
-  onRead: () => void; onLedger: () => void; onShare: () => void;
+  onRead: () => void; onLedger: () => void; onShare: () => void; onLiving: () => void;
 }) {
   const cur = state.profile.currency;
   const s = useMemo(() => computeStats(state.entries, state.month), [state.entries, state.month]);
@@ -172,7 +144,7 @@ function PhoneHome({ state, dispatch, museChapter, isNow, onRead, onLedger, onSh
       </div>
 
       <figure className="ph-art">
-        <button className="ph-plate" onClick={onRead} aria-label={`${painting.title}. Read the chapter`}>
+        <button className="ph-plate" onClick={onLiving} aria-label={`${painting.title}: see it alive`}>
           <RestorationPlate painting={painting} r={r} seen={shownSeen} ratio={1} drift={false} calm={state.settings.calm} lead={0.25} />
         </button>
         <figcaption className="ph-label">
@@ -191,7 +163,7 @@ function PhoneHome({ state, dispatch, museChapter, isNow, onRead, onLedger, onSh
 
       {isNow ? (
         <div className="ph-prompt-row">
-          <p className="ph-prompt" key={prompt}>{prompt}</p>
+          <button className="ph-link" onClick={onRead}>Read the chapter</button>
           {evening && writtenToday > 0 && !closed && <button className="ph-link" onClick={() => { closeDay(); setClosed(true); haptic('done'); }}>That’s the day</button>}
         </div>
       ) : (

@@ -1,5 +1,6 @@
 import { useEffect, useReducer } from 'react';
 import { DEFAULT_BASE, SHARED_MUSE } from './ai';
+import { applyCategories } from './categories';
 import { guessCurrency, monthOf, todayISO, uid } from './format';
 import type { Entry, Goal, Memory, Parsed, RoutineMark, Settings, State } from './types';
 
@@ -70,6 +71,9 @@ export type Action =
   | { type: 'replace'; state: State }
   | { type: 'circle'; circle: import('./types').Circle }
   | { type: 'removeCircle'; id: string }
+  | { type: 'category'; category: import('./categories').Category } // add or edit one of your own
+  | { type: 'hideCategory'; id: string; hidden: boolean }
+  | { type: 'removeCategory'; id: string; moveTo: string } // its entries move to another category
   | { type: 'reset' };
 
 export const toEntry = (p: Parsed): Entry => ({ id: uid(), text: p.text, label: p.label, amount: p.amount, dir: p.dir, category: p.category, feeling: p.feeling, date: p.date, createdAt: Date.now(), source: p.source, confidence: p.confidence });
@@ -86,6 +90,24 @@ export function reducer(s: State, a: Action): State {
     case 'month': return { ...s, month: a.month };
     case 'circle': return { ...s, circles: [...(s.circles ?? []).filter((c) => c.id !== a.circle.id), { ...a.circle, updatedAt: Date.now() }] };
     case 'removeCircle': return { ...s, circles: (s.circles ?? []).filter((c) => c.id !== a.id) };
+    case 'category': {
+      const list = s.categories ?? [];
+      return { ...s, categories: list.some((c) => c.id === a.category.id) ? list.map((c) => (c.id === a.category.id ? a.category : c)) : [...list, a.category] };
+    }
+    case 'hideCategory': {
+      const h = new Set(s.hiddenCategories ?? []);
+      if (a.hidden) h.add(a.id); else h.delete(a.id);
+      return { ...s, hiddenCategories: [...h] };
+    }
+    case 'removeCategory': {
+      const now = Date.now();
+      const entries = s.entries.map((e) => (e.category === a.id ? { ...e, category: a.moveTo, updatedAt: now } : e));
+      const custom = (s.categories ?? []).some((c) => c.id === a.id);
+      // Your own categories go; the built-in ones are hidden instead, so the app's reading still knows them.
+      return custom
+        ? { ...s, entries, categories: (s.categories ?? []).filter((c) => c.id !== a.id), hiddenCategories: (s.hiddenCategories ?? []).filter((x) => x !== a.id) }
+        : { ...s, entries, hiddenCategories: [...new Set([...(s.hiddenCategories ?? []), a.id])] };
+    }
     case 'goal': return { ...s, goals: [...s.goals.filter((g) => g.id !== a.goal.id), { ...a.goal, updatedAt: Date.now() }] };
     case 'removeGoal': return { ...s, goals: s.goals.filter((g) => g.id !== a.id), gone: [...s.gone, { kind: 'goal' as const, id: a.id, at: Date.now() }].slice(-500) };
     case 'remember': {
@@ -152,6 +174,8 @@ export function reducer(s: State, a: Action): State {
 
 export function useGlomeStore() {
   const [state, dispatch] = useReducer(reducer, undefined, load);
+  // Your own categories join the shared list before anything below reads it.
+  applyCategories(state.categories, state.hiddenCategories);
   useEffect(() => {
     const t = setTimeout(() => {
       try { localStorage.setItem(KEY, JSON.stringify(state)); } catch { /* storage full or blocked */ }

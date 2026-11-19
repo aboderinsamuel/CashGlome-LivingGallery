@@ -8,6 +8,7 @@ import './styles.css';
 import './art.css';
 import './mac.css';
 import './phone/phone.css';
+import './shell.css';
 import App from './App';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(

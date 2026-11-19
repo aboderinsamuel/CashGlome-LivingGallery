@@ -18,7 +18,6 @@ import { mentionsCircle, readCircle } from './books';
 import { isQuestion } from '../lib/ask';
 import { describeMemory, readMemory, relDay } from '../lib/memory';
 import { Icon } from '../components/Icons';
-import type { View } from '../components/Shell';
 import './stage.css';
 
 // Hangul, Han, kana, Arabic, Devanagari, Cyrillic, Thai and others: lines the rules were not written for.
@@ -40,12 +39,14 @@ const TELLS = /^\s*(remember\b|note\b|i have\b|i've got\b|i get paid\b|my (salar
 interface Props {
   state: State;
   dispatch: Dispatch<Action>;
-  /** Leave the painting for the rooms of the app: ledger, chapters, gallery. */
-  onRooms: (v: View) => void;
+  /** Back to the app, where you came from. */
+  onBack: () => void;
+  /** Carry a question on to the Ask room. */
+  onAsk?: (q: string) => void;
 }
 
 /** The month's painting, alive, with a quill on the varnish. The first thing anyone sees, and home after. */
-export function Stage({ state, dispatch, onRooms }: Props) {
+export function Stage({ state, dispatch, onBack }: Props) {
   const cur = state.profile.currency;
   const today = todayISO();
   const month = monthOf(today);
@@ -85,8 +86,7 @@ export function Stage({ state, dispatch, onRooms }: Props) {
   const [reading, setReading] = useState(false);
   const brain = useSyncExternalStore(onBrain, brainSnapshot);
 
-  // The rooms open from the painting. Before the first line there's nothing in them yet, but they open anyway.
-  const go = (v: View) => { if (!state.profile.onboarded) dispatch({ type: 'onboard', name: state.profile.name || '', currency: cur }); onRooms(v); };
+  useEffect(() => { const k = (e: KeyboardEvent) => { if (e.key === 'Escape') onBack(); }; window.addEventListener('keydown', k); return () => window.removeEventListener('keydown', k); }, [onBack]);
 
   async function submit(line = text) {
     const t = line.trim();
@@ -183,7 +183,7 @@ export function Stage({ state, dispatch, onRooms }: Props) {
       <div className="st-shade" />
 
       <header className="st-top">
-        <div className="st-mark">CashGlome <i>· {dateInWords()}</i></div>
+        <button className="st-back" onClick={onBack} aria-label="Back to the app"><Icon.left size={16} /><span>Back</span><i>· {dateInWords()}</i></button>
         <div className="st-label">
           <div className="t">{p.title}</div>
           {NATIVE_TITLE[p.id] && <div className="n">{NATIVE_TITLE[p.id]}</div>}
@@ -259,16 +259,9 @@ export function Stage({ state, dispatch, onRooms }: Props) {
           </button>
         </form>
         <div className="st-meta">
-          <span>{todays.length ? <>Spent today <em>{money(spent, cur)}</em>{came > 0 && <> · came in <em>{money(came, cur)}</em></>}</> : 'Nothing written today yet. That’s fine.'}{safe && <> · <button className="st-safe" onClick={() => go('accounts')}>safe to spend <em>{money(safe.perDay, cur)}</em> a day{safe.until ? ` until ${relDay(safe.until)}` : ''}</button></>}</span>
+          <span>{todays.length ? <>Spent today <em>{money(spent, cur)}</em>{came > 0 && <> · came in <em>{money(came, cur)}</em></>}</> : 'Nothing written today yet. That’s fine.'}{safe && <> · <span className="st-safe">safe to spend <em>{money(safe.perDay, cur)}</em> a day{safe.until ? ` until ${relDay(safe.until)}` : ''}</span></>}</span>
           <span className="stage-name"><BrainNote s={brain} reading={reading} /><span title={stageName(stage).note}>{stageName(stage).name}, day {Number(today.slice(8))}</span></span>
         </div>
-        <nav className="st-rooms-bar" aria-label="Rooms">
-          <button className="on" aria-current="page"><Icon.sun size={18} /><span>Today</span></button>
-          <button onClick={() => go('ledger')}><Icon.list size={18} /><span>Ledger</span></button>
-          <button onClick={() => go('accounts')}><Icon.person size={18} /><span>Accounts</span></button>
-          <button onClick={() => go('chapter')}><Icon.book size={18} /><span>Chapter</span></button>
-          <button onClick={() => go('collection')}><Icon.seal size={18} /><span>Gallery</span></button>
-        </nav>
       </div>
     </div>
   );

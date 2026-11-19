@@ -339,9 +339,10 @@ function scoreCategory(text: string, dir: Dir) {
   const t = padded(text);
   let best = { id: dir === 'in' ? 'windfall' : 'other', score: 0 };
   for (const c of CATEGORIES) {
-    if (c.dir !== dir) continue;
+    if (c.dir !== dir || c.hidden) continue;
     let s = 0;
-    for (const w of c.words) if (hasWord(t, w)) s += 1 + w.length / 8;
+    // Your own categories know their own name, and win a tie: you made them for a reason.
+    for (const w of c.custom ? [...c.words, c.name.toLowerCase()] : c.words) if (hasWord(t, w)) s += (1 + w.length / 8) * (c.custom ? 1.5 : 1);
     if (s > best.score) best = { id: c.id, score: s };
   }
   // "Got paid 350k" on its own reads as wages; "got paid for X" as work done for someone.

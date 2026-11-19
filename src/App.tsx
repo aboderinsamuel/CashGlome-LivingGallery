@@ -11,22 +11,26 @@ import { money, monthLabel, monthOf, shiftMonth, todayISO, uid } from './lib/for
 import { setSound, sfx } from './lib/sound';
 import type { Entry, Parsed } from './lib/types';
 import { prunePictures, savePicture, pictureURL } from './lib/images';
-import { Sidebar, TabBar, type View } from './components/Shell';
+import { ChapterTabs, Sidebar, TabBar, type View } from './components/Shell';
 import { Composer, type ComposerHandle, type Notice } from './components/Composer';
 import { Desktop, useDesktopMode, useWindow, type DockTarget, type Menu } from './components/Desktop';
 import { StickerDefs } from './components/Stickers';
 import { CaptureSheet, type CaptureDone } from './components/CaptureSheet';
-import { AskPanel } from './components/AskPanel';
 import { MusicDock } from './components/Music';
 import { finishSpotifyLink } from './lib/spotify';
 import { learn, recall, usuals } from './lib/learn';
-import type { Turn } from './lib/ask';
 import { Icon } from './components/Icons';
 import { Chapter } from './views/Chapter';
 import { Shelf } from './views/Shelf';
 import { Ledger } from './views/Ledger';
 import { Plans } from './views/Plans';
-import { Accounts } from './stage/Accounts';
+import { LedgerReports, PeoplePage } from './stage/Accounts';
+import { Today, type Voice } from './views/Today';
+import { AskRoom, loadTurns, type AskTurn } from './views/AskRoom';
+import { brainConfigured, readLine, sitterSays } from './stage/brain';
+import { castOf, sitterLine } from './stage/voices';
+import { mentionsCircle, readCircle } from './stage/books';
+import { PAINTINGS } from './lib/art';
 import { Collection } from './views/Collection';
 import { SettingsSheet } from './views/Settings';
 import { Edition } from './views/Edition';
@@ -44,17 +48,24 @@ import { haptic, useKeyboardViewport, useOnline, usePhone } from './phone/device
 import { WITHDRAWAL, cashEntry, dueCash, markOffered, newPocket, recurringOffer, routineFrom } from './phone/moments';
 import { daysPhrase } from './lib/memory';
 import { Stage } from './stage/Stage';
+import { examplesFor } from './stage/words';
 
-const TITLES: Record<View, string> = { chapter: 'Chapter', shelf: 'All chapters', ledger: 'Ledger', plans: 'Plans', memory: 'Memory', collection: 'Gallery', accounts: 'Accounts' };
+const TITLES: Record<View, string> = { today: 'Today', ask: 'Ask', people: 'People', chapter: 'Chapter', shelf: 'All chapters', ledger: 'Ledger', plans: 'Plans', memory: 'Routines & memory', collection: 'Gallery', accounts: 'People' };
+// Lines the rules were not written for: other scripts go to the model.
+const OTHER_SCRIPT = /[Ͱ-῿　-鿿가-힯]/;
 const isMac = /Mac|iPhone|iPad/.test(navigator.platform) || window.glome?.platform === 'darwin';
 const kbd = (k: string) => (isMac ? `⌘${k}` : `Ctrl+${k}`);
-type Pane = 'general' | 'account' | 'appearance' | 'music' | 'muse' | 'data' | 'about';
+type Pane = import('./views/Settings').Pane;
 
 export default function App() {
   const [state, dispatch] = useGlomeStore();
-  const [view, setViewRaw] = useState<View>('chapter');
-  // Home is the living painting; the rooms (ledger, chapters, gallery) are one tap away.
-  const [home, setHome] = useState(true);
+  const [view, setViewRaw] = useState<View>('today');
+  // The living painting, full size, over everything: opened from the miniature on Today or from the Chapter.
+  const [living, setLiving] = useState(false);
+  const [voice, setVoice] = useState<Voice | null>(null);
+  const clearVoice = useCallback(() => setVoice(null), []);
+  const [askTurns, setAskTurns] = useState<AskTurn[]>(loadTurns);
+  const [askFirst, setAskFirst] = useState<string | null>(null);
   const [filter, setFilter] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [settings, setSettingsPane] = useState<Pane | null>(null);
@@ -64,8 +75,6 @@ export default function App() {
   const [notice, setNotice] = useState<Notice | null>(null);
   const [capture, setCapture] = useState<{ file: Blob | null; attach?: Entry } | null>(null);
   const [saved, setSaved] = useState<Record<string, SavedChapter>>(loadChapters);
-  const [ask, setAsk] = useState<{ first: string | null } | null>(null);
-  const [turns, setTurns] = useState<Turn[]>([]);
   const [music, setMusic] = useState(false);
   const closeMusic = useCallback(() => setMusic(false), []);
   const composer = useRef<ComposerHandle>(null);
@@ -100,7 +109,9 @@ export default function App() {
   // Back from Spotify's sign-in page (web): finish linking, then show the Music pane.
   useEffect(() => { finishSpotifyLink().then((ok) => ok && setSettingsPane('music')).catch(() => setSettingsPane('music')); }, []);
 
-  const setView = useCallback((v: View) => { setViewRaw(v); if (v !== 'ledger') setQuery(''); }, []);
+  const setView = useCallback((v: View) => { setViewRaw(v === 'accounts' ? 'people' : v); if (v !== 'ledger') setQuery(''); }, []);
+  /** A question from anywhere opens Ask with it. */
+  const askAbout = useCallback((q?: string) => { setAskFirst(q?.trim() || null); setViewRaw('ask'); }, []);
   const setMonth = useCallback((m: string) => dispatch({ type: 'month', month: m }), [dispatch]);
   useEffect(() => { main.current?.scrollTo({ top: 0 }); }, [view, state.month]);
 
@@ -218,12 +229,13 @@ export default function App() {
 
   // ——— Writing entries ———
   /** Adds entries, plays the right sound and says what changed in one line (with Undo). */
-  const commit = useCallback((entries: Entry[], opts: { error?: string; art?: string; hung?: boolean } = {}) => {
+  const commit = useCallback((entries: Entry[], opts: { error?: string; art?: string; hung?: boolean; line?: string; where?: 'device' | 'cloud' | 'rules' } = {}) => {
     const m0 = monthOf(entries[0].date);
     const next = [...state.entries, ...entries];
     const gained = restorationOf(next, m0).restored - restorationOf(state.entries, m0).restored;
     const painting = paintingOf(computeStats(next, m0));
     const gilded = entries.some(isGilded);
+    if (!state.profile.onboarded) dispatch({ type: 'onboard', name: state.profile.name || '', currency: cur });
     dispatch({ type: 'addEntries', entries });
     const first = entries[0];
     // On a phone every line is one brush stroke you can hear and feel; a patch lifting gets a second.
@@ -245,6 +257,19 @@ export default function App() {
       </>,
       undo: () => { ids.forEach((id) => dispatch({ type: 'remove', id })); setNotice(null); },
     });
+    // The month's sitter answers what you wrote, beside the miniature on Today.
+    if (opts.line) {
+      const said = sitterLine(painting.id, entries, next, entries[0].id.charCodeAt(0) + entries.length);
+      const where = opts.where === 'cloud' ? 'Read with Gemini, in the cloud' : opts.where === 'device' ? 'Read by Gemini Nano, on this device' : 'Read on this device';
+      const key = Date.now();
+      setVoice({ who: said.who.name, role: said.who.role, text: said.text, where, key });
+      if (brainConfigured) {
+        const p = PAINTINGS[painting.id];
+        const kinds = Array.from(new Set(entries.map((e) => cat(e.category).name.toLowerCase())));
+        Promise.race([sitterSays({ name: said.who.name, role: said.who.role, painting: p.title, artist: p.artist, year: p.year }, opts.line, kinds, 'steady'), new Promise<null>((r) => setTimeout(() => r(null), 4500))])
+          .then((v) => { if (v) setVoice((x) => (x && x.key === key ? { ...x, text: v.text } : x)); }).catch(() => {});
+      }
+    }
   }, [state.entries, state.month, cur, dispatch, phone]);
 
   /** After the third "Lunch 2,500", offer once to let it write itself. */
@@ -274,7 +299,7 @@ export default function App() {
     pockets.forEach((pocket) => dispatch({ type: 'cash', pocket }));
     const kept = seen.map((p, i) => ({ p, i })).filter(({ p }) => !isCash(p));
     const entries = kept.map(({ p }) => toEntry(p));
-    if (entries.length) { commit(entries); offerRoutine(entries[0]); }
+    if (entries.length) { commit(entries, { line: text }); offerRoutine(entries[0]); }
     else if (pockets.length) {
       haptic();
       setNotice({ text: <>Noted <b className="num">{money(pockets.reduce((a, x) => a + x.amount, 0), cur)}</b> in cash. I’ll ask what’s left in a day or two.</>, undo: () => { pockets.forEach((x) => dispatch({ type: 'removeCash', id: x.id })); setNotice(null); } });
@@ -292,6 +317,21 @@ export default function App() {
   }, [cur, ai, state.settings, commit, dispatch, offerRoutine]);
 
   const submit = useCallback(async (text: string, overrides: Record<number, Partial<Parsed>>) => {
+    // A savings circle in one sentence: "Ajo of 10 people, 20k monthly, my turn is 4th".
+    if (mentionsCircle(text) && /\b(people|members|of us|hands|turn|of \d+)\b/i.test(text)) {
+      const c = readCircle(text, todayISO());
+      if (c) {
+        dispatch({ type: 'circle', circle: c });
+        setNotice({ text: <>Kept your <b>{c.name}</b>: {c.members} people, {money(c.contribution, cur)} a {c.every}. <button className="notice-undo" style={{ display: 'inline' }} onClick={() => { setView('people'); setNotice(null); }}>See it</button></>, undo: () => { dispatch({ type: 'removeCircle', id: c.id }); setNotice(null); } });
+        return;
+      }
+    }
+    // Lines in other scripts, or ones the rules can't read, go to Gemini: on this device when it can, else the cloud.
+    if (brainConfigured && Object.keys(overrides).length === 0 && (OTHER_SCRIPT.test(text) || !parseStory(text, { home: cur }).length)) {
+      setBusy(true);
+      const r = await readLine(text, cur).catch(() => null).finally(() => setBusy(false));
+      if (r?.read.length) { commit(r.read.map(toEntry), { line: text, where: r.where }); return; }
+    }
     if (phone) { submitNow(text, overrides); return; }
     setBusy(true);
     try {
@@ -300,9 +340,9 @@ export default function App() {
       const items = res.items.map((p, i) => ({ ...recall(p), ...(res.engine === 'oracle' ? overrides[i] : overrides[i]?.dir || overrides[i]?.category ? overrides[i] : {}) }));
       items.forEach((p, i) => { if (overrides[i]?.category) learn(p.label, p.category); });
       if (!items.length) { setNotice({ text: 'No amount in that. Try “Lunch 14” or “Got paid 3,200”.' }); return; }
-      commit(items.map(toEntry), { error: res.error });
+      commit(items.map(toEntry), { error: res.error, line: text });
     } finally { setBusy(false); }
-  }, [state.settings, cur, commit, phone, submitNow]);
+  }, [state.settings, cur, commit, phone, submitNow, dispatch, setView]);
 
   // ——— Shared from another app (Android share menu): a bank receipt or alert lands in the box, read and ready ———
   useEffect(() => {
@@ -311,7 +351,7 @@ export default function App() {
     const shared = [q.get('text'), q.get('title')].filter(Boolean).join('\n').trim();
     if (!shared) return;
     history.replaceState(null, '', location.pathname);
-    setViewRaw('chapter');
+    setViewRaw('today');
     setTimeout(() => composer.current?.fill(shared.slice(0, 2000)), 300);
   }, [state.profile.onboarded]);
 
@@ -385,10 +425,10 @@ export default function App() {
     const k = (e: KeyboardEvent) => {
       const mod = e.metaKey || e.ctrlKey;
       if (!mod || edition) return;
-      const map: Record<string, View> = { '1': 'chapter', '2': 'shelf', '3': 'ledger', '4': 'plans', '5': 'collection', '6': 'memory' };
+      const map: Record<string, View> = { '1': 'today', '2': 'ledger', '3': 'ask', '4': 'people', '5': 'chapter' };
       if (map[e.key]) { e.preventDefault(); setView(map[e.key]); }
       else if (e.key === 'n') { e.preventDefault(); composer.current?.focus(); }
-      else if (e.key === 'k') { e.preventDefault(); setAsk({ first: null }); }
+      else if (e.key === 'k') { e.preventDefault(); askAbout(); }
       else if (e.key === ',') { e.preventDefault(); openSettings(); }
       else if (e.key === 'e') { e.preventDefault(); setEdition(true); }
       else if (e.key === '[') { e.preventDefault(); setMonth(shiftMonth(state.month, -1)); }
@@ -396,9 +436,8 @@ export default function App() {
     };
     window.addEventListener('keydown', k);
     return () => window.removeEventListener('keydown', k);
-  }, [edition, state.month, setMonth, setView, openSettings]);
+  }, [edition, state.month, setMonth, setView, openSettings, askAbout]);
 
-  if (home || !state.profile.onboarded) return <Stage state={state} dispatch={dispatch} onRooms={(v) => { setView(v); setHome(false); }} />;
 
   const numeral = chapterOf(state, computeStats(state.entries, state.month)).numeral;
   const isNow = state.month === monthOf(todayISO());
@@ -409,19 +448,22 @@ export default function App() {
     <div className="app">
       <Sidebar
         view={view} setView={setView} month={state.month} setMonth={setMonth} chapters={chapters}
-        counts={{ ledger: monthCount, stickers: `${months.length}` }}
+        counts={{ ledger: monthCount }}
         name={state.profile.name}
-        onEdition={() => setEdition(true)} onSettings={() => openSettings()} wall={artSrc(wall, 'sm')} onHome={() => setHome(true)}
+        onEdition={() => setEdition(true)} onBook={() => openSettings()} onMusic={() => setMusic((x) => !x)} musicOn={!!state.settings.music?.on || music} wall={artSrc(wall, 'sm')}
       />
 
       <main className="main" ref={main}>
         {/* The new page is on screen in the same frame as the tap; it only settles in, like iOS. No waiting for the old one to leave. */}
         <motion.div key={`${view}:${state.month}`} initial={{ opacity: 0.4, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18, ease: [0.2, 0.8, 0.2, 1] }}>
+            {view === 'today' && <Today state={state} dispatch={dispatch} voice={voice} onVoiceDone={clearVoice} onFill={(t) => composer.current?.fill(t)} onLedger={goView('ledger')} onPeople={goView('people')} onAsk={askAbout} onPainting={() => setLiving(true)} onEdit={() => setView('ledger')} />}
+            {(view === 'chapter' || view === 'shelf' || view === 'collection') && <ChapterTabs view={view} setView={setView} onEdition={() => setEdition(true)} onLiving={() => setLiving(true)} />}
             {view === 'chapter' && <Chapter state={state} dispatch={dispatch} museChapter={muse[state.month] ?? null} onOpenCategory={(id) => { setFilter(id); setView('ledger'); }} onEdition={() => setEdition(true)} onWrite={(h) => composer.current?.fill(h ?? '')} onPlans={goView('plans')} onGallery={goView('collection')} onSay={() => composer.current?.speak()} onSnap={() => setCapture({ file: null })} onShare={() => setSharing(true)} />}
             {view === 'shelf' && <Shelf state={state} months={months} onOpen={(m) => { setMonth(m); setView('chapter'); }} />}
-            {view === 'ledger' && <Ledger state={state} dispatch={dispatch} filter={filter} setFilter={setFilter} query={query} onAttach={(e) => setCapture({ file: null, attach: e })} />}
+            {view === 'ledger' && <><Ledger state={state} dispatch={dispatch} filter={filter} setFilter={setFilter} query={query} onAttach={(e) => setCapture({ file: null, attach: e })} /><LedgerReports state={state} /></>}
+            {view === 'ask' && <AskRoom state={state} turns={askTurns} setTurns={setAskTurns} first={askFirst} onFirstDone={() => setAskFirst(null)} />}
             {view === 'plans' && <Plans state={state} dispatch={dispatch} />}
-            {view === 'accounts' && <Accounts state={state} dispatch={dispatch} onToday={() => setHome(true)} />}
+            {(view === 'people' || view === 'accounts') && <PeoplePage state={state} dispatch={dispatch} />}
             {view === 'memory' && <MemoryView state={state} dispatch={dispatch} notify={(text, undo) => setNotice({ text, undo: undo ? () => { undo(); setNotice(null); } : undefined })} />}
             {view === 'collection' && <Collection state={state} onOpen={(m) => { setMonth(m); setView('chapter'); }} onCamera={() => setCapture({ file: null })} />}
         </motion.div>
@@ -448,43 +490,36 @@ export default function App() {
             <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search" style={{ border: 0, outline: 0, background: 'transparent', width: 150, fontSize: 13, padding: '0 8px' }} />
           </div>
         )}
-        <div className="capsule glass nodrag">
-          <button className={'tbtn' + (music ? ' on' : '')} onClick={() => setMusic((x) => !x)} aria-label="Music" aria-expanded={music} title="Music"><Icon.music size={15} />{state.settings.music?.on && <span className="music-live" aria-hidden />}</button>
-          <span className="sep" />
-          <button className="tbtn" onClick={() => setAsk({ first: null })} title={`Ask about your money (${kbd('K')})`}><Icon.ask size={15} /><span className="hide-sm"> Ask</span></button>
-          <span className="sep" />
-          <button className="tbtn hide-sm" onClick={() => setEdition(true)} title={`Open the Edition (${kbd('E')})`}><Icon.play size={13} /> Edition</button>
-          <span className="sep hide-sm" />
-          <button className="tbtn" onClick={() => openSettings()} aria-label="Settings" title={`Settings (${kbd(',')})`}><Icon.gear size={16} /></button>
-          <button className="tbtn solid" onClick={() => composer.current?.focus()} aria-label="New entry" title={`New entry (${kbd('N')})`}><Icon.plus size={15} /></button>
-        </div>
       </TitleBar>
 
       <MusicDock state={state} open={music} onClose={closeMusic} onChange={() => { setMusic(false); openSettings('music'); }} />
-      <Composer ref={composer} currency={cur} aiOn={ai} busy={busy} notice={notice} onSubmit={submit} onCamera={(file) => setCapture({ file: file ?? null })} onAsk={(q) => setAsk({ first: q })} usuals={usual} onRepeat={repeat} onRemember={remember}
-        above={<CheckIns list={checkins} cur={cur} onYes={(c, a) => answerCheckIn(c, true, a)} onNo={(c) => answerCheckIn(c, false)} onAllYes={allYes} />} />
-      <TabBar view={view} setView={setView} onEdition={() => setEdition(true)} onHome={() => setHome(true)} />
+      {view !== 'ask' && <Composer ref={composer} currency={cur} aiOn={ai || brainConfigured} busy={busy} notice={notice} onSubmit={submit} onCamera={(file) => setCapture({ file: file ?? null })} onAsk={askAbout} usuals={usual} onRepeat={repeat} onRemember={remember}
+        idle={state.entries.length === 0 ? <FirstLines cur={cur} onFill={(t) => composer.current?.fill(t)} /> : undefined}
+        above={<CheckIns list={checkins} cur={cur} onYes={(c, a) => answerCheckIn(c, true, a)} onNo={(c) => answerCheckIn(c, false)} onAllYes={allYes} />} />}
+      <TabBar view={view} setView={setView} />
     </div>
   );
 
   const phoneWindow = phone && (
     <PhoneApp
       state={state} dispatch={dispatch} view={view} setView={setView} setMonth={setMonth} museChapter={muse[state.month] ?? null} online={online}
-      onHome={() => setHome(true)} onAsk={() => setAsk({ first: null })} onEdition={() => setEdition(true)} onShare={() => setSharing(true)} onSettings={() => openSettings()} onMusic={() => openSettings('music')}
+      onBook={() => openSettings()} onEdition={() => setEdition(true)} onShare={() => setSharing(true)} onLiving={() => setLiving(true)}
       composer={
-        <Composer ref={composer} currency={cur} aiOn={ai} busy={busy} notice={notice} onSubmit={submit} onCamera={(file) => setCapture({ file: file ?? null })} onAsk={(q) => setAsk({ first: q })} onRemember={remember}
-          idle={<Chips state={state} onRepeat={repeat} onFill={(t) => composer.current?.fill(t)} />}
+        <Composer ref={composer} currency={cur} aiOn={ai || brainConfigured} busy={busy} notice={notice} onSubmit={submit} onCamera={(file) => setCapture({ file: file ?? null })} onAsk={askAbout} onRemember={remember}
+          idle={state.entries.length === 0 ? <FirstLines cur={cur} onFill={(t) => composer.current?.fill(t)} /> : <Chips state={state} onRepeat={repeat} onFill={(t) => composer.current?.fill(t)} />}
           above={<>
             <AnimatePresence>{cashDue && <CashCard key={cashDue.id} pocket={cashDue} cur={cur} onAnswer={answerCash} onLater={() => dispatch({ type: 'cash', pocket: { ...cashDue, askedOn: todayISO() } })} />}</AnimatePresence>
             {!cashDue && <CheckIns list={checkins} cur={cur} onYes={(c, a) => answerCheckIn(c, true, a)} onNo={(c) => answerCheckIn(c, false)} onAllYes={allYes} />}
           </>} />
       }
       pages={{
-        ledger: <Ledger state={state} dispatch={dispatch} filter={filter} setFilter={setFilter} query={query} onAttach={(e) => setCapture({ file: null, attach: e })} />,
+        today: <Today state={state} dispatch={dispatch} voice={voice} onVoiceDone={clearVoice} onFill={(t) => composer.current?.fill(t)} onLedger={goView('ledger')} onPeople={goView('people')} onAsk={askAbout} onPainting={() => setLiving(true)} onEdit={() => setView('ledger')} />,
+        ledger: <><Ledger state={state} dispatch={dispatch} filter={filter} setFilter={setFilter} query={query} onAttach={(e) => setCapture({ file: null, attach: e })} /><LedgerReports state={state} /></>,
+        ask: <AskRoom state={state} turns={askTurns} setTurns={setAskTurns} first={askFirst} onFirstDone={() => setAskFirst(null)} />,
+        people: <PeoplePage state={state} dispatch={dispatch} />,
         collection: <Collection state={state} onOpen={(m) => { setMonth(m); setView('chapter'); }} onCamera={() => setCapture({ file: null })} />,
         read: <Chapter state={state} dispatch={dispatch} museChapter={muse[state.month] ?? null} onOpenCategory={(id) => { setFilter(id); setView('ledger'); }} onEdition={() => setEdition(true)} onWrite={(h) => composer.current?.fill(h ?? '')} onPlans={goView('plans')} onGallery={goView('collection')} onSay={() => composer.current?.speak()} onSnap={() => setCapture({ file: null })} onShare={() => setSharing(true)} />,
         plans: <Plans state={state} dispatch={dispatch} />,
-        accounts: <Accounts state={state} dispatch={dispatch} onToday={() => setHome(true)} />,
         memory: <MemoryView state={state} dispatch={dispatch} notify={(text, undo) => setNotice({ text, undo: undo ? () => { undo(); setNotice(null); } : undefined })} />,
         shelf: <Shelf state={state} months={months} onOpen={(m) => { setMonth(m); setView('chapter'); }} />,
       }}
@@ -509,7 +544,7 @@ export default function App() {
     ] },
     { title: 'File', items: [
       { label: 'New entry', kbd: kbd('N'), action: () => setTimeout(() => composer.current?.focus(), 50) },
-      { label: 'Ask about your money…', kbd: kbd('K'), action: () => setAsk({ first: null }) },
+      { label: 'Ask about your money…', kbd: kbd('K'), action: () => askAbout() },
       'sep',
       { label: 'Export…', action: () => openSettings('data') },
       { label: 'Import…', action: () => openSettings('data') },
@@ -520,12 +555,12 @@ export default function App() {
       { label: 'Find in Ledger', action: goView('ledger') },
     ] },
     { title: 'View', items: [
-      { label: 'This chapter', kbd: kbd('1'), checked: view === 'chapter', action: goView('chapter') },
-      { label: 'All chapters', kbd: kbd('2'), checked: view === 'shelf', action: goView('shelf') },
-      { label: 'Ledger', kbd: kbd('3'), checked: view === 'ledger', action: goView('ledger') },
-      { label: 'Plans', kbd: kbd('4'), checked: view === 'plans', action: goView('plans') },
-      { label: 'Gallery', kbd: kbd('5'), checked: view === 'collection', action: goView('collection') },
-      { label: 'Memory', kbd: kbd('6'), checked: view === 'memory', action: goView('memory') },
+      { label: 'Today', kbd: kbd('1'), checked: view === 'today', action: goView('today') },
+      { label: 'Ledger', kbd: kbd('2'), checked: view === 'ledger', action: goView('ledger') },
+      { label: 'Ask', kbd: kbd('3'), checked: view === 'ask', action: goView('ask') },
+      { label: 'People', kbd: kbd('4'), checked: view === 'people', action: goView('people') },
+      { label: 'Chapter', kbd: kbd('5'), checked: view === 'chapter', action: goView('chapter') },
+      { label: 'Gallery', checked: view === 'collection', action: goView('collection') },
       'sep',
       ...(['auto', 'light', 'dark'] as const).map((t) => ({ label: t === 'auto' ? 'Match system' : t === 'light' ? 'Light' : 'Dark', checked: (state.settings.theme ?? 'auto') === t, action: () => dispatch({ type: 'settings', patch: { theme: t } }) })),
     ] },
@@ -543,7 +578,7 @@ export default function App() {
   ];
 
   const onDock = (t: DockTarget) => {
-    if (t === 'app') setView('chapter');
+    if (t === 'app') setView('today');
     else if (t === 'ledger') setView('ledger');
     else if (t === 'gallery') setView('collection');
     else if (t === 'plans') setView('plans');
@@ -560,7 +595,7 @@ export default function App() {
       <AnimatePresence>
         {settings && <SettingsSheet key="settings" state={state} dispatch={dispatch} initial={settings} close={() => setSettingsPane(null)} />}
         {capture && <CaptureSheet key="capture" file={capture.file} attachTo={capture.attach?.label} settings={state.settings} currency={cur} onDone={captured} onClose={() => setCapture(null)} />}
-        {ask && <AskPanel key="ask" state={state} dispatch={dispatch} aiOn={ai} turns={turns} setTurns={setTurns} first={ask.first} onClose={() => setAsk(null)} />}
+        {living && <motion.div key="living" className="living" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.35 }}><Stage state={state} dispatch={dispatch} onBack={() => setLiving(false)} onAsk={(q) => { setLiving(false); askAbout(q); }} /></motion.div>}
         {edition && <Edition key="edition" state={state} muse={muse[state.month] ?? null} close={() => setEdition(false)} onShare={() => setSharing(true)} />}
         {sharing && <ShareSheet key="share" state={state} title={muse[state.month]?.title} onClose={() => setSharing(false)} />}
       </AnimatePresence>
@@ -575,5 +610,14 @@ function TitleBar({ children }: { children: ReactNode }) {
     <header className="toolbar" onPointerDown={(e) => win?.startDrag(e)} onDoubleClick={(e) => { if (!(e.target as HTMLElement).closest('button, input')) win?.zoom(); }}>
       {children}
     </header>
+  );
+}
+
+/** The first three lines, in the person's own money, offered as chips until something is written. */
+function FirstLines({ cur, onFill }: { cur: string; onFill: (t: string) => void }) {
+  return (
+    <div className="ph-chips first-lines" role="group" aria-label="Try a line">
+      {examplesFor(cur).map((x) => <button key={x} className="ph-chip" onMouseDown={(e) => e.preventDefault()} onClick={() => onFill(x)}>{x}</button>)}
+    </div>
   );
 }

@@ -74,7 +74,7 @@ export function chipsFor(state: State, now = new Date()): Chip[] {
     .slice(0, 4)
     .map(([k, g]) => ({ key: 'u:' + k, label: g.last.label, entry: g.last }));
   const have = new Set(usual.map((c) => c.label.toLowerCase()));
-  const starters = (state.profile.currency === 'NGN' ? STARTERS_NG : STARTERS)[part]
+  const starters = STARTERS[part]
     .filter((w) => !have.has(w.toLowerCase()) && !doneToday.has(w.toLowerCase()))
     .slice(0, Math.max(0, 4 - usual.length))
     .map((w) => ({ key: 's:' + w, label: w, fill: w + ' ' }));
