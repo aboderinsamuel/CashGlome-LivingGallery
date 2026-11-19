@@ -7,8 +7,8 @@ import { useWindow } from './Desktop';
 import { AppIcon } from './Logo';
 
 /** The five places, and the pages reached from them. 'accounts' is kept as another name for People. */
-export type View = 'today' | 'ledger' | 'ask' | 'people' | 'chapter' | 'shelf' | 'collection' | 'plans' | 'memory' | 'accounts';
-export type Place = 'today' | 'ledger' | 'ask' | 'people' | 'chapter';
+export type View = 'today' | 'ledger' | 'ask' | 'people' | 'chapter' | 'play' | 'shelf' | 'collection' | 'plans' | 'memory' | 'accounts';
+export type Place = 'today' | 'ledger' | 'ask' | 'people' | 'chapter' | 'play';
 /** Which of the five places a page belongs to. */
 export const placeOf = (v: View): Place => (v === 'shelf' || v === 'collection' ? 'chapter' : v === 'accounts' ? 'people' : v === 'plans' || v === 'memory' ? 'today' : v);
 
@@ -34,6 +34,7 @@ const PLACES: { v: Place; label: string; icon: (size: number) => ReactNode }[] =
   { v: 'ask', label: 'Ask', icon: (z) => <Icon.ask size={z} /> },
   { v: 'people', label: 'People', icon: (z) => <Icon.person size={z} /> },
   { v: 'chapter', label: 'Chapter', icon: (z) => <Icon.book size={z} /> },
+  { v: 'play', label: 'Play', icon: (z) => <Icon.games size={z} /> },
 ];
 
 interface SidebarProps {
@@ -42,7 +43,7 @@ interface SidebarProps {
   month: string;
   setMonth: (m: string) => void;
   chapters: { month: string; title: string }[];
-  counts: { ledger: number };
+  counts: { ledger: number; play?: number };
   name: string;
   onEdition: () => void;
   /** Your book: name, currency, categories, routines, plans, backup, look and sound. */
@@ -67,7 +68,7 @@ export function Sidebar(p: SidebarProps) {
         {PLACES.map((x) => (
           <div key={x.v}>
             <button className={'side-item place' + (place === x.v ? ' on' : '')} onClick={() => p.setView(x.v)} aria-current={place === x.v ? 'page' : undefined}>
-              {x.icon(17)}{x.label}{x.v === 'ledger' && p.counts.ledger > 0 && <span className="count">{p.counts.ledger}</span>}
+              {x.icon(17)}{x.label}{x.v === 'ledger' && p.counts.ledger > 0 && <span className="count">{p.counts.ledger}</span>}{x.v === 'play' && !!p.counts.play && <span className="count new" title={`${p.counts.play} to find`}>{p.counts.play} to find</span>}
             </button>
             {x.v === 'chapter' && place === 'chapter' && (
               <div className="side-subs">

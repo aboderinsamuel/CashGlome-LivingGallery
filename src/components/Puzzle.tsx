@@ -72,7 +72,7 @@ export function Puzzle({ painting, calm, onClose }: { painting: Painting; calm?:
             const tx = t % n, ty = Math.floor(t / n);
             return (
               <motion.button layout={!calm} key={t} className={'pz-tile' + (pick === slot ? ' picked' : '') + (t === slot ? ' home' : '')}
-                onClick={() => tap(slot)} aria-label={`Piece ${slot + 1}${t === slot ? ', in place' : ''}`}
+                data-piece={t} onClick={() => tap(slot)} aria-label={`Piece ${slot + 1}${t === slot ? ', in place' : ''}`}
                 transition={{ type: 'spring', stiffness: 420, damping: 34 }}
                 style={{ backgroundImage: `url(${src})`, backgroundSize: `${n * 100}% ${n * 100}%`, backgroundPosition: `${n > 1 ? (tx / (n - 1)) * 100 : 0}% ${n > 1 ? (ty / (n - 1)) * 100 : 0}%` }} />
             );

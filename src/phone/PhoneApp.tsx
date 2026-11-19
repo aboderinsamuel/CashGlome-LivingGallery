@@ -26,7 +26,7 @@ interface Props {
   museChapter?: { title: Ch['title']; lede: string } | null;
   /** The writing box, built by App (it owns saving). On every place but Ask, which has its own. */
   composer: ReactNode;
-  pages: Record<'today' | 'ledger' | 'ask' | 'people' | 'shelf' | 'collection' | PhonePage, ReactNode>;
+  pages: Record<'today' | 'ledger' | 'ask' | 'people' | 'play' | 'shelf' | 'collection' | PhonePage, ReactNode>;
   online: boolean;
   /** Your book: settings, categories, routines, plans, backup. */
   onBook: () => void;
@@ -37,7 +37,7 @@ interface Props {
 }
 
 const PAGE_TITLE: Record<PhonePage, string> = { read: 'The chapter', plans: 'Plans', memory: 'Routines & memory' };
-const PLACE_TITLE: Record<Place, string> = { today: 'Today', ledger: 'Ledger', ask: 'Ask', people: 'People', chapter: 'Chapter' };
+const PLACE_TITLE: Record<Place, string> = { today: 'Today', ledger: 'Ledger', ask: 'Ask', people: 'People', chapter: 'Chapter', play: 'Play' };
 
 export function PhoneApp(p: Props) {
   const { state, view } = p;

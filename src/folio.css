@@ -353,7 +353,8 @@
 .hunt-mark, .hunt-glow, .hunt-hit { position: absolute; translate: -50% -50%; pointer-events: none; border-radius: 50%; }
 .hunt-mark { width: 30px; height: 30px; border: 2px solid rgba(255,248,236,.9); box-shadow: 0 0 0 1px rgba(0,0,0,.35), inset 0 0 0 1px rgba(0,0,0,.25); }
 .hunt-mark em { position: absolute; left: 50%; top: calc(100% + 6px); translate: -50% 0; white-space: nowrap; line-height: 1; padding: 5px 10px; border-radius: 12px; background: rgba(13,10,7,.82); font: italic 400 15px var(--serif); color: #FFF8EC; }
-.hunt-glow { aspect-ratio: 1; background: radial-gradient(circle, rgba(255,236,190,.38) 0%, rgba(255,230,180,.16) 45%, rgba(255,230,180,0) 70%); mix-blend-mode: screen; }
+.hunt-glow { aspect-ratio: 1; background: radial-gradient(circle, rgba(255,236,190,.55) 0%, rgba(255,226,170,.28) 40%, rgba(255,226,170,0) 70%); box-shadow: 0 0 0 1.5px rgba(255,236,190,.55); animation: hunt-breathe 2.4s ease-in-out infinite; }
+@keyframes hunt-breathe { 50% { box-shadow: 0 0 0 1.5px rgba(255,236,190,.15); filter: brightness(1.25); } }
 .hunt-hit { aspect-ratio: 1; border: 3px solid #E9C46A; box-shadow: 0 0 0 9999px rgba(13,10,7,.55), 0 0 30px rgba(233,196,106,.8); }
 .hunt-foot { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; font: 400 13px var(--grot); color: rgba(243,235,219,.65); }
 .hunt-label i { font: italic 400 15px var(--serif); color: #F3EBDB; margin-right: 8px; }
@@ -397,3 +398,46 @@
 .pz-label i { font: italic 400 15px var(--serif); color: #F3EBDB; margin-right: 8px; }
 .pz-say { font: italic 400 17px var(--serif); color: #FFF8EC; display: inline-flex; align-items: center; gap: 14px; }
 .pz-again { font: 600 13px var(--grot); font-style: normal; height: 34px; padding: 0 14px; border-radius: 17px; background: #F3EBDB; color: #17120C; }
+
+/* Play: the games made from your paintings. */
+.pl-head .display { margin-top: 10px; }
+.pl-head .lede { margin-top: 14px; max-width: 620px; }
+.pl-next { margin-top: 28px; }
+.pl-hero { width: 100%; display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: stretch; text-align: left; border-radius: 18px; overflow: hidden; background: #17120C; color: #F3EBDB; box-shadow: 0 3px 0 #5A4214, 0 30px 60px -30px rgba(40,25,5,.7); transition: transform .18s, box-shadow .18s; }
+.pl-hero:hover { transform: translateY(-3px); box-shadow: 0 6px 0 #5A4214, 0 36px 70px -30px rgba(40,25,5,.75); }
+.pl-hero-art { position: relative; min-height: 280px; background-size: cover; background-position: center; border-radius: 0; aspect-ratio: auto; }
+.pl-hero-lens { position: absolute; width: 120px; height: 120px; translate: -50% -50%; border-radius: 50%; border: 2px solid rgba(255,248,236,.85); box-shadow: 0 0 0 9999px rgba(13,10,7,.35); animation: pl-roam 6s ease-in-out infinite; }
+/* The lens drifts around the picture, never resting on the answer. */
+@keyframes pl-roam { 0% { transform: translate(-90px, 40px); } 33% { transform: translate(80px, -50px); } 66% { transform: translate(-30px, -80px); } 100% { transform: translate(-90px, 40px); } }
+.pl-hero-t { display: grid; align-content: center; gap: 8px; padding: 32px 34px; }
+.pl-k { font: 600 11px var(--grot); letter-spacing: .2em; text-transform: uppercase; color: #E9C46A; }
+.pl-hero-t b { font: italic 400 clamp(28px, 3vw, 40px)/1.05 var(--serif); color: #FFF8EC; font-weight: 400; }
+.pl-hero-t i { font: italic 400 16px/1.4 var(--serif); color: rgba(243,235,219,.75); }
+.pl-cta { display: inline-flex; align-items: center; gap: 6px; justify-self: start; margin-top: 10px; height: 42px; padding: 0 18px; border-radius: 21px; background: #F3EBDB; color: #17120C; font: 650 14px var(--grot); }
+.pl-boards { display: grid; gap: 18px; margin-top: 18px; }
+.pl-board { padding: 16px 18px 18px; border-radius: 16px; background: var(--card); border: 1px solid var(--chip-edge); }
+.pl-board-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 14px; }
+.pl-board-head i { font: italic 400 18px var(--serif); color: var(--ink); }
+.pl-board-head span { font: 600 11px var(--grot); letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); }
+.pl-spots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.pl-spot { display: grid; justify-items: center; gap: 6px; padding: 6px 4px; text-align: center; border-radius: 12px; transition: background .15s; }
+.pl-spot:not(:disabled):hover { background: var(--fill-2, rgba(0,0,0,.04)); }
+.pl-spot:disabled { cursor: default; opacity: 1; }
+.pl-glass { position: relative; width: 108px; height: 108px; border-radius: 50%; background-size: cover; background-position: center; box-shadow: 0 0 0 4px var(--card), 0 0 0 5.5px var(--ink-2), 0 14px 24px -14px rgba(40,25,5,.6); overflow: hidden; display: grid; place-items: center; }
+.pl-spot.ready .pl-glass { filter: sepia(.4) brightness(.85); box-shadow: 0 0 0 4px var(--card), 0 0 0 5.5px var(--sanguine), 0 14px 24px -14px rgba(40,25,5,.6); }
+.pl-spot.ready:hover .pl-glass { filter: none; }
+.pl-spot.locked .pl-glass { background: none; border: 1.5px dashed var(--chip-edge); box-shadow: none; }
+.pl-spot-t { font: 400 15px/1.25 var(--serif); color: var(--ink); max-width: 200px; }
+.pl-spot.locked .pl-spot-t { font-style: italic; color: var(--ink-3); font-size: 13.5px; }
+.pl-spot-s { font: 600 11.5px var(--grot); color: var(--ink-3); }
+.pl-spot.ready .pl-spot-s { color: var(--sanguine); }
+.pl-door { width: 100%; display: flex; align-items: center; gap: 16px; padding: 18px 20px; border-radius: 16px; background: var(--card); border: 1px solid var(--chip-edge); box-shadow: 0 2px 0 var(--chip-edge); text-align: left; color: var(--ink); }
+.pl-door:hover { box-shadow: 0 4px 0 var(--chip-edge); transform: translateY(-2px); }
+.pl-door > span:nth-child(2) { display: grid; gap: 2px; flex: 1; }
+.pl-door b { font: 600 15px var(--grot); }
+.pl-door i { font: italic 400 15px var(--serif); color: var(--ink-2); }
+.pl-door .pl-cta { margin: 0; background: var(--ink); color: var(--paper, #EEE6D6); height: 38px; }
+.td-link { display: inline-flex; align-items: center; gap: 3px; font: inherit; color: var(--sanguine); font-weight: 600; }
+.side-item .count.new { background: var(--sanguine); color: #FFF8EC; padding: 2px 8px; border-radius: 10px; font: 600 10.5px var(--grot); }
+@media (max-width: 760px) { .pl-hero { grid-template-columns: 1fr; } .pl-hero-art { min-height: 200px; } .pl-glass { width: 84px; height: 84px; } }
+@media (prefers-reduced-motion: reduce) { .pl-hero-lens { animation: none; } }

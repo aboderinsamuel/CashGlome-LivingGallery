@@ -36,12 +36,14 @@ interface Props {
   /** The living painting, full size. */
   onPainting: () => void;
   onEdit: (e: Entry) => void;
+  /** Opens Play, where the games live. */
+  onPlay?: () => void;
 }
 
 // "Good night" reads as a goodbye, so late hours stay "evening".
 const part = (h: number) => (h >= 5 && h < 12 ? 'morning' : h >= 12 && h < 17 ? 'afternoon' : 'evening');
 
-export function Today({ state, dispatch, voice, onVoiceDone, onFill, onLedger, onPeople, onAsk, onPainting, onEdit }: Props) {
+export function Today({ state, dispatch, voice, onVoiceDone, onFill, onLedger, onPeople, onAsk, onPainting, onEdit, onPlay }: Props) {
   const cur = state.profile.currency;
   const m = (n: number) => money(n, cur);
   const [now, setNow] = useState(() => new Date());
@@ -171,7 +173,7 @@ export function Today({ state, dispatch, voice, onVoiceDone, onFill, onLedger, o
             </section>
           )}
 
-          {!fresh && <Discoveries painting={painting} restored={r.restored} month={month} calm={state.settings.calm} />}
+          {!fresh && <Discoveries painting={painting} restored={r.restored} month={month} calm={state.settings.calm} onPlay={onPlay} />}
 
           {!fresh && (
             <section className="td-ask" aria-label="Ask">

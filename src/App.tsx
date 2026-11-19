@@ -32,6 +32,7 @@ import { castOf, sitterLine } from './stage/voices';
 import { mentionsCircle, readCircle } from './stage/books';
 import { PAINTINGS } from './lib/art';
 import { Collection } from './views/Collection';
+import { Play, readyToFind } from './views/Play';
 import { SettingsSheet } from './views/Settings';
 import { Edition } from './views/Edition';
 import { ShareSheet } from './components/ShareSheet';
@@ -51,7 +52,7 @@ import { daysPhrase } from './lib/memory';
 import { Stage } from './stage/Stage';
 import { examplesFor } from './stage/words';
 
-const TITLES: Record<View, string> = { today: 'Today', ask: 'Ask', people: 'People', chapter: 'Chapter', shelf: 'All chapters', ledger: 'Ledger', plans: 'Plans', memory: 'Routines & memory', collection: 'Gallery', accounts: 'People' };
+const TITLES: Record<View, string> = { today: 'Today', ask: 'Ask', people: 'People', chapter: 'Chapter', shelf: 'All chapters', ledger: 'Ledger', plans: 'Plans', memory: 'Routines & memory', collection: 'Gallery', accounts: 'People', play: 'Play' };
 // Lines the rules were not written for: other scripts go to the model.
 const OTHER_SCRIPT = /[Ͱ-῿　-鿿가-힯]/;
 const isMac = /Mac|iPhone|iPad/.test(navigator.platform) || window.glome?.platform === 'darwin';
@@ -137,6 +138,10 @@ export default function App() {
   const chapters = useMemo(() => months.map((m) => ({ month: m, title: (muse[m]?.title ?? chapterOf(state, computeStats(state.entries, m)).title).map((x) => x.t).join('') })), [months, state, muse]);
   const badges = useMemo(() => badgesOf(state), [state]);
   const wroteToday = useMemo(() => state.entries.some((e) => e.date === todayISO()), [state.entries]);
+  // Details open and waiting to be found, counted beside Play (rechecked when you come back from a game).
+  const [foundTick, setFoundTick] = useState(0);
+  useEffect(() => { const f = () => setFoundTick((t) => t + 1); window.addEventListener('cg-found', f); return () => window.removeEventListener('cg-found', f); }, []);
+  const toFind = useMemo(() => readyToFind(state), [state.entries, state.house, state.quiet, foundTick]); // eslint-disable-line react-hooks/exhaustive-deps
   const monthCount = useMemo(() => state.entries.filter((e) => monthOf(e.date) === state.month).length, [state.entries, state.month]);
   const wall = !state.settings.wallpaper || state.settings.wallpaper === 'season' ? seasonalWallpaper() : state.settings.wallpaper;
 
@@ -471,7 +476,7 @@ export default function App() {
     <div className="app">
       <Sidebar
         view={view} setView={setView} month={state.month} setMonth={setMonth} chapters={chapters}
-        counts={{ ledger: monthCount }}
+        counts={{ ledger: monthCount, play: toFind }}
         name={state.profile.name}
         onEdition={() => setEdition(true)} onBook={() => openSettings()} onMusic={() => setMusic((x) => !x)} musicOn={!!state.settings.music?.on || music} wall={wall}
       />
@@ -479,7 +484,7 @@ export default function App() {
       <main className="main" ref={main}>
         {/* The new page is on screen in the same frame as the tap; it only settles in, like iOS. No waiting for the old one to leave. */}
         <motion.div key={`${view}:${state.month}`} initial={{ opacity: 0.4, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18, ease: [0.2, 0.8, 0.2, 1] }}>
-            {view === 'today' && <Today state={state} dispatch={dispatch} voice={voice} onVoiceDone={clearVoice} onFill={(t) => composer.current?.fill(t)} onLedger={goView('ledger')} onPeople={goView('people')} onAsk={askAbout} onPainting={() => setLiving(true)} onEdit={() => setView('ledger')} />}
+            {view === 'today' && <Today state={state} dispatch={dispatch} voice={voice} onVoiceDone={clearVoice} onFill={(t) => composer.current?.fill(t)} onLedger={goView('ledger')} onPeople={goView('people')} onAsk={askAbout} onPainting={() => setLiving(true)} onEdit={() => setView('ledger')} onPlay={goView('play')} />}
             {(view === 'chapter' || view === 'shelf' || view === 'collection') && <ChapterTabs view={view} setView={setView} onEdition={() => setEdition(true)} onLiving={() => setLiving(true)} />}
             {view === 'chapter' && <Chapter state={state} dispatch={dispatch} museChapter={muse[state.month] ?? null} onOpenCategory={(id) => { setFilter(id); setView('ledger'); }} onEdition={() => setEdition(true)} onWrite={(h) => composer.current?.fill(h ?? '')} onPlans={goView('plans')} onGallery={goView('collection')} onSay={() => composer.current?.speak()} onSnap={() => setCapture({ file: null })} onShare={() => setSharing(true)} />}
             {view === 'shelf' && <Shelf state={state} months={months} onOpen={(m) => { setMonth(m); setView('chapter'); }} />}
@@ -488,7 +493,8 @@ export default function App() {
             {view === 'plans' && <Plans state={state} dispatch={dispatch} />}
             {(view === 'people' || view === 'accounts') && <PeoplePage state={state} dispatch={dispatch} />}
             {view === 'memory' && <MemoryView state={state} dispatch={dispatch} notify={(text, undo) => setNotice({ text, undo: undo ? () => { undo(); setNotice(null); } : undefined })} />}
-            {view === 'collection' && <Collection state={state} onOpen={(m) => { setMonth(m); setView('chapter'); }} onCamera={() => setCapture({ file: null })} />}
+            {view === 'play' && <Play state={state} />}
+            {view === 'collection' && <Collection state={state} onOpen={(m) => { setMonth(m); setView('chapter'); }} onCamera={() => setCapture({ file: null })} onPlay={goView('play')} />}
         </motion.div>
       </main>
 
@@ -536,11 +542,12 @@ export default function App() {
           </>} />
       }
       pages={{
-        today: <Today state={state} dispatch={dispatch} voice={voice} onVoiceDone={clearVoice} onFill={(t) => composer.current?.fill(t)} onLedger={goView('ledger')} onPeople={goView('people')} onAsk={askAbout} onPainting={() => setLiving(true)} onEdit={() => setView('ledger')} />,
+        today: <Today state={state} dispatch={dispatch} voice={voice} onVoiceDone={clearVoice} onFill={(t) => composer.current?.fill(t)} onLedger={goView('ledger')} onPeople={goView('people')} onAsk={askAbout} onPainting={() => setLiving(true)} onEdit={() => setView('ledger')} onPlay={goView('play')} />,
         ledger: <><Ledger state={state} dispatch={dispatch} filter={filter} setFilter={setFilter} query={query} onAttach={(e) => setCapture({ file: null, attach: e })} /><LedgerReports state={state} /></>,
         ask: <AskRoom state={state} turns={askTurns} setTurns={setAskTurns} first={askFirst} onFirstDone={() => setAskFirst(null)} />,
         people: <PeoplePage state={state} dispatch={dispatch} />,
-        collection: <Collection state={state} onOpen={(m) => { setMonth(m); setView('chapter'); }} onCamera={() => setCapture({ file: null })} />,
+        play: <Play state={state} />,
+        collection: <Collection state={state} onOpen={(m) => { setMonth(m); setView('chapter'); }} onCamera={() => setCapture({ file: null })} onPlay={goView('play')} />,
         read: <Chapter state={state} dispatch={dispatch} museChapter={muse[state.month] ?? null} onOpenCategory={(id) => { setFilter(id); setView('ledger'); }} onEdition={() => setEdition(true)} onWrite={(h) => composer.current?.fill(h ?? '')} onPlans={goView('plans')} onGallery={goView('collection')} onSay={() => composer.current?.speak()} onSnap={() => setCapture({ file: null })} onShare={() => setSharing(true)} />,
         plans: <Plans state={state} dispatch={dispatch} />,
         memory: <MemoryView state={state} dispatch={dispatch} notify={(text, undo) => setNotice({ text, undo: undo ? () => { undo(); setNotice(null); } : undefined })} />,

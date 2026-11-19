@@ -12,10 +12,10 @@ const seenOf = (month: string) => { try { return Number(localStorage.getItem(KEY
 const setSeen = (month: string, n: number) => { try { localStorage.setItem(KEY + month, String(n)); } catch { /* private mode */ } };
 // Which of the month's discoveries they have hunted down themselves (or asked to be shown).
 const HUNT = 'cg-hunt-';
-const huntedOf = (month: string): number[] => { try { return JSON.parse(localStorage.getItem(HUNT + month) ?? '[]'); } catch { return []; } };
-const saveHunted = (month: string, l: number[]) => { try { localStorage.setItem(HUNT + month, JSON.stringify(l)); } catch { /* private mode */ } };
+export const huntedOf = (month: string): number[] => { try { return JSON.parse(localStorage.getItem(HUNT + month) ?? '[]'); } catch { return []; } };
+export const saveHunted = (month: string, l: number[]) => { try { localStorage.setItem(HUNT + month, JSON.stringify(l)); } catch { /* private mode */ } window.dispatchEvent(new Event('cg-found')); };
 
-export function Discoveries({ painting, restored, month, calm }: { painting: Painting; restored: number; month: string; calm?: boolean }) {
+export function Discoveries({ painting, restored, month, calm, onPlay }: { painting: Painting; restored: number; month: string; calm?: boolean; onPlay?: () => void }) {
   const list = discoveriesOf(painting.id);
   const opened = list.filter((_, i) => restored >= AT[i]).length;
   const [open, setOpen] = useState<{ d: Discovery; i: number; fresh: boolean } | null>(null);
@@ -37,7 +37,7 @@ export function Discoveries({ painting, restored, month, calm }: { painting: Pai
   if (!list.length) return null;
   return (
     <section className="disc" aria-label="Discoveries">
-      <div className="td-h"><h2>Dis<i>coveries</i></h2><span>{hunted.filter((i) => i < opened).length} of {list.length} found</span></div>
+      <div className="td-h"><h2>Find <i>it</i></h2><span>{hunted.filter((i) => i < opened).length} of {list.length} found{onPlay && <> · <button className="td-link" onClick={onPlay}>All games in Play<Icon.right size={12} /></button></>}</span></div>
       <div className="disc-row">
         {list.map((d, i) => {
           const on = i < opened;
@@ -60,7 +60,7 @@ export function Discoveries({ painting, restored, month, calm }: { painting: Pai
   );
 }
 
-function Lens({ painting, d, fresh, calm, onClose }: { painting: Painting; d: Discovery; fresh: boolean; calm?: boolean; onClose: () => void }) {
+export function Lens({ painting, d, fresh, calm, onClose }: { painting: Painting; d: Discovery; fresh: boolean; calm?: boolean; onClose: () => void }) {
   useEffect(() => { const k = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); }; window.addEventListener('keydown', k); return () => window.removeEventListener('keydown', k); }, [onClose]);
   useEffect(() => { try { navigator.vibrate?.([10, 70, 18]); } catch { /* none */ } }, []);
   const src = artSrc(painting.id, 'lg');
@@ -83,7 +83,7 @@ function Lens({ painting, d, fresh, calm, onClose }: { painting: Painting; d: Di
 
 type Mark = { x: number; y: number; word: string; dist: number };
 /** The hunt: the whole painting and a clue. Tap where you think it is; each miss says warmer or colder. */
-function Hunt({ painting, d, calm, onFound, onClose }: { painting: Painting; d: Discovery; calm?: boolean; onFound: () => void; onClose: () => void }) {
+export function Hunt({ painting, d, calm, onFound, onClose }: { painting: Painting; d: Discovery; calm?: boolean; onFound: () => void; onClose: () => void }) {
   const box = useRef<HTMLDivElement | null>(null);
   const [marks, setMarks] = useState<Mark[]>([]);
   const [misses, setMisses] = useState(0);
