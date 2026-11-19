@@ -575,3 +575,11 @@
 .ms-say { margin: 0; }
 .ms-off { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .ms-off .small { flex: 1 1 220px; }
+
+/* Puzzle: the dark room stays put; the board inside changes, and waits for its painting. */
+.pz { grid-template-rows: minmax(0, 1fr); }
+.pz-body { display: grid; grid-template-rows: auto 1fr auto; gap: 14px; min-height: 0; }
+.pz-wait { max-width: 100%; display: grid; place-items: center; border-radius: 2px; background: linear-gradient(100deg, rgba(243,235,219,.04) 30%, rgba(243,235,219,.09) 50%, rgba(243,235,219,.04) 70%) 0 0 / 300% 100%; animation: pz-sheen 1.6s ease-in-out infinite; box-shadow: inset 0 0 0 1px rgba(243,235,219,.12); }
+.pz-wait span { font: italic 400 16px var(--serif); color: rgba(243,235,219,.55); }
+@keyframes pz-sheen { from { background-position: 100% 0; } to { background-position: 0 0; } }
+@media (prefers-reduced-motion: reduce) { .pz-wait { animation: none; } }

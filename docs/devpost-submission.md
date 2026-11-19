@@ -18,7 +18,7 @@ We wanted the opposite: a diary that takes one line a day, keeps it on the phone
 
 **Write.** You type the way you'd say it: "bus 2.5k, lunch 6k, got paid 360k". That becomes three entries in any of 20 currencies, with k and m, slang and shorthand. Lines in other languages and scripts are read by Gemini Nano on the device.
 
-**See.** Each month is a Chapter with a title and a public-domain masterpiece (58 of them, from every continent) that starts as a red-chalk underdrawing. Every entry is a brush stroke of glaze that restores a patch. The week's money sets the light: calm is Vermeer's window, a rushed week brings Caravaggio's dark in from the edges. Finished paintings hang in your gallery for good.
+**See.** Each month is a Chapter with a title and a public-domain masterpiece (57 of them, from every continent) that starts as a red-chalk underdrawing. Every entry is a brush stroke of glaze that restores a patch. The week's money sets the light: calm is Vermeer's window, a rushed week brings Caravaggio's dark in from the edges. Finished paintings hang in your gallery for good.
 
 **Ask.** Florin is the voice of a figure in the painting, and you can ask it anything: "Should I go on a date this weekend?" "Where did my money go?" "Tell me about this painting." It's a real Gemini conversation that knows your book, but it never does arithmetic. Every figure comes from tools that run on the device, and the answer shows its working.
 
@@ -93,10 +93,23 @@ firebase-ai-logic, gemini, gemini-nano, firebase-app-check, recaptcha-enterprise
 
 ## Prior work (disclosure)
 
-CashGlome's money reader and ledger existed before the hackathon in a private repository. That history is kept honestly in the first 15 commits of the public repo. Everything hackathon-specific is in the commits after them:
-- the living canvas and its shader;
-- the Firebase hybrid brain and Florin;
-- the sitters;
-- the 58-painting world library;
-- the painted onboarding, the evening sitting and Discoveries;
-- the Folio design.
+**Before the hackathon.** CashGlome existed as a private-repository app and was already public at cashglome.vercel.app. Its history is kept unchanged in the first 11 commits of this repo, up to [`27382dc`](https://github.com/aboderinsamuel/CashGlome-LivingGallery/commit/27382dc) (10 November 2026, 4:12 PM PT). It already had:
+- the offline money reader (English and pidgin, k/m, 20 currencies) and the ledger;
+- monthly Chapters, each with a painting cleaned by a flat varnish wipe, and a gallery of past months;
+- an Ask panel that sent questions to another provider's cloud chat model (now switched off, with no Google or Firebase anywhere);
+- Spotify's embedded player, optional accounts, a share card and Plans.
+
+**The core value it brings.** People in cash and bank-transfer economies need a money reader that understands how they actually write, works offline and keeps entries on the device. That reader and ledger are the foundation everything below is built on.
+
+**Built during the submission period** (from 11 November 2026, 1:30 PM PT; the first commit in the window is [`07860fc`](https://github.com/aboderinsamuel/CashGlome-LivingGallery/commit/07860fc), tagged [`contest-start`](https://github.com/aboderinsamuel/CashGlome-LivingGallery/releases/tag/contest-start); every change is in [this comparison](https://github.com/aboderinsamuel/CashGlome-LivingGallery/compare/27382dc...main)):
+- **The Firebase hybrid brain** ([`src/stage/brain.ts`](https://github.com/aboderinsamuel/CashGlome-LivingGallery/blob/main/src/stage/brain.ts)). Firebase AI Logic with Gemini Nano on the device and Gemini in the cloud, chosen per task by how private the input is, with App Check and reCAPTCHA Enterprise. None of it existed before.
+- **Florin** ([`src/stage/muse.ts`](https://github.com/aboderinsamuel/CashGlome-LivingGallery/blob/main/src/stage/muse.ts)). A Gemini chat with function calling, in which tools on the device do every sum and the answer shows its working. It replaces the old Ask panel, which has been deleted.
+- **The money reader, rewritten.** Nine more languages read on the device, five more currencies, and a JSON contract of real entry strings with its tests.
+- **The living canvas.** One WebGL2 shader takes each painting from a red-chalk underdrawing through grisaille and glaze to varnish, with brush strokes, mood light and candlelight. It replaces the flat varnish wipe.
+- **A world library of 57 public-domain masters.** The paintings come from China, Korea, Japan, India, Persia, Africa and the Americas as well as Europe, hung so that no month repeats until the whole library has been shown.
+- **The sitters, the evening sitting and Discoveries.**
+- **Folio, a new design language.** It covers the painted, sign-up-free onboarding, a sidebar in three acts (Write, See, Ask), and Today, Ledger, People and Chapter.
+- **Play.** Twelve painting-puzzle Rooms with seals, scored without streaks or ranks.
+- **The phone layout,** tested at 360 and 412 pixels wide.
+- **Spotify sign-in and in-app search,** which runs as a server function so the secret never reaches a browser.
+- **No streaks or ranks anywhere.**

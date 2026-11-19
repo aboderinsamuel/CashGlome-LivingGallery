@@ -35,7 +35,30 @@
 | **What it is** | A money diary you write in one line ("bolt 6k, lunch 4.5k, got paid 350k"), set inside a living Old Master. Every entry glazes a patch of the painting into colour; the sitters speak; the month's painting is yours to keep. |
 | **Hybrid AI** | **Gemini Nano on the device** reads lines in any language and voices the sitters, and the person's own words never leave the browser. **Gemini in the cloud** takes over only when the device has no model, and then sees categories, never the line or the sums. **Florin**, the painting's voice, is a Gemini conversation about anything ("should I go on a date this weekend?") that calls tools running on the device for every figure. Every result carries a wax seal that says where it was written. |
 | **Not a prompt wrapper** | No model ever does arithmetic. The model reads words into entries and talks; the device adds everything up exactly and shows its working. A rules engine reads English and pidgin offline with no model at all. |
-| **Provenance** | CashGlome's money reader and ledger existed before the hackathon in a private repository; that history is kept here, honestly, in the first 15 commits. Everything hackathon-specific (the living canvas and its shader, the Firebase hybrid brain, Florin, the sitters, the 58-painting world library, the painted onboarding, the evening sitting and Discoveries, the Folio design) is in the commits after them. |
+| **Provenance** | CashGlome existed before the hackathon; its history is kept unchanged in the first 11 commits. Everything from the tag `contest-start` on was built during the submission period. See [Before and during the hackathon](#before-and-during-the-hackathon). |
+
+## Before and during the hackathon
+
+**Before the hackathon.** CashGlome existed as a private-repository app and was already public at cashglome.vercel.app. Its history is kept unchanged in the first 11 commits of this repo, up to [`27382dc`](https://github.com/aboderinsamuel/CashGlome-LivingGallery/commit/27382dc) (10 November 2026, 4:12 PM PT). It already had:
+- the offline money reader (English and pidgin, k/m, 20 currencies) and the ledger;
+- monthly Chapters, each with a painting cleaned by a flat varnish wipe, and a gallery of past months;
+- an Ask panel that sent questions to another provider's cloud chat model (now switched off, with no Google or Firebase anywhere);
+- Spotify's embedded player, optional accounts, a share card and Plans.
+
+**The core value it brings.** People in cash and bank-transfer economies need a money reader that understands how they actually write, works offline and keeps entries on the device. That reader and ledger are the foundation everything below is built on.
+
+**Built during the submission period** (from 11 November 2026, 1:30 PM PT; the first commit in the window is [`07860fc`](https://github.com/aboderinsamuel/CashGlome-LivingGallery/commit/07860fc), tagged [`contest-start`](https://github.com/aboderinsamuel/CashGlome-LivingGallery/releases/tag/contest-start); every change is in [this comparison](https://github.com/aboderinsamuel/CashGlome-LivingGallery/compare/27382dc...main)):
+- **The Firebase hybrid brain** ([`src/stage/brain.ts`](https://github.com/aboderinsamuel/CashGlome-LivingGallery/blob/main/src/stage/brain.ts)). Firebase AI Logic with Gemini Nano on the device and Gemini in the cloud, chosen per task by how private the input is, with App Check and reCAPTCHA Enterprise. None of it existed before.
+- **Florin** ([`src/stage/muse.ts`](https://github.com/aboderinsamuel/CashGlome-LivingGallery/blob/main/src/stage/muse.ts)). A Gemini chat with function calling, in which tools on the device do every sum and the answer shows its working. It replaces the old Ask panel, which has been deleted.
+- **The money reader, rewritten.** Nine more languages read on the device, five more currencies, and a JSON contract of real entry strings with its tests.
+- **The living canvas.** One WebGL2 shader takes each painting from a red-chalk underdrawing through grisaille and glaze to varnish, with brush strokes, mood light and candlelight. It replaces the flat varnish wipe.
+- **A world library of 57 public-domain masters.** The paintings come from China, Korea, Japan, India, Persia, Africa and the Americas as well as Europe, hung so that no month repeats until the whole library has been shown.
+- **The sitters, the evening sitting and Discoveries.**
+- **Folio, a new design language.** It covers the painted, sign-up-free onboarding, a sidebar in three acts (Write, See, Ask), and Today, Ledger, People and Chapter.
+- **Play.** Twelve painting-puzzle Rooms with seals, scored without streaks or ranks.
+- **The phone layout,** tested at 360 and 412 pixels wide.
+- **Spotify sign-in and in-app search,** which runs as a server function so the secret never reaches a browser.
+- **No streaks or ranks anywhere.**
 
 ## The problem
 
@@ -110,7 +133,7 @@ One WebGL2 fragment shader paints the whole scene from a single public-domain im
 
 ## The paintings
 
-58 public-domain masterpieces from every continent, each with a museum label and, where it has one, its title in its own script: Bruegel, van Eyck, Matsys, Caravaggio, Vermeer, Velázquez and Teniers beside Zhang Zeduan's *Along the River During the Qingming Festival* (清明上河圖), Kim Hong-do's *Ssireum* (씨름), Hokusai, Hiroshige, Raja Ravi Varma, the Shahnameh, the Baburnama, Ancient Egypt, Pancho Fierro and George Caleb Bingham.
+57 public-domain masterpieces from every continent, each with a museum label and, where it has one, its title in its own script: Bruegel, van Eyck, Matsys, Caravaggio, Vermeer, Velázquez and Teniers beside Zhang Zeduan's *Along the River During the Qingming Festival* (清明上河圖), Kim Hong-do's *Ssireum* (씨름), Hokusai, Hiroshige, Raja Ravi Varma, the Shahnameh, the Baburnama, Ancient Egypt, Pancho Fierro and George Caleb Bingham.
 
 Every image comes from Wikimedia Commons and was checked to be public domain before download ([`scripts/fetch-art.mjs`](scripts/fetch-art.mjs)). Works whose files carry a share-alike licence were left out.
 

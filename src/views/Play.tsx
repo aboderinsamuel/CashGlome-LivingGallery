@@ -1,7 +1,7 @@
 // Play: the games made from the paintings you restore. Find it (the details a curator would point out,
 // unlocked as you write) and Put it back together (a tile puzzle). No clock, no score to lose.
 import { AnimatePresence } from 'framer-motion';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { artSrc, paintingOf, PAINTINGS, PATCHES, restorationOf, type Painting } from '../lib/art';
 import { computeStats } from '../lib/analytics';
@@ -10,7 +10,7 @@ import { monthLabel, monthOf, todayISO } from '../lib/format';
 import { HOUSES, houseName } from '../lib/houses';
 import type { State } from '../lib/types';
 import { Hunt, huntedOf, Lens, saveHunted } from '../components/Discoveries';
-import { Puzzle } from '../components/Puzzle';
+import { preloadPuzzle, Puzzle } from '../components/Puzzle';
 import { Icon } from '../components/Icons';
 import { clearRoom, RESERVE, RESERVE_AFTER, ROMAN_ROOM, ROOMS, roomsOf, sealCount, SEALS_IN_ALL, WINGS, type Room } from '../lib/rooms';
 
@@ -47,6 +47,8 @@ export function Play({ state }: { state: State }) {
   const [rooms, setRooms] = useState(roomsOf);
   const current = ROOMS.find((r) => r.n === rooms.cleared + 1) ?? null;
   const reserveOpen = rooms.cleared >= RESERVE_AFTER;
+  // The room you're most likely to open next is fetched as soon as Play opens.
+  useEffect(() => { if (current) preloadPuzzle(current.painting); }, [current?.n]); // eslint-disable-line react-hooks/exhaustive-deps
   const [tick, setTick] = useState(0);
 
   const boards = useMemo(() => boardsOf(state), [state.entries, state.quiet, state.house]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -82,7 +84,7 @@ export function Play({ state }: { state: State }) {
       {/* Where you are: the next room, ready */}
       <section className="pl-next">
         {current ? (
-          <button className="pl-hero" onClick={() => setRoom(current)}>
+          <button className="pl-hero" onClick={() => setRoom(current)} onPointerEnter={() => preloadPuzzle(current.painting)} onFocus={() => preloadPuzzle(current.painting)}>
             <span className="pl-hero-art pz-thumb" style={{ backgroundImage: `url(${artSrc(current.painting, 'md')})` }} aria-hidden><i /><i /><i /><i /></span>
             <span className="pl-hero-t">
               <span className="pl-k">{rooms.cleared ? `Next · Room ${ROMAN_ROOM[current.n]} of ${ROOMS.length}` : `Start here · Room I of ${ROOMS.length}`}</span>
@@ -122,7 +124,7 @@ export function Play({ state }: { state: State }) {
                   const seals = sealCount(rooms, r.n);
                   const pt = PAINTINGS[r.painting];
                   return (
-                    <button key={r.n} className={'pl-room' + (done ? ' done' : open ? ' open' : ' locked') + (seals === 3 ? ' sealed' : '')} disabled={locked} onClick={() => setRoom(r)}
+                    <button key={r.n} className={'pl-room' + (done ? ' done' : open ? ' open' : ' locked') + (seals === 3 ? ' sealed' : '')} disabled={locked} onClick={() => setRoom(r)} onPointerEnter={() => !locked && preloadPuzzle(r.painting)} onFocus={() => preloadPuzzle(r.painting)}
                       aria-label={locked ? `Room ${ROMAN_ROOM[r.n]}, locked. Restore Room ${ROMAN_ROOM[r.n - 1]} first` : `Room ${ROMAN_ROOM[r.n]}: ${pt.title}${done ? ', restored' : ''}`}>
                       <span className="pl-room-art" style={locked ? undefined : { backgroundImage: `url(${artSrc(r.painting, 'sm')})` }} aria-hidden>
                         {locked && <Icon.lock size={20} />}
@@ -176,7 +178,7 @@ export function Play({ state }: { state: State }) {
         </div>
         <div className="pz-shelf">
           {puzzles.map((p) => (
-            <button key={p.id} className="pz-pick" onClick={() => setPuzzle(p)} aria-label={`Puzzle: ${p.title}`}>
+            <button key={p.id} className="pz-pick" onClick={() => setPuzzle(p)} onPointerEnter={() => preloadPuzzle(p.id)} aria-label={`Puzzle: ${p.title}`}>
               <span className="pz-thumb" style={{ backgroundImage: `url(${artSrc(p.id, 'md')})` }} aria-hidden><i /><i /><i /><i /></span>
               <span className="pz-name"><i>{p.title}</i><span>{p.artist} · yours</span></span>
               <span className="pz-play">Play<Icon.right size={13} /></span>
@@ -202,9 +204,9 @@ export function Play({ state }: { state: State }) {
       <AnimatePresence>{puzzle && <Puzzle key={puzzle.id} painting={puzzle} calm={calm} onClose={() => setPuzzle(null)} />}</AnimatePresence>
       <AnimatePresence>
         {room && (
-          <Puzzle key={`room${room.n}-${visit}`} room={room} painting={PAINTINGS[room.painting]} calm={calm} onClose={() => setRoom(null)}
+          <Puzzle key="rooms" boardKey={`room${room.n}-${visit}`} room={room} painting={PAINTINGS[room.painting]} calm={calm} onClose={() => setRoom(null)}
             onSolved={(m, e) => setRooms(clearRoom(room.n, m, e))}
-            onNext={() => { const r = ROOMS.find((x) => x.n === room.n + 1); setRoom(null); if (r) setTimeout(() => setRoom(r), 350); }} />
+            onNext={() => { const r = ROOMS.find((x) => x.n === room.n + 1); setRoom(r ?? null); }} />
         )}
       </AnimatePresence>
     </div>
