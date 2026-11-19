@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { CURRENCIES, currencySymbol, guessCurrency } from '../lib/format';
 import { Icon } from './Icons';
+import { Medallion } from './Mark';
 
 /** Words people search with: the country, the city, what the money is called at home. */
 const ALSO: Record<string, string> = {
@@ -15,8 +16,7 @@ const ALSO: Record<string, string> = {
 };
 
 export function Coin({ code, size = 30 }: { code: string; size?: number }) {
-  const s = currencySymbol(code);
-  return <span className="coin" style={{ width: size, height: size, fontSize: s.length > 2 ? size * 0.34 : size * 0.48 }} aria-hidden>{s}</span>;
+  return <Medallion code={code} size={size} />;
 }
 
 export function CurrencyPicker({ value, onChange, dark = false }: { value: string; onChange: (code: string) => void; dark?: boolean }) {
@@ -42,7 +42,7 @@ export function CurrencyPicker({ value, onChange, dark = false }: { value: strin
   );
 }
 
-function CurrencyList({ value, onPick, onClose }: { value: string; onPick: (c: string) => void; onClose: () => void }) {
+export function CurrencyList({ value, onPick, onClose }: { value: string; onPick: (c: string) => void; onClose: () => void }) {
   const [q, setQ] = useState('');
   const [at, setAt] = useState(0);
   const box = useRef<HTMLDivElement>(null);

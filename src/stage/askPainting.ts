@@ -38,7 +38,8 @@ export function safeToSpend(state: State, today = todayISO()) {
   return { perDay: Math.max(0, Math.floor((left - ahead) / daysLeft)), until: null, basis: 'month' as const, free: Math.max(0, left - ahead) };
 }
 
-export async function askPainting(state: State, question: string, sitter: Persona): Promise<PaintingAnswer> {
+/** With allowCloud false (Ask kept on this device, or offline), the question never leaves the device. */
+export async function askPainting(state: State, question: string, sitter: Persona, allowCloud = true): Promise<PaintingAnswer> {
   const cur = state.profile.currency;
   const m = (n: number) => money(n, cur);
   const today = todayISO();
@@ -47,7 +48,7 @@ export async function askPainting(state: State, question: string, sitter: Person
   const fromLocal = (a: Answer): PaintingAnswer => ({ text: a.text, figures: a.figures ?? [], rows: a.rows ?? [], planned: 'rules', wordsBy: 'app', runway: a.runway });
 
   // The model plans when there is one; the rules plan when there isn't, or when the model can't.
-  const planned = brainConfigured ? await Promise.race([planQuestion(question, today, weekday), new Promise<null>((r) => setTimeout(() => r(null), 9000))]) : null;
+  const planned = brainConfigured ? await Promise.race([planQuestion(question, today, weekday, allowCloud), new Promise<null>((r) => setTimeout(() => r(null), 9000))]) : null;
   if (!planned || planned.plan.kind === 'other') {
     const a = local();
     if (a) return fromLocal(a);

@@ -3,7 +3,8 @@ import { MemoryView } from './Memory';
 import { Plans } from './Plans';
 import { motion } from 'framer-motion';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { DEFAULT_BASE, MUSE_MODELS, SHARED_MUSE, testConnection, usingShared } from '../lib/ai';
+import { askKeptLocal, setAskKeptLocal } from '../stage/muse';
+import { brainStatus, cloudModelName, onBrain } from '../stage/brain';
 import { CURRENCIES, currencySymbol } from '../lib/format';
 import { demoEntries } from '../lib/demo';
 import { exportState, importState, type Action } from '../lib/store';
@@ -65,7 +66,7 @@ export function SettingsSheet({ state, dispatch, close, initial = 'general' }: {
           {pane === 'account' && <Group><div style={{ padding: 16 }}><Account /></div></Group>}
           {pane === 'appearance' && <Appearance state={state} dispatch={dispatch} />}
           {pane === 'music' && <Music state={state} dispatch={dispatch} />}
-          {pane === 'muse' && <Muse state={state} dispatch={dispatch} />}
+          {pane === 'muse' && <Muse />}
           {pane === 'data' && <Data state={state} dispatch={dispatch} close={close} />}
           {pane === 'about' && <About />}
         </div>
@@ -104,7 +105,7 @@ function Toggle({ on, set, label }: { on: boolean; set: (v: boolean) => void; la
 function General({ state, dispatch }: { state: State; dispatch: (a: Action) => void }) {
   return (
     <>
-      <Group note="Your name appears on your chapters and cards. Nothing leaves this device unless you connect Meta Muse.">
+      <Group note="Your name appears on your chapters and cards. Your entries live on this device.">
         <Row label="Name"><input className="field" style={{ width: 220 }} value={state.profile.name} onChange={(e) => dispatch({ type: 'profile', patch: { name: e.target.value } })} /></Row>
         <Row label="Currency" sub="Changing it doesn't convert amounts you've already written.">
           <select className="field" style={{ width: 220 }} value={state.profile.currency} onChange={(e) => dispatch({ type: 'profile', patch: { currency: e.target.value } })}>
@@ -146,7 +147,7 @@ function Appearance({ state, dispatch }: { state: State; dispatch: (a: Action) =
       <span style={{ width: 92, height: 60, borderRadius: 10, background: bg, border: t === id ? '2.5px solid var(--accent)' : '1px solid var(--line)', padding: 8, display: 'grid', gap: 4, alignContent: 'start', boxShadow: 'var(--shadow-1)' }}>
         <span style={{ height: 5, width: '60%', borderRadius: 3, background: fg, opacity: 0.8 }} />
         <span style={{ height: 4, width: '80%', borderRadius: 2, background: fg, opacity: 0.3 }} />
-        <span style={{ height: 14, width: '40%', borderRadius: 4, background: '#2B3FA8', marginTop: 4 }} />
+        <span style={{ height: 14, width: '40%', borderRadius: 4, background: '#B5412B', marginTop: 4 }} />
       </span>
       <span style={{ fontSize: 12, fontWeight: t === id ? 600 : 400 }}>{label}</span>
     </button>
@@ -156,9 +157,9 @@ function Appearance({ state, dispatch }: { state: State; dispatch: (a: Action) =
       <Group>
         <Row label="Appearance">
           <div style={{ display: 'flex', gap: 14 }}>
-            <Swatch id="auto" label="Auto" bg="linear-gradient(135deg,#F6F2E8 50%,#14110D 50%)" fg="#888" />
-            <Swatch id="light" label="Light" bg="#F6F2E8" fg="#241F17" />
-            <Swatch id="dark" label="Dark" bg="#14110D" fg="#F2EBDD" />
+            <Swatch id="auto" label="By the hour" bg="linear-gradient(135deg,#EEE6D6 50%,#17120C 50%)" fg="#888" />
+            <Swatch id="light" label="Parchment" bg="#EEE6D6" fg="#2A2016" />
+            <Swatch id="dark" label="Candlelight" bg="#17120C" fg="#EFE5D0" />
           </div>
         </Row>
       </Group>
@@ -184,42 +185,20 @@ function Appearance({ state, dispatch }: { state: State; dispatch: (a: Action) =
   );
 }
 
-function Muse({ state, dispatch }: { state: State; dispatch: (a: Action) => void }) {
-  const ai = state.settings.ai;
-  const [status, setStatus] = useState<{ ok: boolean; text: string } | null>(null);
-  const [testing, setTesting] = useState(false);
-  const on = ai.provider === 'meta';
-  const test = async () => {
-    setTesting(true); setStatus(null);
-    try { const r = await testConnection(state.settings); setStatus({ ok: true, text: `Connected. Muse replied “${r.slice(0, 40)}”.` }); }
-    catch (e) { setStatus({ ok: false, text: (e as Error).message }); }
-    finally { setTesting(false); }
-  };
+function Muse() {
+  const [local, setLocal] = useState(askKeptLocal);
+  const [b, setB] = useState(brainStatus);
+  useEffect(() => onBrain(() => setB(brainStatus())), []);
+  const device = b.device === 'ready' ? 'Ready on this device' : b.device === 'downloading' ? `Downloading, ${Math.round(b.progress * 100)}%` : b.device === 'none' ? 'Not in this browser; Gemini in the cloud stands in' : 'Checked the first time you write';
   return (
     <>
-      <Group note={<>Without Muse, entries are read on this device by CashGlome's own parser. With Muse, Meta's models read your entries and write your chapters{SHARED_MUSE ? <>, through CashGlome's server, which passes them to Meta and keeps nothing</> : null}. {SHARED_MUSE ? 'A key of your own is optional, ' : 'Your key is '}stored only on this device and never included in exports.</>}>
-        <Row label="Use Meta Muse" sub={on ? (usingShared(state.settings) ? "Entries and chapters are written by Muse, on CashGlome's key." : 'Entries and chapters are written by Muse.') : 'Everything stays on this device.'}><Toggle label="Use Meta Muse" on={on} set={(v) => dispatch({ type: 'ai', patch: { provider: v ? 'meta' : 'local' } })} /></Row>
-        {on && (
-          <>
-            <Row label="API key" sub={SHARED_MUSE ? 'Optional. Leave empty to use CashGlome’s.' : undefined}><input className="field" type="password" autoComplete="off" spellCheck={false} style={{ width: 260 }} placeholder={SHARED_MUSE ? 'Your own Meta key (optional)' : 'Paste your Meta Model API key'} value={ai.key} onChange={(e) => dispatch({ type: 'ai', patch: { key: e.target.value } })} /></Row>
-            <Row label="Reads entries with">
-              <select className="field" style={{ width: 200 }} value={ai.parseModel} onChange={(e) => dispatch({ type: 'ai', patch: { parseModel: e.target.value } })}>{MUSE_MODELS.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}</select>
-            </Row>
-            <Row label="Writes chapters with">
-              <select className="field" style={{ width: 200 }} value={ai.storyModel} onChange={(e) => dispatch({ type: 'ai', patch: { storyModel: e.target.value } })}>{MUSE_MODELS.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}</select>
-            </Row>
-            {!usingShared(state.settings) && (
-              <Row label="Endpoint" sub="OpenAI-compatible Chat Completions base URL.">
-                <input className="field" style={{ width: 260 }} value={ai.base} placeholder={DEFAULT_BASE} onChange={(e) => dispatch({ type: 'ai', patch: { base: e.target.value } })} />
-              </Row>
-            )}
-            <Row label="Answer questions with Muse" sub="Only for questions CashGlome can't count itself. Sends your entries from the last two months and six months of totals; never photos.">
-              <Toggle label="Answer questions with Muse" on={!!state.settings.askMuse} set={(v) => dispatch({ type: 'settings', patch: { askMuse: v } })} />
-            </Row>
-            <Row label={status ? <span style={{ color: status.ok ? 'var(--green)' : 'var(--rust)' }}>{status.text}</span> : 'Check the connection'}>
-              <button className="btn" onClick={test} disabled={testing || (ai.key.length < 8 && !SHARED_MUSE)}>{testing ? 'Checking…' : 'Test'}</button>
-            </Row>
-          </>
+      <Group note="Muse is Google's Gemini, through Firebase AI Logic. Lines it can't read are read by Gemini Nano on this device first; the cloud sees one only when this browser has no Nano. Ask sends your question and a summary of your book; your entries stay here, and every figure is counted here.">
+        <Row label="Muse" sub={b.configured ? `${cloudModelName} in the cloud, Gemini Nano on this device.` : 'This build has no Muse. The book reads and counts on this device.'}><span className="set-val">{b.configured ? 'On' : 'Off'}</span></Row>
+        {b.configured && <Row label="Gemini Nano" sub="Chrome on desktop can run it on the device."><span className="set-val">{device}</span></Row>}
+        {b.configured && (
+          <Row label="Keep Ask on this device" sub={local ? 'Nothing you ask leaves this device. Gemini Nano answers if your browser has it; the book answers if not.' : 'Ask can talk about anything, with a summary of your book.'}>
+            <Toggle label="Keep Ask on this device" on={local} set={(v) => { setLocal(v); setAskKeptLocal(v); }} />
+          </Row>
         )}
       </Group>
     </>

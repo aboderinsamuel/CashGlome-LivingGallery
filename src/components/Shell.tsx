@@ -72,7 +72,7 @@ export function Sidebar(p: SidebarProps) {
                 <Sub v="chapter" label="This month" icon={<Icon.book size={14} />} />
                 <Sub v="shelf" label="All chapters" icon={<Icon.shelf size={14} />} />
                 <Sub v="collection" label="Gallery" icon={<Icon.seal size={14} />} />
-                <button className="side-sub" onClick={p.onEdition}><Icon.play size={12} />Play the Edition</button>
+                <button className="side-sub" onClick={p.onEdition}><Icon.play size={14} />Play the Edition</button>
               </div>
             )}
           </div>
@@ -95,7 +95,7 @@ export function Sidebar(p: SidebarProps) {
         <span className="avatar">{(p.name || 'Y').charAt(0).toUpperCase()}</span>
         <span style={{ minWidth: 0, flex: 1, overflow: 'hidden' }}>
           <span style={{ display: 'block', fontWeight: 600, fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name || 'Your book'}</span>
-          <span className="small" style={{ display: 'block', whiteSpace: 'nowrap' }}>Categories, routines, settings</span>
+          <span className="small" style={{ display: 'block', whiteSpace: 'nowrap' }}>Settings and categories</span>
         </span>
         <Icon.right size={14} />
       </button>

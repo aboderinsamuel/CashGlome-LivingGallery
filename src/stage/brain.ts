@@ -22,6 +22,8 @@ const RECAPTCHA = env.VITE_RECAPTCHA_SITE_KEY;
 /** Firebase is set up for this build. Without it, the rules and the sitters' own lines carry on. */
 export const brainConfigured = !!(CONFIG.apiKey && CONFIG.projectId && CONFIG.appId);
 const CLOUD_MODEL = env.VITE_GEMINI_MODEL || 'gemini-3.5-flash-lite';
+/** The cloud model's name for people: gemini-3.5-flash-lite reads "Gemini 3.5 Flash-Lite". */
+export const cloudModelName = 'Gemini ' + CLOUD_MODEL.replace(/^gemini-/, '').split('-').map((w) => w[0].toUpperCase() + w.slice(1)).join(' ').replace(/ Lite$/, '-Lite');
 
 interface Models {
   prefer: GenerativeModel; device: GenerativeModel; cloud: GenerativeModel;
@@ -193,7 +195,7 @@ export interface Plan { kind: 'search' | 'afford' | 'free' | 'other'; amount?: n
  * Turns a question into searches. The model sees the question, today's date and the category names; never
  * an entry, a total or a balance. The device runs the searches and does every sum.
  */
-export async function planQuestion(question: string, today: string, weekday: string): Promise<{ plan: Plan; where: Where } | null> {
+export async function planQuestion(question: string, today: string, weekday: string, allowCloud = true): Promise<{ plan: Plan; where: Where } | null> {
   const m = await load();
   if (!m) return null;
   const prompt = `You plan searches over a person's private money diary. You never see the diary; the device runs your searches and adds everything up exactly. Today is ${weekday} ${today}.
@@ -205,6 +207,7 @@ Question: ${question}`;
     return { plan: JSON.parse(r.response.text()) as Plan, where: whereOf(r.response.inferenceSource) };
   };
   try { if (deviceUsable()) return await run(m.plan.device); } catch (e) { console.warn('[brain] device plan', e); }
+  if (!allowCloud) return null;
   try { return await run(m.plan.cloud); } catch (e) { console.warn('[brain] cloud plan', e); return null; }
 }
 
@@ -235,4 +238,17 @@ export async function paintStillLife(thing: string, painting: string, artist: st
     const part = r.response.inlineDataParts?.()?.[0]?.inlineData;
     return part ? `data:${part.mimeType};base64,${part.data}` : null;
   } catch (e) { console.warn('[brain] still life', e); return null; }
+}
+
+/**
+ * Muse's own models, for conversation. The cloud model may call the device's tools (searches, sums,
+ * affordability); the device model gets the device's figures already counted, since it can't call tools.
+ */
+export async function museModels() {
+  const m = await load();
+  if (!m) return null;
+  return {
+    cloud: m.ai.getGenerativeModel(m.backend, { model: CLOUD_MODEL, generationConfig: { temperature: 0.75, maxOutputTokens: 900 } }),
+    device: deviceUsable() ? m.device : null,
+  };
 }

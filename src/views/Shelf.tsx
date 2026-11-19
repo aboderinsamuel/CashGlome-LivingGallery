@@ -10,7 +10,7 @@ export function Shelf({ state, months, onOpen }: { state: State; months: string[
   const cur = state.profile.currency;
   const books = useMemo(() => months.map((m) => {
     const s = computeStats(state.entries, m);
-    return { m, s, ch: chapterOf(state, s), p: paintingOf(s), r: restorationOf(state.entries, m) };
+    return { m, s, ch: chapterOf(state, s), p: paintingOf(s), r: restorationOf(state.entries, m, state.quiet) };
   }), [months, state]);
   const total = books.reduce((a, b) => a + b.s.entries.length, 0);
   return (

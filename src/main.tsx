@@ -10,6 +10,8 @@ import './mac.css';
 import './phone/phone.css';
 import './shell.css';
 import App from './App';
+// Folio, the design language, goes last so it sits over every view's own styles.
+import './folio.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

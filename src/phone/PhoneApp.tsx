@@ -112,7 +112,7 @@ function PhoneHome({ state, dispatch, museChapter, isNow, onRead, onLedger, onSh
   const local = chapterOf(state, s);
   const title = museChapter ? spaceSegs(museChapter.title) : local.title;
   const painting = paintingOf(s);
-  const r = useMemo(() => restorationOf(state.entries, state.month), [state.entries, state.month]);
+  const r = useMemo(() => restorationOf(state.entries, state.month, state.quiet), [state.entries, state.quiet, state.month]);
   const empty = !s.entries.length;
 
   // Patches cleaned since you last looked lift as the screen opens; ones you earn while here lift at once.

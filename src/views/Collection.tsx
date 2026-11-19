@@ -22,7 +22,7 @@ export function Collection({ state, onOpen, onCamera }: { state: State; onOpen: 
     set.add(monthOf(todayISO()));
     return [...set].sort().reverse().map((m) => {
       const s = computeStats(state.entries, m);
-      return { m, painting: paintingOf(s), r: restorationOf(state.entries, m) };
+      return { m, painting: paintingOf(s), r: restorationOf(state.entries, m, state.quiet) };
     });
   }, [state.entries]);
   const done = months.filter((x) => x.r.complete).length;

@@ -9,6 +9,7 @@ import type { Action } from '../lib/store';
 import { Icon } from '../components/Icons';
 import { Sticker } from '../components/Stickers';
 import { Photo } from '../components/Photo';
+import { Pigment } from '../components/Mark';
 
 interface Props { state: State; dispatch: (a: Action) => void; filter: string | null; setFilter: (f: string | null) => void; query: string; onAttach: (e: Entry) => void }
 
@@ -71,7 +72,7 @@ export function Ledger({ state, dispatch, filter, setFilter, query, onAttach }: 
                       <button key={e.id} className={'row' + (sel === e.id ? ' on' : '')} onClick={() => setSel(sel === e.id ? null : e.id)}>
                         {e.photo
                           ? <Photo id={e.photo} className="row-photo" />
-                          : <span style={{ width: 38, height: 38, borderRadius: 11, background: c.color, display: 'grid', placeItems: 'center', flex: 'none', boxShadow: 'inset 0 0 0 1px rgba(23,23,28,.12)' }}><Sticker name={c.sticker} size={30} /></span>}
+                          : <Pigment category={e.category} size={38} />}
                         <span style={{ flex: 1, minWidth: 0 }}>
                           <span style={{ display: 'block', fontSize: 14, fontWeight: 550, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{e.label}</span>
                           <span className="small" style={{ display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.name}{e.feeling === 'joy' ? ' · worth it' : e.feeling === 'regret' ? ' · regret' : ''}{e.text && e.text.toLowerCase() !== e.label.toLowerCase() ? ` · “${e.text}”` : ''}</span>
@@ -125,7 +126,7 @@ function Inspector({ e, cur, dispatch, close, onAttach }: { e: Entry; cur: strin
         </div>
       ) : (
         <div style={{ display: 'grid', placeItems: 'center', gap: 6, padding: '8px 0 4px' }}>
-          <Sticker name={c.sticker} size={96} rotate={-6} key={c.id} />
+          <Pigment category={c.id} size={72} key={c.id} />
           <button className="tbtn" onClick={onAttach}><Icon.camera size={15} /> Add a photo</button>
         </div>
       )}

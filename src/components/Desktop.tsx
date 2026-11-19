@@ -222,7 +222,7 @@ function DockIcon({ id, painting }: { id: DockTarget; painting: string }) {
 function Widgets({ state, calm, onOpen }: { state: State; calm: boolean; onOpen: (t: DockTarget) => void }) {
   const month = monthOf(todayISO());
   const s = useMemo(() => computeStats(state.entries, month), [state.entries, month]);
-  const r = useMemo(() => restorationOf(state.entries, month), [state.entries, month]);
+  const r = useMemo(() => restorationOf(state.entries, month, state.quiet), [state.entries, state.quiet, month]);
   const card = useMemo(() => dayCardOf(state), [state]);
   const painting = paintingOf(s);
   const cur = state.profile.currency;

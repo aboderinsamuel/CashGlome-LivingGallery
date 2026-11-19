@@ -47,7 +47,7 @@ export function Chapter({ state, dispatch, museChapter, onOpenCategory, onEditio
   const pj = projection(s);
   const mon = monthLabel(state.month).split(' ')[0];
   const painting = paintingOf(s);
-  const r = useMemo(() => restorationOf(state.entries, state.month), [state.entries, state.month]);
+  const r = useMemo(() => restorationOf(state.entries, state.month, state.quiet), [state.entries, state.quiet, state.month]);
   const stage = useStages(2);
   // Once this page is drawn, quietly prepare last month's painting: the usual next tap.
   useEffect(() => {

@@ -4,54 +4,48 @@ import type { Entry, Feeling } from './types';
 
 type T = { label: string; text: string; cat: string; usd: number; dir?: 'in' | 'out'; feeling?: Feeling };
 
-const NG: T[] = [
-  { label: 'Suya with the guys', text: 'spent 4.5k on suya with the guys', cat: 'dining', usd: 3 },
-  { label: 'Jollof & chicken', text: 'jollof and chicken 6k', cat: 'dining', usd: 4, feeling: 'joy' },
-  { label: 'Chowdeck late night', text: 'chowdeck order 8,200 at 1am — regret', cat: 'dining', usd: 5.5, feeling: 'regret' },
-  { label: 'Bolt to Lekki', text: 'bolt to lekki 7k', cat: 'transport', usd: 4.7 },
-  { label: 'Keke to work', text: 'keke 800', cat: 'transport', usd: 0.55 },
-  { label: 'MTN data', text: 'mtn data 5k', cat: 'bills', usd: 3.3 },
-  { label: 'Prepaid light', text: 'nepa prepaid 15k', cat: 'bills', usd: 10 },
-  { label: 'Shoprite run', text: 'shoprite groceries 32k', cat: 'groceries', usd: 21 },
-  { label: 'Sneakers', text: 'bought sneakers 45k, worth it', cat: 'shopping', usd: 30, feeling: 'joy' },
-  { label: 'Sportybet', text: 'sportybet 5k lost', cat: 'betting', usd: 3.3, feeling: 'regret' },
-  { label: 'Sent mum money', text: 'sent mum 20k', cat: 'giving', usd: 13.3, feeling: 'joy' },
-  { label: 'Barber', text: 'barber 3k', cat: 'selfcare', usd: 2 },
-];
-const GLOBAL: T[] = [
-  { label: 'Oat latte', text: 'oat latte 6.50', cat: 'dining', usd: 6.5 },
-  { label: 'Sushi with friends', text: 'sushi with friends 42 — loved it', cat: 'dining', usd: 42, feeling: 'joy' },
-  { label: 'DoorDash at midnight', text: 'doordash 31 at midnight ugh', cat: 'dining', usd: 31, feeling: 'regret' },
-  { label: 'Uber downtown', text: 'uber downtown 18', cat: 'transport', usd: 18 },
-  { label: 'Metro card', text: 'metro 2.90', cat: 'transport', usd: 2.9 },
-  { label: 'Phone bill', text: 'phone bill 45', cat: 'bills', usd: 45 },
-  { label: 'Trader Joe\'s run', text: 'groceries at trader joes 86', cat: 'groceries', usd: 86 },
-  { label: 'New sneakers', text: 'bought sneakers 120, worth it', cat: 'shopping', usd: 120, feeling: 'joy' },
-  { label: 'Amazon impulse buy', text: 'amazon impulse 39 — regret', cat: 'shopping', usd: 39, feeling: 'regret' },
-  { label: 'Gift for mom', text: 'gift for mom 60', cat: 'giving', usd: 60, feeling: 'joy' },
-  { label: 'Gym day pass', text: 'gym 25', cat: 'selfcare', usd: 25 },
-  { label: 'Concert tickets', text: 'concert tickets 95', cat: 'fun', usd: 95, feeling: 'joy' },
+// One month anyone could have, anywhere: no brands, no one city. Amounts are in US dollars of buying power.
+const WORLD: T[] = [
+  { label: 'Street food with friends', text: 'street food with friends 4', cat: 'dining', usd: 4 },
+  { label: 'Rice and stew', text: 'rice and stew 4', cat: 'dining', usd: 4, feeling: 'joy' },
+  { label: 'Late-night delivery', text: 'food delivery at 1am, regret', cat: 'dining', usd: 7, feeling: 'regret' },
+  { label: 'Coffee', text: 'coffee', cat: 'dining', usd: 2.5 },
+  { label: 'Ride across town', text: 'ride across town', cat: 'transport', usd: 6 },
+  { label: 'Bus to work', text: 'bus to work', cat: 'transport', usd: 1 },
+  { label: 'Phone data', text: 'phone data', cat: 'bills', usd: 4 },
+  { label: 'Prepaid electricity', text: 'prepaid electricity', cat: 'bills', usd: 12 },
+  { label: 'Market run', text: 'groceries at the market', cat: 'groceries', usd: 28 },
+  { label: 'New sneakers', text: 'bought sneakers, worth it', cat: 'shopping', usd: 40, feeling: 'joy' },
+  { label: 'Impulse buy online', text: 'impulse buy online, regret', cat: 'shopping', usd: 20, feeling: 'regret' },
+  { label: 'Football bet', text: 'football bet lost', cat: 'betting', usd: 4, feeling: 'regret' },
+  { label: 'Sent mum money', text: 'sent mum money', cat: 'giving', usd: 15, feeling: 'joy' },
+  { label: 'Barber', text: 'barber', cat: 'selfcare', usd: 4 },
+  { label: 'Concert tickets', text: 'concert tickets', cat: 'fun', usd: 30, feeling: 'joy' },
 ];
 const SUBS: T[] = [
-  { label: 'Netflix', text: 'netflix', cat: 'subscriptions', usd: 15.5 },
-  { label: 'Spotify', text: 'spotify', cat: 'subscriptions', usd: 11 },
-  { label: 'ChatGPT Plus', text: 'chatgpt plus', cat: 'subscriptions', usd: 20 },
+  { label: 'Film streaming', text: 'film streaming', cat: 'subscriptions', usd: 9 },
+  { label: 'Music streaming', text: 'music streaming', cat: 'subscriptions', usd: 6 },
+  { label: 'Cloud storage', text: 'cloud storage', cat: 'subscriptions', usd: 3 },
 ];
+/** Where money buys more, the same month costs fewer dollars. */
+const LOWER = /^(NGN|KES|GHS|XOF|TZS|INR|EGP|ZAR|BRL|MXN)$/;
 
 function round(n: number, code: string) {
   if (n >= 1000) return Math.round(n / 50) * 50;
-  if (n >= 100) return Math.round(n);
+  // Money counted in hundreds or thousands has no cents worth writing down.
+  if (n >= 100 || (CURRENCIES.find((c) => c.code === code)?.scale ?? 1) >= 10) return Math.round(n);
   return /^(JPY|KRW|XOF|TZS)$/.test(code) ? Math.round(n) : Math.round(n * 100) / 100;
 }
 
 export function demoEntries(currency: string): Entry[] {
   const scale = CURRENCIES.find((c) => c.code === currency)?.scale ?? 1;
-  const pool = currency === 'NGN' ? NG : GLOBAL;
+  const pool = WORLD;
+  const ppp = LOWER.test(currency) ? 0.45 : 1;
   const out: Entry[] = [];
   let seed = 7;
   const rnd = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
   const add = (d: Date, t: T, mult = 1, dir: 'in' | 'out' = t.dir ?? 'out') => {
-    const amount = round(t.usd * scale * mult * (0.85 + rnd() * 0.35), currency);
+    const amount = round(t.usd * scale * ppp * mult * (0.85 + rnd() * 0.35), currency);
     out.push({ id: uid(), text: t.text, label: t.label, amount, dir, category: t.cat, feeling: t.feeling, date: todayISO(d), createdAt: d.getTime(), source: 'oracle', confidence: 0.9 });
   };
   const now = new Date();
@@ -61,9 +55,9 @@ export function demoEntries(currency: string): Entry[] {
     const dom = day.getDate();
     const prevMonth = day.getMonth() !== now.getMonth();
     if (dom === 1) {
-      add(day, { label: 'Salary', text: 'salary came in', cat: 'salary', usd: currency === 'NGN' ? 700 : 3200 }, prevMonth ? 1 : 1.05, 'in');
-      add(day, { label: 'Rent share', text: 'rent', cat: 'rent', usd: currency === 'NGN' ? 140 : 1100 });
-      add(day, { label: 'Moved to savings', text: 'saved to piggyvest', cat: 'savings', usd: prevMonth ? 90 : 160 });
+      add(day, { label: 'Salary', text: 'salary came in', cat: 'salary', usd: 1600 }, prevMonth ? 1 : 1.05, 'in');
+      add(day, { label: 'Rent share', text: 'rent', cat: 'rent', usd: 420 });
+      add(day, { label: 'Moved to savings', text: 'moved to savings', cat: 'savings', usd: prevMonth ? 90 : 160 });
     }
     if (dom === 3) SUBS.forEach((s) => add(day, s));
     if (dom === 12 || dom === 24) add(day, { label: 'Freelance design gig', text: 'client paid for logo design', cat: 'craft', usd: dom === 12 ? 260 : 180 }, 1, 'in');

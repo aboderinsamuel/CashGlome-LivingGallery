@@ -126,7 +126,8 @@ export interface Restoration { restored: number; order: number[]; gilded: Entry[
 
 export const isGilded = (e: Entry) => hash(e.id) % 7 === 0;
 
-export function restorationOf(entries: Entry[], month: string): Restoration {
+/** quiet: days marked "nothing today"; each cleans one patch, the same as a first line. */
+export function restorationOf(entries: Entry[], month: string, quiet: string[] = []): Restoration {
   const list = entries.filter((e) => monthOf(e.date) === month).sort((a, b) => a.date.localeCompare(b.date) || a.createdAt - b.createdAt);
   const byDay = new Map<string, Entry[]>();
   for (const e of list) byDay.set(e.date, [...(byDay.get(e.date) ?? []), e]);
@@ -140,6 +141,7 @@ export function restorationOf(entries: Entry[], month: string): Restoration {
     restored += n;
     if (day === now) today = n;
   }
+  for (const day of quiet) if (monthOf(day) === month && !byDay.has(day)) { restored += 1; if (day === now) today = 1; }
   restored = Math.min(PATCHES, restored);
   // Edges lift first, the heart of the painting last.
   const r = rng(hash(month));

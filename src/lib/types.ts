@@ -93,6 +93,8 @@ export interface State {
   seenBadges: string[];
   month: string; // YYYY-MM being viewed
   seenRestored: Record<string, number>; // patches already shown being cleaned, per month
+  /** Days marked "nothing today": a quiet day is kept like a written one. */
+  quiet?: string[];
   memories: Memory[];
   routineLog: Record<string, RoutineMark>; // "<memory id>@<YYYY-MM-DD>"
   /** Entries and goals deleted on this device, so a sync can delete them everywhere. */

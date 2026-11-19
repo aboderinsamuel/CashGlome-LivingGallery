@@ -11,6 +11,9 @@ import type { Action } from '../lib/store';
 import type { Entry, State } from '../lib/types';
 import { RestorationPlate, revealTime } from '../components/Restoration';
 import { Icon } from '../components/Icons';
+import { Chalk } from '../components/Chalk';
+import { Sitting } from '../components/Sitting';
+import { Discoveries } from '../components/Discoveries';
 import { safeToSpend } from '../stage/askPainting';
 import { circleStatus, peopleOf } from '../stage/books';
 import { dateInWords } from '../stage/words';
@@ -56,7 +59,7 @@ export function Today({ state, dispatch, voice, onVoiceDone, onFill, onLedger, o
   // The miniature: the same restoration as the Chapter, so both always agree.
   const stats = useMemo(() => computeStats(state.entries, month), [state.entries, month]);
   const painting = paintingOf(stats);
-  const r = useMemo(() => restorationOf(state.entries, month), [state.entries, month]);
+  const r = useMemo(() => restorationOf(state.entries, month, state.quiet), [state.entries, state.quiet, month]);
   const seen = state.seenRestored[month] ?? 0;
   const [shownSeen, setShownSeen] = useState(seen);
   useEffect(() => {
@@ -68,6 +71,9 @@ export function Today({ state, dispatch, voice, onVoiceDone, onFill, onLedger, o
   useEffect(() => { if (!voice) return; const t = setTimeout(onVoiceDone, 12_000); return () => clearTimeout(t); }, [voice, onVoiceDone]);
 
   const greeting = part(now.getHours());
+  const quietToday = (state.quiet ?? []).includes(today);
+  const evening = now.getHours() >= 17 || now.getHours() < 4;
+  const setQuiet = (on: boolean) => dispatch({ type: 'quiet', date: today, on });
   const first = state.profile.name?.split(' ')[0];
 
   return (
@@ -78,13 +84,17 @@ export function Today({ state, dispatch, voice, onVoiceDone, onFill, onLedger, o
         {fresh && <p className="td-lede">Write what came in or went out, the way you’d say it. CashGlome keeps the sums, and every line cleans a patch of this month’s painting.</p>}
       </header>
 
+      {!fresh && todays.length === 0 && (evening || quietToday) && (
+        <Sitting painting={painting} todays={todays} quiet={quietToday} calm={state.settings.calm} onWrite={() => onFill('')} onQuiet={setQuiet} />
+      )}
+
       <div className="td-grid">
         <div className="td-main">
           {/* The one loud thing. */}
           {safe ? (
             <section className="td-hero" aria-label="Safe to spend">
               <div className="td-label">Safe to spend today</div>
-              <div className="td-big num">{m(safe.perDay)}</div>
+              <div className="td-big num"><span className="td-ring">{m(safe.perDay)}<Chalk kind="circle" calm={state.settings.calm} delay={0.5} style={{ left: -18, top: -10, width: 'calc(100% + 36px)', height: 'calc(100% + 20px)' }} /></span></div>
               <p className="td-sub">{safe.until ? <>until pay {relDay(safe.until)}</> : <>a day for the rest of the month</>}, after what’s due. About <b className="num">{m(safe.free)}</b> is free in all.</p>
               <button className="td-link" onClick={() => onAsk('How is safe to spend counted?')}>How is this counted?</button>
             </section>
@@ -120,7 +130,10 @@ export function Today({ state, dispatch, voice, onVoiceDone, onFill, onLedger, o
                 </AnimatePresence>
               </ul>
             ) : (
-              <p className="td-empty">{fresh ? 'Try one of the lines below the box, or write your own. It takes a second.' : 'Nothing written today. That’s fine; a missed day costs nothing.'}</p>
+              <div className="td-empty-row">
+                <p className="td-empty">{fresh ? 'Try one of the lines below the box, or write your own. It takes a second.' : quietToday ? 'A quiet day, kept.' : 'Nothing written today. That’s fine; a missed day costs nothing.'}</p>
+                {!fresh && !quietToday && !evening && <button className="chip td-quiet" onClick={() => setQuiet(true)}>Nothing today</button>}
+              </div>
             )}
             {todays.length > 6 && <button className="td-link" onClick={onLedger}>All {todays.length} lines today</button>}
             {!fresh && todays.length > 0 && todays.length <= 6 && <button className="td-link" onClick={onLedger}>Open the ledger</button>}
@@ -155,6 +168,8 @@ export function Today({ state, dispatch, voice, onVoiceDone, onFill, onLedger, o
               </ul>
             </section>
           )}
+
+          {!fresh && <Discoveries painting={painting} restored={r.restored} month={month} calm={state.settings.calm} />}
 
           {!fresh && (
             <section className="td-ask" aria-label="Ask">

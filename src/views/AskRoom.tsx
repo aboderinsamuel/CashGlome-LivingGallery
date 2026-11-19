@@ -1,5 +1,5 @@
-// Ask: a room of its own. Questions in your words; Gemini plans the search, this device counts every sum,
-// and each answer shows its working and says where it was planned.
+// Ask: a conversation with Muse, the voice of this month's painting. Ask it anything; it knows the book.
+// Gemini writes the words; this device counts every figure, and each answer shows its working and its seal.
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { PAINTINGS, paintingOf, artSrc } from '../lib/art';
@@ -8,76 +8,116 @@ import { money, monthOf, todayISO } from '../lib/format';
 import type { State } from '../lib/types';
 import { Icon } from '../components/Icons';
 import { Runway } from '../components/Runway';
-import { askPainting, safeToSpend, type PaintingAnswer } from '../stage/askPainting';
+import { safeToSpend } from '../stage/askPainting';
+import { askKeptLocal, askMuse, setAskKeptLocal, type MuseAnswer } from '../stage/muse';
+import { brainConfigured } from '../stage/brain';
 import { peopleOf } from '../stage/books';
 import { castOf } from '../stage/voices';
 import './ask-room.css';
 
-export interface AskTurn { q: string; a: PaintingAnswer | null; at: number }
+export interface AskTurn { q: string; a: MuseAnswer | null; at: number }
 const KEY = 'cg-ask-room';
-const PLANNED: Record<PaintingAnswer['planned'], string> = { device: 'Planned and counted on this device', cloud: 'Planned in the cloud, counted on this device', rules: 'Counted on this device' };
+const SEAL: Record<MuseAnswer['planned'], [string, string]> = {
+  cloud: ['G', 'Gemini wrote this · every figure counted on this device'],
+  device: ['N', 'Gemini Nano, on this device · nothing left it'],
+  rules: ['C', 'Counted on this device'],
+};
 
 export function loadTurns(): AskTurn[] {
   try { return (JSON.parse(localStorage.getItem(KEY) ?? '[]') as AskTurn[]).filter((t) => t.a).slice(-30); } catch { return []; }
 }
 const saveTurns = (t: AskTurn[]) => { try { localStorage.setItem(KEY, JSON.stringify(t.filter((x) => x.a).slice(-30))); } catch { /* the conversation still works */ } };
 
-/** Questions worth asking, from what is actually written. */
+/** Questions worth asking, from what is actually written, and one that isn't about money at all. */
 function suggestions(state: State): string[] {
   const today = todayISO();
   const s = computeStats(state.entries, monthOf(today));
   const out: string[] = [];
   const safe = safeToSpend(state, today);
-  if (safe) out.push(`Can I afford ${money(Math.round(safe.free / 4 / 100) * 100 || 50, state.profile.currency)} on something today?`);
+  if (s.outflow) out.push('What do you make of my month so far?');
+  if (safe) out.push('Can I go on a date this weekend?');
   if (s.outflow) out.push('Where did my money go this month?');
-  if (s.entries.length > 5) out.push('What did I spend most on this week?');
   if (peopleOf(state.entries).some((p) => p.net !== 0)) out.push('Who owes me money?');
-  if (s.inflow) out.push('How much came in this month?');
-  if (!out.length) out.push('Can I afford 50 on dinner?', 'Where did my money go this month?');
+  if (s.entries.length > 5) out.push('What did I spend most on this week?');
+  out.push('Tell me about this painting');
+  if (out.length < 3) out.push(`Can I afford ${money(50, state.profile.currency)} on dinner?`);
   return out.slice(0, 4);
 }
+
+const useOnline = () => {
+  const [on, setOn] = useState(() => typeof navigator === 'undefined' || navigator.onLine !== false);
+  useEffect(() => {
+    const up = () => setOn(true), down = () => setOn(false);
+    window.addEventListener('online', up); window.addEventListener('offline', down);
+    return () => { window.removeEventListener('online', up); window.removeEventListener('offline', down); };
+  }, []);
+  return on;
+};
 
 export function AskRoom({ state, turns, setTurns, first, onFirstDone }: { state: State; turns: AskTurn[]; setTurns: (f: (t: AskTurn[]) => AskTurn[]) => void; first: string | null; onFirstDone: () => void }) {
   const cur = state.profile.currency;
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
+  const [live, setLive] = useState('');
+  const [local, setLocal] = useState(askKeptLocal);
+  const online = useOnline();
   const input = useRef<HTMLTextAreaElement>(null);
   const end = useRef<HTMLDivElement>(null);
   const painting = paintingOf(computeStats(state.entries, monthOf(todayISO())));
+  const p = PAINTINGS[painting.id];
   const sitter = castOf(painting.id);
   const ideas = useMemo(() => suggestions(state), [state]);
 
   const ask = async (q: string) => {
     q = q.trim();
     if (!q || busy) return;
-    setText(''); setBusy(true);
+    setText(''); setBusy(true); setLive('');
+    try { navigator.vibrate?.(8); } catch { /* none */ }
+    const history = turns.map((t) => ({ q: t.q, a: t.a }));
     setTurns((t) => [...t, { q, a: null, at: Date.now() }]);
-    const p = PAINTINGS[painting.id];
-    let a: PaintingAnswer;
-    try { a = await askPainting(state, q, { name: sitter.name, role: sitter.role, painting: p.title, artist: p.artist, year: p.year }); }
-    catch { a = { text: 'I couldn’t count that just now. Try again in a moment.', figures: [], rows: [], planned: 'rules', wordsBy: 'app' }; }
+    let a: MuseAnswer;
+    try { a = await askMuse(state, q, history, { name: sitter.name, role: sitter.role, painting: p.title, artist: p.artist, year: p.year }, setLive); }
+    catch { a = { text: 'I lost my train of thought. Ask me again in a moment.', figures: [], rows: [], planned: 'rules', wordsBy: 'app' }; }
     setTurns((t) => { const next = [...t.slice(0, -1), { q, a, at: Date.now() }]; saveTurns(next); return next; });
-    setBusy(false);
+    setBusy(false); setLive('');
   };
 
   useEffect(() => { if (first) { onFirstDone(); void ask(first); } }, [first]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { end.current?.scrollIntoView({ block: 'end', behavior: 'smooth' }); }, [turns]);
+  useEffect(() => { end.current?.scrollIntoView({ block: 'end', behavior: 'smooth' }); }, [turns, live.length > 0]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { const el = input.current; if (!el) return; el.style.height = 'auto'; el.style.height = Math.min(120, el.scrollHeight) + 'px'; }, [text]);
+
+  const toggleLocal = () => { const v = !local; setLocal(v); setAskKeptLocal(v); };
+  const onDevice = local || !online || !brainConfigured;
+  const where = !brainConfigured ? 'This build has no Muse, so the book answers on its own, on this device.'
+    : !online ? 'You’re offline. The book still answers, counted on this device.'
+      : local ? 'Kept on this device: nothing you ask leaves it.'
+        : 'Your question and a summary of your book go to Gemini. Your entries stay here, and every figure is counted here.';
 
   return (
     <div className="page ask-room">
       <header className="ar-head">
         <img src={artSrc(painting.id, 'sm')} alt="" className="ar-face" />
         <div>
-          <h1>Ask about your <i>money</i></h1>
-          <p>{sitter.name} keeps the book this month. Ask in your own words; every sum is counted on this device.</p>
+          <div className="ar-kicker">Muse · {sitter.name}</div>
+          <h1>Ask me <i>anything</i></h1>
+          <p>Money, plans, a date, this painting. I know your book; this device does the counting.</p>
         </div>
       </header>
+
+      <div className={'ar-where' + (!online ? ' off' : '')}>
+        <span className={'st-wax ' + (onDevice ? 'device' : 'cloud')} aria-hidden>{onDevice ? 'N' : 'G'}</span>
+        <span className="ar-where-t">{where}</span>
+        {brainConfigured && online && (
+          <button role="switch" aria-checked={local} className={'ar-switch' + (local ? ' on' : '')} onClick={toggleLocal}>
+            <i aria-hidden />Keep Ask on this device
+          </button>
+        )}
+      </div>
 
       <div className="ar-thread" aria-live="polite">
         {!turns.length && (
           <div className="ar-start">
-            <p>Some things people ask:</p>
+            <p>Start anywhere:</p>
             <div className="ar-ideas">{ideas.map((q) => <button key={q} onClick={() => void ask(q)}>{q}</button>)}</div>
           </div>
         )}
@@ -85,7 +125,9 @@ export function AskRoom({ state, turns, setTurns, first, onFirstDone }: { state:
           {turns.map((t, i) => (
             <motion.div key={t.at + ':' + i} className="ar-turn" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
               <div className="ar-q">{t.q}</div>
-              {t.a ? <AnswerCard a={t.a} cur={cur} who={sitter.name} /> : <div className="ar-a ar-wait"><span className="brushing" aria-label="Counting"><i /><i /><i /></span> Counting…</div>}
+              {t.a ? <AnswerCard a={t.a} cur={cur} who={sitter.name} />
+                : live ? <div className="ar-a"><div className="ar-who">{sitter.name}</div><p>{live}<span className="ar-caret" aria-hidden /></p></div>
+                  : <div className="ar-a ar-wait"><span className="brushing" aria-hidden><i /><i /><i /></span> {sitter.name} is thinking…</div>}
             </motion.div>
           ))}
         </AnimatePresence>
@@ -96,7 +138,7 @@ export function AskRoom({ state, turns, setTurns, first, onFirstDone }: { state:
       </div>
 
       <form className="ar-box" onSubmit={(e) => { e.preventDefault(); void ask(text); }}>
-        <textarea ref={input} rows={1} value={text} onChange={(e) => setText(e.target.value)} placeholder="Ask about your money" aria-label="Ask about your money"
+        <textarea ref={input} rows={1} value={text} onChange={(e) => setText(e.target.value)} placeholder="Ask Muse anything" aria-label="Ask Muse anything"
           onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void ask(text); } }} />
         <button type="submit" disabled={!text.trim() || busy} aria-label="Ask"><Icon.up size={17} /></button>
       </form>
@@ -105,13 +147,15 @@ export function AskRoom({ state, turns, setTurns, first, onFirstDone }: { state:
   );
 }
 
-function AnswerCard({ a, cur, who }: { a: PaintingAnswer; cur: string; who: string }) {
+function AnswerCard({ a, cur, who }: { a: MuseAnswer; cur: string; who: string }) {
   const [open, setOpen] = useState(false);
+  const [mark, line] = SEAL[a.planned] ?? SEAL.rules;
   return (
     <div className="ar-a">
       <div className="ar-who">{who}</div>
       <p>{a.text}</p>
       {a.runway && <div className="ar-runway"><Runway a={a.runway} cur={cur} compact /></div>}
+      {a.estimate && <div className="ar-est">Holds an estimate: a guess, not a figure from your book.</div>}
       {a.figures.length > 0 && (
         <>
           <button className="ar-work-btn" onClick={() => setOpen((v) => !v)} aria-expanded={open}>{open ? 'Hide the working' : 'Show the working'}</button>
@@ -123,7 +167,7 @@ function AnswerCard({ a, cur, who }: { a: PaintingAnswer; cur: string; who: stri
           )}
         </>
       )}
-      <div className="ar-seal"><span className={'st-wax ' + a.planned}>C</span>{PLANNED[a.planned]}{a.wordsBy === 'device' ? '; words by Gemini Nano' : ''}</div>
+      <div className="ar-seal"><span className={'st-wax ' + a.planned}>{mark}</span>{a.note ?? (a.planned === 'cloud' && !a.figures.length ? 'Gemini wrote this, in the cloud' : line)}</div>
     </div>
   );
 }

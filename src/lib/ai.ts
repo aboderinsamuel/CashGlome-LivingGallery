@@ -42,7 +42,8 @@ export const SHARED_MUSE = ((import.meta.env.VITE_MUSE_PROXY as string | undefin
 const ownKey = (s: Settings) => s.ai.key.trim().length > 8;
 /** True when calls go through the shared Muse rather than the person's own key. */
 export const usingShared = (s: Settings) => !ownKey(s) && !!SHARED_MUSE;
-export const aiEnabled = (s: Settings) => s.ai.provider === 'meta' && (ownKey(s) || !!SHARED_MUSE);
+// Meta Muse is switched off: Muse is Gemini now (stage/brain.ts). Kept so older books still load.
+export const aiEnabled = (_s: Settings) => false;
 
 /** One request to Muse. Desktop goes through Electron main (no CORS); the web goes through the /__ai proxy. */
 // Muse models think before they answer, and that thinking counts against max_tokens. Left at its default it

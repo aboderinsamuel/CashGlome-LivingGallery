@@ -1,0 +1,293 @@
+/* Folio: CashGlome's design language, laid over everything else (loaded last).
+   Parchment by day, candlelight by night. Ink for the one main action, pressed like a stamp.
+   Sealing wax for sending a line. Struck coins, ink monograms, pans of pigment.
+   Red chalk (sanguine) for the hand-drawn marks a curator would make in the margin. */
+
+/* ——— Tokens: one set for desktop and phone ——— */
+:root, :root[data-phone] {
+  --paper: #EEE6D6;
+  --paper-2: #E5DAC5;
+  --card: #F6F0E2;
+  --ink: #2A2016;
+  --ink-2: rgba(42, 32, 22, 0.74);
+  --ink-3: rgba(42, 32, 22, 0.54);
+  --ink-4: rgba(42, 32, 22, 0.17);
+  --line: rgba(42, 32, 22, 0.13);
+  --fill: rgba(42, 32, 22, 0.055);
+  --fill-2: rgba(42, 32, 22, 0.1);
+  --gold: #8F6A1C;
+  --gold-2: #D8B565;
+  --lapis: #2B4A8B;
+  --vermilion: #B5412B;
+  --sanguine: #A8432A;
+  --accent: var(--lapis);
+  --accent-ink: #F6F0E2;
+  --accent-soft: rgba(43, 74, 139, 0.1);
+  --green: var(--gold);
+  --rust: var(--vermilion);
+  /* The stamp: the one main action on a screen. */
+  --stamp: #2A2016;
+  --stamp-ink: #F6EEDC;
+  --stamp-edge: #0F0B06;
+  /* Sealing wax: writing a line down. */
+  --wax: #B5412B;
+  --wax-edge: #7A2617;
+  --wax-ink: #FBEBDD;
+  /* Metal for coins. */
+  --metal: #CFAA55;
+  --metal-ink: #4A3410;
+  --metal-line: rgba(74, 52, 16, 0.55);
+  --chip-edge: rgba(42, 32, 22, 0.22);
+  --laid: rgba(70, 50, 20, 0.045);
+}
+:root[data-theme='dark'], :root[data-phone][data-theme='dark'] {
+  --paper: #17120C;
+  --paper-2: #1E1811;
+  --card: #231C13;
+  --ink: #EFE5D0;
+  --ink-2: rgba(239, 229, 208, 0.76);
+  --ink-3: rgba(239, 229, 208, 0.52);
+  --ink-4: rgba(239, 229, 208, 0.17);
+  --line: rgba(239, 229, 208, 0.12);
+  --fill: rgba(239, 229, 208, 0.06);
+  --fill-2: rgba(239, 229, 208, 0.11);
+  --gold: #D4AE5E;
+  --gold-2: #E9CC88;
+  --vermilion: #D9634B;
+  --sanguine: #D9775C;
+  --accent: var(--gold);
+  --accent-ink: #1A140D;
+  --stamp: #EFE5D0;
+  --stamp-ink: #1A140D;
+  --stamp-edge: #8C7C5E;
+  --wax: #B9442D;
+  --wax-edge: #6E2214;
+  --metal: #C9A24B;
+  --metal-ink: #2E1F07;
+  --metal-line: rgba(46, 31, 7, 0.6);
+  --chip-edge: rgba(239, 229, 208, 0.2);
+  --laid: rgba(255, 235, 200, 0.025);
+}
+
+/* Laid paper: faint chain lines, the way handmade sheets carry the mould they were made on. */
+.app, .ph-app {
+  background-color: var(--paper);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .26 0 0 0 0 .14 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E"),
+    repeating-linear-gradient(90deg, transparent 0 31px, var(--laid) 31px 32px);
+}
+.edge { background: linear-gradient(var(--paper) 35%, transparent); }
+.card { background: var(--card); }
+
+/* ——— The stamp: one per screen ——— */
+.stamp, .btn.primary, .btn.gold, .btn.ink, .ph-btn.gilt, .cats-new, .cats-btns .gilt, .acc-add button, .sheet-done,
+.notice-do, :root[data-phone] .notice-do, :root[data-phone] .panel .btn.primary, :root[data-phone] .sheet .btn.primary, :root[data-phone] .checkin .btn.primary {
+  background: var(--stamp) !important; color: var(--stamp-ink) !important; border: 0 !important;
+  box-shadow: 0 3px 0 var(--stamp-edge), 0 10px 18px -12px rgba(0, 0, 0, 0.6) !important;
+  font-family: var(--grot); font-weight: 600; letter-spacing: -0.005em;
+  transition: transform 90ms ease-out, box-shadow 90ms ease-out, filter 0.15s !important;
+  filter: none;
+}
+.stamp:not(:disabled):hover, .btn.primary:hover, .btn.gold:hover, .ph-btn.gilt:hover, .cats-new:hover { filter: brightness(1.12); }
+.stamp:not(:disabled):active, .btn.primary:not(:disabled):active, .btn.gold:not(:disabled):active, .btn.ink:not(:disabled):active, .ph-btn.gilt:not(:disabled):active,
+.cats-new:active, .cats-btns .gilt:active, .acc-add button:active, .sheet-done:active, .notice-do:active {
+  transform: translateY(3px) !important; box-shadow: 0 0 0 var(--stamp-edge), 0 4px 10px -8px rgba(0, 0, 0, 0.5) !important; opacity: 1 !important;
+}
+.stamp { display: inline-flex; align-items: center; justify-content: center; gap: 9px; height: 48px; padding: 0 22px; border-radius: 999px; font-size: 15px; white-space: nowrap; }
+.stamp:disabled { opacity: 0.35; }
+.stamp.sm { height: 38px; padding: 0 16px; font-size: 13.5px; }
+
+/* ——— Sealing wax: sending a line ——— */
+.wax, .send, :root[data-phone] .send, .ph-send, .ar-box button {
+  background: var(--wax) !important; color: var(--wax-ink) !important;
+  border-radius: 47% 53% 50% 50% / 52% 48% 52% 48% !important;
+  box-shadow: 0 2px 0 var(--wax-edge), inset 0 0 0 2px rgba(255, 255, 255, 0.08), inset 0 -3px 0 rgba(0, 0, 0, 0.12) !important;
+  transition: transform 90ms ease-out, box-shadow 90ms, border-radius 0.4s var(--ease) !important;
+}
+.wax:not(:disabled):active, .send:not(:disabled):active, .ph-send:not(:disabled):active, .ar-box button:not(:disabled):active {
+  transform: translateY(2px) scale(0.96) !important; box-shadow: 0 0 0 var(--wax-edge), inset 0 0 0 2px rgba(255, 255, 255, 0.08) !important; border-radius: 50% !important; opacity: 1 !important;
+}
+.send:disabled, :root[data-phone] .send:disabled { background: var(--fill-2) !important; color: var(--ink-3) !important; box-shadow: none !important; }
+
+/* ——— Index-card chips: secondary choices ——— */
+.chip, .ph-chip, .td-chips button, .ob-examples button, .ch-acts button, .ar-sugg button, .ask-sugg button {
+  background: var(--card) !important; color: var(--ink) !important; border: 1px solid var(--chip-edge) !important; border-radius: 12px !important;
+  box-shadow: 0 2px 0 var(--chip-edge) !important; transition: transform 80ms ease-out, box-shadow 80ms !important;
+}
+.chip:active, .ph-chip:not(:disabled):active, .td-chips button:active, .ob-examples button:active, .ch-acts button:active {
+  transform: translateY(2px) !important; box-shadow: 0 0 0 var(--chip-edge) !important; background: var(--card) !important;
+}
+.ph-chip { border-style: solid !important; }
+.ph-chip:not(.usual) { font-style: italic; font-family: var(--serif); font-size: 15px; color: var(--ink-2) !important; }
+.ph-chips { -webkit-mask-image: linear-gradient(90deg, transparent, #000 12px, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(90deg, transparent, #000 12px, #000 calc(100% - 28px), transparent); padding-bottom: 3px; }
+.ch-acts button svg, .td-chips button svg { color: var(--sanguine) !important; }
+
+/* Segmented controls: an ink tab on paper. */
+.seg, .ch-seg, .cats-seg { background: var(--fill) !important; box-shadow: none !important; border-radius: 12px !important; }
+.seg button.on, .ch-seg button.on, .cats-seg button.on { background: var(--card) !important; color: var(--ink) !important; box-shadow: 0 2px 0 var(--chip-edge), 0 0 0 1px var(--chip-edge) !important; }
+.st-rooms-bar button.on { background: var(--stamp) !important; color: var(--stamp-ink) !important; box-shadow: none !important; }
+
+/* ——— Coins ——— */
+.medal { position: relative; display: inline-grid; place-items: center; flex: none; border-radius: 50%; }
+.medal svg { position: absolute; inset: 0; }
+.medal-face { fill: var(--metal); }
+.medal-rim { fill: none; stroke: var(--metal-line); stroke-width: 0.8; }
+.medal-mill { stroke: var(--metal-line); stroke-width: 0.7; }
+.medal b { position: relative; font: 600 1em/1 var(--serif); color: var(--metal-ink); letter-spacing: -0.02em; font-variant-numeric: lining-nums; }
+
+/* ——— Monograms: people and the book ——— */
+.mono, .avatar, .ph-book-face, .initial, .acc-rows .initial, .td-people .initial {
+  display: grid !important; place-items: center; flex: none; border-radius: 50% !important;
+  background: var(--card) !important; color: var(--ink) !important; font-family: var(--serif) !important; font-style: italic !important; font-weight: 500 !important;
+  box-shadow: inset 0 0 0 1px var(--ink-2), inset 0 0 0 3px var(--card), inset 0 0 0 3.8px var(--ink-4) !important;
+}
+.mono.wax { background: var(--wax) !important; color: var(--wax-ink) !important; box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.12), 0 2px 0 var(--wax-edge) !important; }
+.sidebar .avatar { background: var(--paper) !important; }
+
+/* ——— Pigment pans: categories ——— */
+.pigment {
+  display: grid; place-items: center; flex: none; border-radius: 11px 13px 10px 14px / 13px 10px 14px 11px;
+  background-color: var(--pg);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='80' height='80' filter='url(%23n)'/%3E%3C/svg%3E");
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.14), inset 0 -5px 8px -5px rgba(0, 0, 0, 0.3), inset 0 4px 6px -5px rgba(255, 255, 255, 0.35);
+}
+.pigment i { font: italic 500 1em/1 var(--serif); color: rgba(255, 250, 240, 0.9); text-shadow: 0 1px 0 rgba(0, 0, 0, 0.25); }
+.td-rows .sw { border-radius: 3px 2px 4px 2px; }
+
+/* ——— Places: the sidebar and the bottom rail ——— */
+.side-item.place.on { background: transparent !important; font-weight: 650; position: relative; }
+.side-item.place.on::before { content: ''; position: absolute; left: 0; top: 9px; bottom: 9px; width: 3px; border-radius: 2px; background: var(--sanguine); }
+.side-item.place.on svg, .side-sub svg { color: var(--sanguine) !important; }
+.side-item.place:hover { background: var(--fill); }
+.side-music svg { color: var(--sanguine) !important; }
+.ph-tabs button.on svg, .tabbar button.on svg { color: var(--ink) !important; }
+.ph-tabs button.on, .tabbar button.on { color: var(--ink) !important; position: relative; }
+.ph-tabs button.on::after, .tabbar button.on::after { content: '' !important; position: absolute; bottom: 3px !important; left: 50% !important; width: 18px !important; height: 3px !important; margin-left: -9px !important; border-radius: 2px !important; background: var(--sanguine) !important; }
+.ph-book { background: var(--card) !important; box-shadow: 0 2px 0 var(--chip-edge), 0 0 0 1px var(--chip-edge); }
+
+/* Links: ink with a drawn underline, not gold. */
+.td-link, .ph-link { color: var(--ink) !important; text-decoration: none !important; background: linear-gradient(var(--sanguine), var(--sanguine)) 0 100% / 100% 1.5px no-repeat; padding-bottom: 2px; }
+.td-link:hover, .ph-link:hover { background-size: 100% 2.5px; }
+
+/* Headline italics take the sanguine of the underdrawing. */
+.td-head h1 i, .td-h h2 i, .display em, .h2 em, .book-title i { color: var(--sanguine) !important; }
+.td-kicker { color: var(--sanguine) !important; }
+
+/* ——— Red chalk marks ——— */
+.chalk { position: absolute; pointer-events: none; overflow: visible; color: var(--sanguine); }
+.chalk path { fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; }
+.chalk-note { font: italic 400 14px/1.3 var(--serif); color: var(--sanguine); }
+
+/* ——— The miniature: a plain gilt slip, not a gradient ——— */
+.td-plate { background: #B8913F !important; box-shadow: inset 0 0 0 1px rgba(255, 240, 200, 0.4), inset 0 0 0 4px #A27C2E, 0 2px 0 rgba(0, 0, 0, 0.18), 0 22px 40px -22px rgba(40, 25, 5, 0.7) !important; }
+.td-count { color: var(--sanguine) !important; }
+.td-seals .seal { background: var(--wax) !important; color: var(--wax-ink) !important; box-shadow: 0 2px 0 var(--wax-edge) !important; border-radius: 47% 53% 50% 50% / 52% 48% 52% 48% !important; }
+.td-seals .seal.in { background: var(--metal) !important; color: var(--metal-ink) !important; box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2) !important; border-radius: 50% !important; }
+.td-ask { background: transparent !important; border: 1px dashed var(--chip-edge); }
+
+@media (prefers-reduced-motion: reduce) {
+  .stamp, .wax, .send, .chip, .ph-chip { transition: none !important; }
+}
+
+/* Today's one number, circled in chalk. */
+.td-ring { position: relative; display: inline-block; }
+.td-aday { display: inline-block; margin-left: 14px; font-size: 18px; transform: rotate(-4deg) translateY(-0.9em); }
+.ph-tabs button.on::before { display: none !important; }
+
+/* ——— The evening sitting ——— */
+.sit { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); min-height: 260px; margin: 0 0 28px; border-radius: 18px; overflow: hidden;
+  background: #17120C; color: #F6EEDC; box-shadow: 0 3px 0 rgba(0, 0, 0, 0.35), 0 30px 60px -30px rgba(40, 25, 5, 0.8); }
+.sit-art { position: relative; min-height: 220px; }
+.sit-art::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent 55%, #17120C); pointer-events: none; }
+.sit-body { padding: 26px 28px 24px 8px; display: flex; flex-direction: column; justify-content: center; }
+.sit-kicker { font: 600 11px/1 var(--grot); letter-spacing: .2em; text-transform: uppercase; color: #E39A7E; }
+.sit h2 { margin: 12px 0 8px; font: 330 clamp(28px, 3.4vw, 40px)/1.04 var(--serif); letter-spacing: -.03em; text-wrap: balance; }
+.sit h2 em { color: #E39A7E; }
+.sit p { margin: 0; font: 400 16px/1.45 var(--serif); color: rgba(246, 238, 220, .74); max-width: 380px; }
+.sit-acts { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 18px; }
+.sit .stamp { --stamp: #F6EEDC; --stamp-ink: #1A140D; --stamp-edge: #9C8A66; background: #F6EEDC !important; color: #1A140D !important; box-shadow: 0 3px 0 #9C8A66 !important; height: 46px; }
+.sit .stamp:active { box-shadow: 0 0 0 #9C8A66 !important; }
+.sit .chip { height: 46px; padding: 0 16px; font: italic 400 16px var(--serif); background: transparent !important; color: #F6EEDC !important; border-color: rgba(246, 238, 220, .3) !important; box-shadow: 0 2px 0 rgba(246, 238, 220, .18) !important; }
+.sit-undo { font: 500 13.5px var(--grot); color: rgba(246, 238, 220, .66); background: linear-gradient(rgba(246,238,220,.3), rgba(246,238,220,.3)) 0 100% / 100% 1px no-repeat; padding-bottom: 2px; }
+.sit .chalk { color: #E39A7E; }
+.td-empty-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.td-quiet { height: 38px; padding: 0 14px; font: italic 400 15px var(--serif); }
+
+/* ——— Discoveries ——— */
+.disc { padding: 22px 0 6px; }
+.disc .td-h h2 i { font-style: italic; }
+.disc-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 8px; }
+.disc-lens { display: grid; justify-items: center; gap: 10px; padding: 4px 0; text-align: center; }
+.disc-glass { position: relative; width: min(118px, 100%); aspect-ratio: 1; border-radius: 50%; background-color: var(--fill); background-repeat: no-repeat;
+  box-shadow: inset 0 0 0 1.5px var(--chip-edge); display: grid; place-items: center; transition: transform .25s var(--ease); }
+.disc-lens.on .disc-glass { box-shadow: 0 0 0 4px var(--card), 0 0 0 5.5px var(--ink-2), 0 3px 0 5.5px var(--ink-2), 0 18px 30px -16px rgba(40, 25, 5, .6); }
+.disc-lens.on:hover .disc-glass { transform: scale(1.04) rotate(-2deg); }
+.disc-lens:not(.on) .disc-glass { background-image: radial-gradient(circle, transparent 58%, var(--fill-2) 59%, transparent 61%); border: 1.5px dashed var(--chip-edge); box-shadow: none; }
+.disc-lock { font: italic 400 22px var(--serif); color: var(--ink-3); }
+.disc-t { font: 400 14.5px/1.25 var(--serif); color: var(--ink); max-width: 150px; }
+.disc-lens:not(.on) .disc-t { font: italic 400 13px var(--serif); color: var(--ink-3); }
+.disc-lens:disabled { cursor: default; opacity: 1; }
+
+.lens-scrim { position: fixed; inset: 0; z-index: 140; display: grid; place-items: center; padding: 18px; background: rgba(14, 10, 6, .72); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.lens-card { width: min(460px, 100%); max-height: calc(100dvh - 36px); overflow-y: auto; padding: 26px 26px 22px; border-radius: 22px; text-align: center; background: #EEE6D6; color: #2A2016;
+  box-shadow: 0 4px 0 #B9A887, 0 40px 90px -30px rgba(0, 0, 0, .9); }
+.lens-kicker { font: 600 11px/1 var(--grot); letter-spacing: .22em; text-transform: uppercase; color: #A8432A; }
+.lens-glass { width: min(300px, 74vw); aspect-ratio: 1; margin: 18px auto 20px; border-radius: 50%; background-repeat: no-repeat; background-color: #2A2016;
+  box-shadow: 0 0 0 8px #EEE6D6, 0 0 0 10px #2A2016, 0 6px 0 10px #2A2016, 0 30px 50px -20px rgba(40, 25, 5, .8); }
+.lens-card h3 { margin: 0; font: 400 28px/1.1 var(--serif); letter-spacing: -.02em; }
+.lens-card p { margin: 10px 0 0; font: 400 17px/1.5 var(--serif); color: rgba(42, 32, 22, .8); }
+.lens-label { display: grid; gap: 2px; margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(42, 32, 22, .14); font: 400 12.5px var(--grot); color: rgba(42, 32, 22, .6); }
+.lens-label i { font: italic 400 15px var(--serif); color: #2A2016; }
+.lens-close { margin-top: 18px; --stamp: #2A2016; }
+.lens-card .stamp { background: #2A2016 !important; color: #F6EEDC !important; box-shadow: 0 3px 0 #0F0B06 !important; }
+
+@container (max-width: 640px) {
+  .sit { grid-template-columns: 1fr; min-height: 0; }
+  .sit-art { min-height: 170px; height: 170px; }
+  .sit-art::after { background: linear-gradient(180deg, transparent 50%, #17120C); }
+  .sit-body { padding: 4px 18px 20px; }
+  .sit .stamp, .sit .chip { flex: 1; justify-content: center; }
+  .disc-row { gap: 8px; }
+  .disc-t { font-size: 13px; }
+}
+
+/* ——— People: who owes whom comes first; the painting follows as a plate ——— */
+.acc-head .kicker, .acc-body .numeral { color: var(--sanguine) !important; }
+.acc-head h1 i, .acc-folio h2 i { color: var(--sanguine) !important; }
+@media (max-width: 760px) {
+  .acc-folio > .acc-body { order: -1; }
+  .acc-folio > :not(.acc-body) { max-height: 180px; overflow: hidden; border-radius: 4px; }
+  .acc-head { margin-bottom: 18px; }
+}
+
+/* ——— Ask: letters on paper ——— */
+.ar-head h1 i { color: var(--sanguine) !important; }
+.ar-face { box-shadow: 0 0 0 3px var(--card), 0 0 0 4.5px var(--ink-2) !important; }
+.ar-ideas button { background: var(--card) !important; border: 1px solid var(--chip-edge) !important; border-radius: 12px !important; box-shadow: 0 2px 0 var(--chip-edge) !important; transition: transform 80ms, box-shadow 80ms; }
+.ar-ideas button:active { transform: translateY(2px); box-shadow: 0 0 0 var(--chip-edge) !important; }
+.ar-box { background: var(--card) !important; border: 1px solid var(--chip-edge) !important; box-shadow: 0 3px 0 var(--chip-edge), 0 18px 30px -22px rgba(40, 25, 5, .6) !important; }
+.ar-q { background: var(--stamp) !important; color: var(--stamp-ink) !important; }
+.ar-a { background: var(--card) !important; color: var(--ink) !important; box-shadow: 0 2px 0 var(--chip-edge), 0 0 0 1px var(--chip-edge) !important; }
+.ar-who { color: var(--sanguine) !important; }
+.ar-work-btn { color: var(--ink) !important; text-decoration-color: var(--sanguine) !important; }
+.st-wax, .ar-seal .st-wax { background: var(--wax) !important; box-shadow: 0 1.5px 0 var(--wax-edge) !important; border-radius: 47% 53% 50% 50% / 52% 48% 52% 48% !important; }
+.st-wax.cloud { background: var(--lapis) !important; box-shadow: 0 1.5px 0 #1A2E5A !important; }
+.st-wax.rules { background: var(--metal) !important; box-shadow: 0 1.5px 0 rgba(0,0,0,.25) !important; }
+
+/* Muse: where the answer is written, the on-device switch, the live reply and the estimate label. */
+.ar-kicker { font: 600 11px var(--grot, var(--ui)); letter-spacing: .14em; text-transform: uppercase; color: var(--sanguine); margin-bottom: 4px; }
+.ar-where { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 12px; margin: -8px 0 20px; padding: 10px 12px; border: 1px dashed var(--chip-edge); border-radius: 12px; font: 400 13px/1.4 var(--ui); color: var(--ink-2); }
+.ar-where .st-wax { width: 20px; height: 20px; font-size: 10px; }
+.ar-where-t { flex: 1 1 220px; }
+.ar-where.off { border-style: solid; background: color-mix(in srgb, var(--metal) 14%, transparent); }
+.st-wax.device { background: var(--wax) !important; box-shadow: 0 1.5px 0 var(--wax-edge) !important; }
+.ar-switch { display: inline-flex; align-items: center; gap: 8px; font: 500 13px var(--ui); color: var(--ink); padding: 6px 4px; min-height: 36px; }
+.ar-switch i { width: 30px; height: 18px; border-radius: 9px; background: var(--chip-edge); position: relative; transition: background .2s; flex: none; }
+.ar-switch i::after { content: ''; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: var(--card); box-shadow: 0 1px 2px rgba(0,0,0,.3); transition: transform .2s cubic-bezier(.3,1.4,.5,1); }
+.ar-switch.on i { background: var(--wax); }
+.ar-switch.on i::after { transform: translateX(12px); }
+.ar-caret { display: inline-block; width: 2px; height: 1em; margin-left: 2px; vertical-align: -2px; background: var(--sanguine); animation: ar-blink 1s steps(2) infinite; }
+@keyframes ar-blink { 50% { opacity: 0; } }
+.ar-est { display: block; margin: 0 0 10px; padding: 5px 10px; border-radius: 8px; font: italic 400 13px var(--serif); color: var(--ink-2); background: color-mix(in srgb, var(--metal) 22%, transparent); }
+@media (prefers-reduced-motion: reduce) { .ar-caret { animation: none; } }
+.set-val { font: 500 13.5px var(--ui); color: var(--ink-2); text-align: right; max-width: 220px; }

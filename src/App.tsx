@@ -96,17 +96,14 @@ export default function App() {
   useEffect(() => { if (sync.recovering) setSettingsPane('account'); }, [sync.recovering]);
 
   // ——— Theme & sound ———
-  const [systemDark, setSystemDark] = useState(() => window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false);
-  useEffect(() => {
-    const mq = window.matchMedia?.('(prefers-color-scheme: dark)');
-    const on = (e: MediaQueryListEvent) => setSystemDark(e.matches);
-    mq?.addEventListener('change', on);
-    return () => mq?.removeEventListener('change', on);
-  }, []);
-  const theme = state.settings.theme === 'auto' || !state.settings.theme ? (systemDark ? 'dark' : 'light') : state.settings.theme;
+  // By the hour: parchment by day, candlelight from seven in the evening until six.
+  const evening = () => { const h = new Date().getHours(); return h >= 19 || h < 6; };
+  const [candle, setCandle] = useState(evening);
+  useEffect(() => { const t = setInterval(() => setCandle(evening()), 60_000); return () => clearInterval(t); }, []);
+  const theme = state.settings.theme === 'auto' || !state.settings.theme ? (candle ? 'dark' : 'light') : state.settings.theme;
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'dark' ? (phone ? '#17120C' : '#14110D') : phone ? '#EEE6D6' : '#F6F2E8');
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'dark' ? '#17120C' : '#EEE6D6');
   }, [theme, phone]);
   useEffect(() => setSound(state.settings.sound), [state.settings.sound]);
   // Back from Spotify's sign-in page (web): finish linking, then show the Music pane.
@@ -580,7 +577,7 @@ export default function App() {
       { label: 'Chapter', kbd: kbd('5'), checked: view === 'chapter', action: goView('chapter') },
       { label: 'Gallery', checked: view === 'collection', action: goView('collection') },
       'sep',
-      ...(['auto', 'light', 'dark'] as const).map((t) => ({ label: t === 'auto' ? 'Match system' : t === 'light' ? 'Light' : 'Dark', checked: (state.settings.theme ?? 'auto') === t, action: () => dispatch({ type: 'settings', patch: { theme: t } }) })),
+      ...(['auto', 'light', 'dark'] as const).map((t) => ({ label: t === 'auto' ? 'By the hour' : t === 'light' ? 'Parchment' : 'Candlelight', checked: (state.settings.theme ?? 'auto') === t, action: () => dispatch({ type: 'settings', patch: { theme: t } }) })),
     ] },
     { title: 'Chapter', items: [
       { label: 'Previous month', kbd: kbd('['), action: () => setMonth(shiftMonth(state.month, -1)) },

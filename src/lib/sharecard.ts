@@ -72,7 +72,7 @@ export function cardFacts(state: State, month = state.month, title?: Seg[]) {
   const s = computeStats(state.entries, month);
   const ch = chapterOf(state, s);
   const painting = paintingOf(s);
-  const r = restorationOf(state.entries, month);
+  const r = restorationOf(state.entries, month, state.quiet);
   const spendCats = s.byCat.filter((c) => cat(c.id).nature !== 'save');
   const top = spendCats[0];
   const candle = candleOf(state.entries);
