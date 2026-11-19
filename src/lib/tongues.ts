@@ -213,7 +213,7 @@ const THINGS: [string, Dir, string][] = [
   ['shopping', 'out', 'zapatos ropa chaussures vetements tenis roupa sapato 衣服 鞋 服 靴 옷 신발 कपड़े जूते kapde حذاء ملابس viatu nguo'],
   ['tech', 'out', 'celular telephone portable 手机 スマホ 폰 फोन موبايل simu'],
   ['fun', 'out', 'cine cinema 电影 电影票 映画 영화 फिल्म سينما'],
-  ['education', 'out', 'escuela colegiatura ecole escola 学费 学費 학원 등록금 फीस مدرسة ada shule'],
+  ['education', 'out', 'escuela colegiatura ecole escola 学费 学費 학원 등록금 फीस مدرسة shule'],
   ['giving', 'out', 'mama papa regalo maman cadeau mae pai presente 妈 爸 红包 母 父 엄마 아빠 친구 मम्मी पापा mummy امي لامي ابي baba'],
   ['salary', 'in', 'sueldo salario nomina quincena pagaron pagaram salaire paie 工资 工資 薪水 給料 給与 バイト代 월급 급여 알바비 सैलरी तनख्वाह वेतन راتب الراتب مرتب المرتب معاش mshahara nimelipwa'],
   ['trade', 'in', 'vendi vendu ventas vendas 卖 賣 売 팔았 बेचा बेची becha bechi بعت nimeuza niliuza mauzo faida'],

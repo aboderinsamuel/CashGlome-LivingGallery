@@ -27,6 +27,8 @@ const SEAL: Record<MuseAnswer['planned'], [string, string]> = {
 export function loadTurns(): AskTurn[] {
   try { return (JSON.parse(localStorage.getItem(KEY) ?? '[]') as AskTurn[]).filter((t) => t.a).slice(-30); } catch { return []; }
 }
+/** One question at a time, across every copy of the room: a second tap or a re-run effect can't ask it again. */
+let asking = false;
 const saveTurns = (t: AskTurn[]) => { try { localStorage.setItem(KEY, JSON.stringify(t.filter((x) => x.a).slice(-30))); } catch { /* the conversation still works */ } };
 
 /** Questions worth asking, from what is actually written, and one that isn't about money at all. */
@@ -71,19 +73,32 @@ export function AskRoom({ state, turns, setTurns, first, onFirstDone }: { state:
 
   const ask = async (q: string) => {
     q = q.trim();
-    if (!q || busy) return;
+    if (!q || busy || asking) return;
+    asking = true;
     setText(''); setBusy(true); setLive('');
     try { navigator.vibrate?.(8); } catch { /* none */ }
     const history = turns.map((t) => ({ q: t.q, a: t.a }));
-    setTurns((t) => [...t, { q, a: null, at: Date.now() }]);
+    const at = Date.now();
+    setTurns((t) => [...t, { q, a: null, at }]);
     let a: MuseAnswer;
     try { a = await askMuse(state, q, history, { name: sitter.name, role: sitter.role, painting: p.title, artist: p.artist, year: p.year }, setLive); }
     catch { a = { text: 'I lost my train of thought. Ask me again in a moment.', figures: [], rows: [], planned: 'rules', wordsBy: 'app' }; }
-    setTurns((t) => { const next = [...t.slice(0, -1), { q, a, at: Date.now() }]; saveTurns(next); return next; });
-    setBusy(false); setLive('');
+    // The answer goes to its own question, found by when it was asked, never simply the last one.
+    setTurns((t) => { const next = t.map((x) => (x.at === at && !x.a ? { q, a, at: Date.now() } : x)); saveTurns(next); return next; });
+    setBusy(false); setLive(''); asking = false;
   };
 
-  useEffect(() => { if (first) { onFirstDone(); void ask(first); } }, [first]); // eslint-disable-line react-hooks/exhaustive-deps
+  // A question left unanswered (the room was closed mid-answer) is dropped, not left thinking forever.
+  useEffect(() => { if (!asking) setTurns((t) => (t.some((x) => !x.a) ? t.filter((x) => x.a) : t)); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // A question handed over from another page (How is this counted?, a chip): asked once. If it was just asked
+  // and answered, the room shows that answer again instead of asking a second time.
+  useEffect(() => {
+    if (!first) return;
+    onFirstDone();
+    const q = first.trim(), last = turns[turns.length - 1];
+    if (last && last.q === q && Date.now() - last.at < 10 * 60_000) return;
+    void ask(q);
+  }, [first]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { end.current?.scrollIntoView({ block: 'end', behavior: 'smooth' }); }, [turns, live.length > 0]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { const el = input.current; if (!el) return; el.style.height = 'auto'; el.style.height = Math.min(120, el.scrollHeight) + 'px'; }, [text]);
 
