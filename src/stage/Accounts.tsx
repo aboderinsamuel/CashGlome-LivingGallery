@@ -20,8 +20,16 @@ function Vignette({ id, focus = '50% 40%' }: { id: string; focus?: string }) {
   );
 }
 
-/** People: who owes whom, and the savings circles you belong to. */
-export function PeoplePage({ state, dispatch }: { state: State; dispatch: Dispatch<Action> }) {
+const DEBT_EXAMPLES = ['lent Ada 5k', 'borrowed 10k from Tunde', 'split dinner 12k with Mei', 'Ada paid back 2k'];
+
+/** A line you can tap: it goes into the writing bar, ready to change and send. */
+function Example({ text, onFill }: { text: string; onFill: (t: string) => void }) {
+  return <button type="button" className="acc-ex" onMouseDown={(e) => e.preventDefault()} onClick={() => onFill(text)}>“{text}”</button>;
+}
+
+/** People: who owes whom, and the savings circles you belong to. Nothing here is a form: every change is a line
+ *  in the book, written in the bar below. The buttons only start the line for you. */
+export function PeoplePage({ state, dispatch, onFill }: { state: State; dispatch: Dispatch<Action>; onFill: (t: string) => void }) {
   const cur = state.profile.currency;
   const m = (n: number) => money(n, cur);
   const today = todayISO();
@@ -29,6 +37,7 @@ export function PeoplePage({ state, dispatch }: { state: State; dispatch: Dispat
   const circles = useMemo(() => (state.circles ?? []).map((c) => circleStatus(c, state.entries, today)), [state.circles, state.entries, today]);
   const [circleLine, setCircleLine] = useState('');
   const [circleErr, setCircleErr] = useState('');
+  const [open, setOpen] = useState<string | null>(null);
 
   const addCircle = () => {
     const c = readCircle(circleLine, today);
@@ -42,7 +51,7 @@ export function PeoplePage({ state, dispatch }: { state: State; dispatch: Dispat
       <header className="acc-head">
         <div className="kicker">{dateInWords()}</div>
         <h1>People <i>&amp; circles</i></h1>
-        <p>Written the way you’d say it, “lent Ada 5k” or “split dinner 12k with Mei”, and kept here without a form.</p>
+        <p>Write it in the bar below, the way you’d say it. This page keeps itself: who owes whom, and the circles you save with.</p>
       </header>
       {/* II. People */}
       <section className="acc-folio">
@@ -54,17 +63,43 @@ export function PeoplePage({ state, dispatch }: { state: State; dispatch: Dispat
             <>
               <p className="acc-note">{owedToYou > 0 && <>Owed to you: <b>{m(owedToYou)}</b>. </>}{youOwe > 0 && <>You owe: <b>{m(youOwe)}</b>.</>}{!owedToYou && !youOwe && 'Everyone is square.'}</p>
               <ul className="acc-rows">
-                {people.map((p) => (
-                  <li key={p.name}>
-                    <span className="initial" aria-hidden>{p.name[0]}</span>
-                    <span className="who">{p.name}<small>{p.lines[p.lines.length - 1].text}</small></span>
-                    <span className={`amt ${p.net > 0 ? 'owed' : p.net < 0 ? 'owe' : ''}`}>{p.net === 0 ? 'Square' : p.net > 0 ? `owes you ${m(p.net)}` : `you owe ${m(-p.net)}`}</span>
-                  </li>
-                ))}
+                {people.map((p) => {
+                  const isOpen = open === p.name;
+                  return (
+                    <li key={p.name} className={'acc-person' + (isOpen ? ' open' : '')}>
+                      <button type="button" className="acc-person-row" aria-expanded={isOpen} onClick={() => setOpen(isOpen ? null : p.name)}>
+                        <span className="initial" aria-hidden>{p.name[0]}</span>
+                        <span className="who">{p.name}<small>{p.lines[p.lines.length - 1].text}</small></span>
+                        <span className={`amt ${p.net > 0 ? 'owed' : p.net < 0 ? 'owe' : ''}`}>{p.net === 0 ? 'Square' : p.net > 0 ? `owes you ${m(p.net)}` : `you owe ${m(-p.net)}`}</span>
+                        <span className="acc-chev" aria-hidden>›</span>
+                      </button>
+                      {isOpen && (
+                        <div className="acc-person-more">
+                          <ol className="acc-history" aria-label={`Everything with ${p.name}`}>
+                            {[...p.lines].reverse().map((l, i) => (
+                              <li key={i}><span className="d">{relDay(l.date)}</span><span className="t">{l.text}</span><span className="v">{l.delta > 0 ? `+${m(l.delta)}` : `−${m(-l.delta)}`}</span></li>
+                            ))}
+                          </ol>
+                          <div className="acc-acts">
+                            {p.net > 0 && <button type="button" className="btn primary" onClick={() => onFill(`${p.name} paid back `)}>{p.name} paid me back…</button>}
+                            {p.net < 0 && <button type="button" className="btn primary" onClick={() => onFill(`paid ${p.name} back `)}>I paid {p.name} back…</button>}
+                            {p.net >= 0 && <button type="button" className="btn" onClick={() => onFill(`lent ${p.name} `)}>Lent {p.name} more…</button>}
+                            {p.net <= 0 && <button type="button" className="btn" onClick={() => onFill(`borrowed from ${p.name} `)}>Borrowed from {p.name}…</button>}
+                          </div>
+                          <p className="acc-hint">The line goes into the bar below. Add the amount and send it.</p>
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
+              <p className="acc-hint">Someone new? Write it in the bar below, for example {DEBT_EXAMPLES.slice(0, 2).map((x, i) => <span key={x}>{i ? ' or ' : ''}<Example text={x} onFill={onFill} /></span>)}.</p>
             </>
           ) : (
-            <p className="acc-empty">Write it as you’d say it: “lent Ada 5k”, “borrowed 10k from Tunde”, “split dinner 12k with Mei”, “Ada paid back 2k”. The book keeps itself.</p>
+            <>
+              <p className="acc-empty">Nobody owes anybody yet. Write a loan in the bar below the way you’d say it, and the person appears here with a running balance. Tap one to try it:</p>
+              <div className="acc-exs">{DEBT_EXAMPLES.map((x) => <Example key={x} text={x} onFill={onFill} />)}</div>
+            </>
           )}
         </div>
       </section>
@@ -85,11 +120,13 @@ export function PeoplePage({ state, dispatch }: { state: State; dispatch: Dispat
               <div className="info">
                 <div className="name">{s.circle.name} <small>{m(s.circle.contribution)} a {s.circle.every}, {s.circle.members} people</small></div>
                 <div className="line">{s.payoutDone ? `You took the pot of ${m(s.pot)} ${relDay(s.payoutDate)}.` : `Your turn: round ${s.circle.myTurn}, ${relDay(s.payoutDate)}. The pot will be ${m(s.pot)}.`}</div>
-                <div className="line soft">{s.paidIn >= s.expected ? `Paid in ${m(s.paidIn)}, up to date.` : `Paid in ${m(s.paidIn)} of ${m(s.expected)} so far. Write “${s.circle.name.toLowerCase()} ${m(s.circle.contribution)}” when you pay.`}</div>
+                <div className="line soft">{s.paidIn >= s.expected ? `Paid in ${m(s.paidIn)}, up to date.` : `Paid in ${m(s.paidIn)} of ${m(s.expected)} so far.`}</div>
+                <button type="button" className="btn acc-paid" onClick={() => onFill(`${s.circle.name.toLowerCase()} ${m(s.circle.contribution)}`)}>Paid this round…</button>
               </div>
               <button className="acc-x" onClick={() => dispatch({ type: 'removeCircle', id: s.circle.id })} aria-label={`Remove ${s.circle.name}`}>×</button>
             </div>
           ))}
+          {!circles.length && <p className="acc-hint">Describe your circle once, in a line like the one below. When you pay in, tap Paid this round, or write “ajo 20k” in the bar.</p>}
           <form className="acc-add" onSubmit={(e) => { e.preventDefault(); addCircle(); }}>
             <input value={circleLine} onChange={(e) => setCircleLine(e.target.value)} placeholder="Ajo of 10 people, 20k monthly, my turn is 4th" aria-label="Describe a savings circle" />
             <button type="submit" disabled={!circleLine.trim()}>Keep</button>

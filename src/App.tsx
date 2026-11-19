@@ -488,7 +488,7 @@ export default function App() {
             {view === 'ledger' && <><Ledger state={state} dispatch={dispatch} filter={filter} setFilter={setFilter} query={query} onAttach={(e) => setCapture({ file: null, attach: e })} /><LedgerReports state={state} /></>}
             {view === 'ask' && <AskRoom state={state} turns={askTurns} setTurns={setAskTurns} first={askFirst} onFirstDone={() => setAskFirst(null)} />}
             {view === 'plans' && <Plans state={state} dispatch={dispatch} />}
-            {(view === 'people' || view === 'accounts') && <PeoplePage state={state} dispatch={dispatch} />}
+            {(view === 'people' || view === 'accounts') && <PeoplePage state={state} dispatch={dispatch} onFill={(t) => composer.current?.fill(t)} />}
             {view === 'memory' && <MemoryView state={state} dispatch={dispatch} notify={(text, undo) => setNotice({ text, undo: undo ? () => { undo(); setNotice(null); } : undefined })} />}
             {view === 'play' && <Play state={state} />}
             {view === 'collection' && <Collection state={state} onOpen={(m) => { setMonth(m); setView('chapter'); }} onCamera={() => setCapture({ file: null })} onPlay={goView('play')} />}
@@ -542,7 +542,7 @@ export default function App() {
         today: <Today state={state} dispatch={dispatch} voice={voice} onVoiceDone={clearVoice} onFill={(t) => composer.current?.fill(t)} onLedger={goView('ledger')} onPeople={goView('people')} onAsk={askAbout} onPainting={goView('chapter')} onEdit={() => setView('ledger')} onPlay={goView('play')} />,
         ledger: <><Ledger state={state} dispatch={dispatch} filter={filter} setFilter={setFilter} query={query} onAttach={(e) => setCapture({ file: null, attach: e })} /><LedgerReports state={state} /></>,
         ask: <AskRoom state={state} turns={askTurns} setTurns={setAskTurns} first={askFirst} onFirstDone={() => setAskFirst(null)} />,
-        people: <PeoplePage state={state} dispatch={dispatch} />,
+        people: <PeoplePage state={state} dispatch={dispatch} onFill={(t) => composer.current?.fill(t)} />,
         play: <Play state={state} />,
         collection: <Collection state={state} onOpen={(m) => { setMonth(m); setView('chapter'); }} onCamera={() => setCapture({ file: null })} onPlay={goView('play')} />,
         read: <Chapter state={state} dispatch={dispatch} museChapter={muse[state.month] ?? null} onOpenCategory={(id) => { setFilter(id); setView('ledger'); }} onEdition={() => setEdition(true)} onWrite={(h) => composer.current?.fill(h ?? '')} onPlans={goView('plans')} onGallery={goView('collection')} onSay={() => composer.current?.speak()} onSnap={() => setCapture({ file: null })} onShare={() => setSharing(true)} />,
