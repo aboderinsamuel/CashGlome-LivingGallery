@@ -137,23 +137,29 @@ export function spaceSegs(segs: Seg[]): Seg[] {
 }
 
 export const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
-const TITLES: Record<string, [string, string, string]> = {
-  dining: ['A month of ', 'full tables', '.'],
-  fun: ['A month of ', 'nights out', '.'],
-  giving: ['A month spent ', 'on other people', '.'],
-  transport: ['A month ', 'on the move', '.'],
-  travel: ['A month ', 'away from home', '.'],
-  shopping: ['A month of ', 'new things', '.'],
-  tech: ['A month of ', 'new tools', '.'],
-  subscriptions: ['A month of ', 'small renewals', '.'],
-  betting: ['A month of ', 'long odds', '.'],
-  education: ['A month of ', 'learning', '.'],
-  selfcare: ['A month of ', 'looking after yourself', '.'],
-  rent: ['A month of ', 'keeping the lights on', '.'],
-  bills: ['A month of ', 'keeping the lights on', '.'],
-  groceries: ['A month of ', 'full cupboards', '.'],
-  health: ['A month of ', 'getting well', '.'],
+/** Three titles for each kind of month. Which one a month gets is set by its place in the calendar,
+ *  so two months alike in a row still read as two chapters, and a title never changes as you write. */
+const TITLES: Record<string, [string, string, string][]> = {
+  dining: [['A month of ', 'full tables', '.'], ['A month of ', 'good company', '.'], ['A month ', 'eaten out', '.']],
+  fun: [['A month of ', 'nights out', '.'], ['A month of ', 'small pleasures', '.'], ['A month ', 'well spent on joy', '.']],
+  giving: [['A month spent ', 'on other people', '.'], ['A month of ', 'open hands', '.'], ['A month of ', 'gifts', '.']],
+  transport: [['A month ', 'on the move', '.'], ['A month of ', 'many roads', '.'], ['A month ', 'between places', '.']],
+  travel: [['A month ', 'away from home', '.'], ['A month of ', 'far places', '.'], ['A month ', 'on the road', '.']],
+  shopping: [['A month of ', 'new things', '.'], ['A month at ', 'the market', '.'], ['A month of ', 'things chosen', '.']],
+  tech: [['A month of ', 'new tools', '.'], ['A month of ', 'better machines', '.'], ['A month ', 'at the workbench', '.']],
+  subscriptions: [['A month of ', 'small renewals', '.'], ['A month of ', 'quiet standing orders', '.'], ['A month of ', 'things that come back', '.']],
+  betting: [['A month of ', 'long odds', '.'], ['A month of ', 'chances taken', '.'], ['A month ', 'at the card table', '.']],
+  education: [['A month of ', 'learning', '.'], ['A month ', 'with books open', '.'], ['A month of ', 'lessons', '.']],
+  selfcare: [['A month of ', 'looking after yourself', '.'], ['A month of ', 'gentle care', '.'], ['A month ', 'kept for you', '.']],
+  rent: [['A month of ', 'keeping the lights on', '.'], ['A month of ', 'a roof and a door', '.'], ['A month ', 'at home', '.']],
+  bills: [['A month of ', 'keeping the lights on', '.'], ['A month of ', 'dues paid', '.'], ['A month of ', 'the household books', '.']],
+  groceries: [['A month of ', 'full cupboards', '.'], ['A month of ', 'the kitchen', '.'], ['A month of ', 'bread and salt', '.']],
+  health: [['A month of ', 'getting well', '.'], ['A month of ', 'mending', '.'], ['A month ', 'of rest and remedies', '.']],
+  ahead: [['A month that ran ', 'ahead of itself', '.'], ['A month ', 'a little over', '.'], ['A month that ', 'borrowed from the next', '.']],
+  discipline: [['A month of ', 'quiet discipline', '.'], ['A month ', 'put by', '.'], ['A month of ', 'a steady hand', '.']],
 };
+/** Which of the three titles a month takes: its place in the calendar, so neighbours always differ. */
+const variantOf = (month: string) => (Number(month.slice(0, 4)) * 12 + Number(month.slice(5, 7)) - 1) % 3;
 
 /** A number in Roman numerals, for any count of chapters. */
 export function toRoman(n: number) {
@@ -176,15 +182,13 @@ export function chapterOf(state: State, s: Stats): Chapter {
   if (!s.entries.length) {
     return { numeral, character, title: [{ t: 'A ' }, { t: 'blank page', em: true }, { t: '.' }], lede: s.isCurrent ? `Nothing written for ${mon} yet. Start with anything that came in or went out today, in your own words.` : `Nothing was written in ${mon}.` };
   }
-  let title: Seg[];
   const topWant = s.byCat.find((c) => cat(c.id).nature !== 'save' && c.id !== 'other');
-  if (s.inflow > 0 && s.outflow > s.inflow * 1.05) title = [{ t: 'A month that ran ' }, { t: 'ahead of itself', em: true }, { t: '.' }];
-  else if (s.inflow > 0 && s.savingsRate >= 0.45 && s.dayOfMonth > 12) title = [{ t: 'A month of ' }, { t: 'quiet discipline', em: true }, { t: '.' }];
-  else {
-    const key = topWant && topWant.id === 'rent' ? (s.byCat.find((c) => !['rent', 'savings', 'bills', 'other'].includes(c.id))?.id ?? 'rent') : topWant?.id ?? 'rent';
-    const t = TITLES[key] ?? TITLES.rent;
-    title = [{ t: t[0] }, { t: t[1], em: true }, { t: t[2] }];
-  }
+  let key: string;
+  if (s.inflow > 0 && s.outflow > s.inflow * 1.05) key = 'ahead';
+  else if (s.inflow > 0 && s.savingsRate >= 0.45 && s.dayOfMonth > 12) key = 'discipline';
+  else key = topWant && topWant.id === 'rent' ? (s.byCat.find((c) => !['rent', 'savings', 'bills', 'other'].includes(c.id))?.id ?? 'rent') : topWant?.id ?? 'rent';
+  const t = (TITLES[key] ?? TITLES.rent)[variantOf(s.month)];
+  const title: Seg[] = [{ t: t[0] }, { t: t[1], em: true }, { t: t[2] }];
   const past = !s.isCurrent;
   const parts: string[] = [];
   if (s.inflow) parts.push(`${past ? `In ${mon} you brought in` : `So far this ${mon} you've brought in`} ${m(s.inflow)} and ${past ? 'let' : "let"} ${m(s.spend)} go${s.vault ? `, with ${m(s.vault)} put aside` : ''}.`);

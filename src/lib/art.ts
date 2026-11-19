@@ -1,5 +1,5 @@
 import { cat } from './categories';
-import { computeStats, characterOf, goalEta, projection, type Stats } from './analytics';
+import { computeStats, goalEta, projection, type Stats } from './analytics';
 import { money, monthOf, todayISO } from './format';
 import type { Entry, State } from './types';
 
@@ -82,25 +82,20 @@ export const artSrc = (id: string, size: 'sm' | 'md' | 'lg' = 'lg') => (size ===
 /** For <img srcSet>: the browser picks the smallest file that is sharp at the size shown. */
 export const artSet = (id: string) => `./art/md/${id}.jpg 960w, ./art/${id}.jpg 1800w`;
 
-const BY_CHARACTER: Record<string, string> = {
-  beginner: 'hare', saver: 'moneylender', overreacher: 'icarus', host: 'wedding', giver: 'magi', homebody: 'arnolfini',
-  commuter: 'census', collector: 'gisze', subscriber: 'matthew', nightowl: 'carnival', risktaker: 'cardsharps', explorer: 'hunters', student: 'athens',
-};
-const HUNG_BY_CALENDAR_FROM = '2026-11';
-/** January to December: snow scenes in winter, harvest in August, the counting-house when the year's books close. */
-const CALENDAR = ['census', 'arnolfini', 'babel', 'athens', 'wedding', 'icarus', 'goldsmith', 'harvesters', 'gisze', 'matthew', 'moneylender', 'hunters'];
-/** Odd years swap in the paintings the calendar leaves out, so two years bring all sixteen. */
-const ALTERNATE: (string | undefined)[] = ['magi', 'carnival', undefined, undefined, undefined, 'cardsharps', undefined, undefined, 'hare', undefined, undefined, undefined];
-/** The painting a month is restored into. */
-export function paintingOf(s: Stats): Painting {
-  // From November 2026 a month has one painting from its first day to its last, hung by the calendar.
-  // (Before, it followed the month's character, so it could change under you as you wrote. Months written
-  // under that rule keep the painting they were given.)
-  if (s.month >= HUNG_BY_CALENDAR_FROM) {
-    const y = Number(s.month.slice(0, 4)), m = Number(s.month.slice(5, 7)) - 1;
-    return PAINTINGS[(y % 2 ? ALTERNATE[m] : undefined) ?? CALENDAR[m]];
-  }
-  return PAINTINGS[BY_CHARACTER[characterOf(s).id] ?? 'moneylender'];
+/** The order paintings are hung in, one per month, with no painting twice until the whole library has hung.
+ *  November 2026 is the first entry; each month after takes the next, each month before the one before it.
+ *  Add new paintings to the END only: anything earlier would re-hang months people have already restored. */
+export const HANGING: string[] = [
+  'moneylender', 'hunters', 'qingming', 'census', 'arnolfini', 'mitsui', 'babel', 'athens', 'wave', 'wedding', 'icarus', 'hiroshige', 'goldsmith', 'harvesters', 'ssireum', 'gisze', 'matthew', 'jumak', 'magi', 'carnival', 'danopungjeong', 'cardsharps', 'hare', 'babur', 'teniers', 'taxcollectors', 'ravivarma', 'moneychanger', 'gayumars', 'milkmaid', 'balance', 'tortoise', 'littlestreet', 'meatstall', 'nebamunpool', 'kitchen', 'proverbs', 'fierro', 'games', 'syndics', 'election', 'luxury', 'peeters', 'furtraders', 'heda', 'eggs', 'peasantdance', 'meninas', 'grapes', 'gleaners', 'market', 'cheat', 'courtyard', 'ambassadors', 'beaneater', 'fishmarket', 'butcher',
+];
+const FIRST_HUNG = 2026 * 12 + 10; // November 2026
+
+/** The painting a month is restored into: fixed by the calendar alone, so it never changes as you write,
+ *  two months side by side never share one, and every painting hangs once before any comes round again. */
+export function paintingOf(s: Stats | { month: string }): Painting {
+  const n = Number(s.month.slice(0, 4)) * 12 + Number(s.month.slice(5, 7)) - 1 - FIRST_HUNG;
+  const L = HANGING.length;
+  return PAINTINGS[HANGING[((n % L) + L) % L]];
 }
 
 export const WALLPAPERS = ['hunters', 'harvesters', 'babel', 'census', 'wedding', 'moneylender', 'icarus', 'athens'];
