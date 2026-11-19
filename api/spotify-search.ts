@@ -3,6 +3,8 @@
 // Set SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET in the Vercel project (Settings → Environment Variables).
 // Without them it answers 501, and the app offers Spotify's own search instead.
 
+declare const process: { env: Record<string, string | undefined> };
+
 type Kind = 'track' | 'album' | 'artist' | 'playlist';
 export interface Hit { kind: Kind; id: string; name: string; by: string; image?: string; url: string }
 
