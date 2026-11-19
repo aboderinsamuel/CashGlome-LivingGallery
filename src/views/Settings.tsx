@@ -8,6 +8,7 @@ import { CURRENCIES, currencySymbol } from '../lib/format';
 import { demoEntries } from '../lib/demo';
 import { exportState, importState, type Action } from '../lib/store';
 import type { State } from '../lib/types';
+import { MusicSearch } from '../components/MusicSearch';
 import { Icon } from '../components/Icons';
 import { Account } from '../components/Account';
 import { AppIcon } from '../components/Logo';
@@ -263,12 +264,15 @@ function Music({ state, dispatch }: { state: State; dispatch: (a: Action) => voi
         )}
       </Group>
       <div className="label" style={{ margin: '0 4px 8px' }}>What plays</div>
-      <Group note="Music plays in Spotify's own player, from Music in the sidebar. Paste any playlist, album or song you like.">
-        <Row label="Play music while you write" sub={valid ? 'Turn it off any time.' : 'Paste a link or pick one below.'}>
+      <Group note="Music plays in Spotify's own player, from Music in the sidebar. Search for anything on Spotify, or paste a link from the Spotify app.">
+        <Row label="Play music while you write" sub={valid ? 'Turn it off any time.' : 'Search for something below, or pick a quiet one.'}>
           <Toggle label="Play music" on={!!m.on && valid} set={(v) => (valid ? set({ on: v }) : setErr('Paste a Spotify link or pick one below first.'))} />
         </Row>
+        <div style={{ padding: '10px 14px', borderTop: '1px solid var(--line)', marginTop: -1 }}>
+          <MusicSearch current={m.on ? m.url : undefined} onPick={(url) => use(url)} />
+        </div>
         <form onSubmit={(e) => { e.preventDefault(); use(text); }} style={{ display: 'flex', gap: 8, padding: '8px 14px', borderTop: '1px solid var(--line)', marginTop: -1 }}>
-          <input className="field" style={{ flex: 1, minWidth: 0 }} placeholder="Paste a Spotify link (playlist, album or song)" value={text} onChange={(e) => setText(e.target.value)} spellCheck={false} />
+          <input className="field" style={{ flex: 1, minWidth: 0 }} placeholder="Or paste a Spotify link" value={text} onChange={(e) => setText(e.target.value)} spellCheck={false} />
           <button className="btn" disabled={!text.trim()}>Use</button>
         </form>
         {err && <div className="small" style={{ color: 'var(--rust)', padding: '0 14px 10px' }}>{err}</div>}

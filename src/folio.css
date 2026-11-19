@@ -550,3 +550,28 @@
 .music-sign { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
 .music-sign .small { flex: 1 1 200px; }
 .music-note { margin-top: 8px; }
+
+/* Music search: a quiet field, results with their artwork, Play on the right. */
+.ms { display: grid; gap: 8px; }
+.ms.compact { margin-bottom: 10px; }
+.ms-field { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px; border-radius: 12px; background: var(--field, rgba(0,0,0,.04)); border: 1px solid var(--line, rgba(0,0,0,.12)); color: var(--ink-3, inherit); }
+.ms-field:focus-within { border-color: var(--gold, #B8892E); box-shadow: 0 0 0 3px rgba(184,137,46,.18); }
+.ms-field input { flex: 1; min-width: 0; height: 100%; border: 0; outline: 0; background: transparent; color: var(--ink, inherit); font: 500 14px var(--grot, inherit); }
+.ms-clear { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; color: inherit; }
+.ms-busy { width: 14px; height: 14px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: ms-spin .8s linear infinite; }
+@keyframes ms-spin { to { transform: rotate(360deg); } }
+.ms-hits { list-style: none; margin: 0; padding: 0; display: grid; max-height: 300px; overflow: auto; border-radius: 12px; }
+.ms.compact .ms-hits { max-height: 220px; }
+.ms-hits button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 6px 8px; border-radius: 10px; text-align: left; color: var(--ink, inherit); }
+.ms-hits button:hover, .ms-hits button:focus-visible { background: rgba(184,137,46,.12); }
+.ms-hits img, .ms-noart { width: 38px; height: 38px; flex: none; border-radius: 6px; object-fit: cover; }
+.ms-hits img.round { border-radius: 50%; }
+.ms-noart { display: grid; place-items: center; background: rgba(0,0,0,.08); }
+.ms-t { flex: 1; min-width: 0; display: grid; }
+.ms-t b, .ms-t span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ms-t b { font: 600 13.5px var(--grot, inherit); }
+.ms-t span { font: 500 12px var(--grot, inherit); opacity: .7; }
+.ms-play { font: 650 12px var(--grot, inherit); color: var(--gold, #B8892E); }
+.ms-say { margin: 0; }
+.ms-off { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ms-off .small { flex: 1 1 220px; }
