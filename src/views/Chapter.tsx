@@ -82,7 +82,7 @@ export function Chapter({ state, dispatch, museChapter, onOpenCategory, onEditio
           <motion.p className="lede" style={{ marginTop: 26 }} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.06, duration: 0.4, ease }}>
             {ch.lede}
           </motion.p>
-          <p className="purpose">Each month of your book is a chapter: a story of where the money went, and a painting under old varnish. Every line you write cleans one of its 30 patches.</p>
+          <p className="purpose">Each month is a chapter: where the money went, and a painting under old varnish.</p>
           {empty && s.isCurrent && (
             <motion.div className="starts" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12, duration: 0.35 }}>
               <button className="start" onClick={() => onWrite(cur === 'NGN' ? 'Lunch 3,500' : 'Lunch 14')}><Icon.list size={22} /><b>Type</b><span>{cur === 'NGN' ? '“Lunch 3,500”' : '“Lunch 14”'}</span></button>
@@ -186,7 +186,7 @@ export function Chapter({ state, dispatch, museChapter, onOpenCategory, onEditio
             <div style={{ position: 'relative', padding: 'clamp(30px, 5vw, 56px)', maxWidth: 680 }}>
               <div style={{ font: 'italic 400 17px var(--serif)', color: 'var(--gold-2)' }}>The Edition, in seven parts</div>
               <div style={{ marginTop: 14, font: '360 clamp(46px, 6vw, 78px)/0.92 var(--serif)', letterSpacing: '-0.04em' }}>The {mon} <em>Edition</em></div>
-              <p style={{ font: '400 18px/1.45 var(--serif)', color: 'rgba(246,238,220,.75)', marginTop: 16 }}>Your month told as a short illustrated book, one painting to a page. Made to be watched, and shared if you like.</p>
+              <p style={{ font: '400 18px/1.45 var(--serif)', color: 'rgba(246,238,220,.75)', marginTop: 16 }}>Your month as a short illustrated book.</p>
               <span className="btn" style={{ marginTop: 24, background: '#F6EEDC', color: '#1A140D', borderColor: 'transparent' }}><Icon.play size={12} /> Open the book</span>
             </div>
           </button>
@@ -420,7 +420,7 @@ function Feelings({ s, cur, calm }: { s: Stats; cur: string; calm: boolean }) {
           <span className="hide-sm" style={{ font: 'italic 400 14px var(--serif)', opacity: 0.8, textAlign: 'right' }}>The Fight Between Carnival and Lent<br />Pieter Bruegel the Elder, 1559</span>
         </div>
       </motion.div>
-      <p className="body-serif" style={{ maxWidth: 560, marginBottom: 22 }}>Feast on one side, restraint on the other. Add “worth it” or “regret” when you write an entry, or mark it later in the Ledger.</p>
+      <p className="body-serif" style={{ maxWidth: 560, marginBottom: 22 }}>Add “worth it” or “regret” to a line, here or in the Ledger.</p>
       <motion.div {...reveal} style={{ display: 'flex', height: 12, borderRadius: 6, overflow: 'hidden', background: 'var(--fill)' }}>
         <motion.div initial={{ width: 0 }} whileInView={{ width: `${(s.joy / tot) * 100}%` }} viewport={{ once: true }} transition={{ duration: 1 }} style={{ background: 'var(--gold)' }} />
         <div style={{ flex: neutral, background: 'var(--fill-2)' }} />
@@ -454,7 +454,7 @@ function Recurring({ state }: { state: State }) {
     <section className="section">
       <motion.div className="section-head" {...reveal}>
         <h2 className="h2">Comes back <em>every month</em></h2>
-        <p className="body-serif">{money(monthly, cur)} a month in repeat payments, or {money(monthly * 12, cur, { compact: true })} a year. Worth a look now and then.</p>
+        <p className="body-serif">{money(monthly, cur)} a month in repeat payments, or {money(monthly * 12, cur, { compact: true })} a year. </p>
       </motion.div>
       <div className="card" style={{ padding: 6 }}>
         {list.map((r, i) => (

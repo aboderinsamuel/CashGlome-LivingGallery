@@ -17,7 +17,7 @@ export function Shelf({ state, months, onOpen }: { state: State; months: string[
     <div className="page">
       <div className="kicker"><span style={{ font: 'italic 400 17px var(--serif)', color: 'var(--gold)' }}>All chapters</span></div>
       <h1 className="display" style={{ marginTop: 20, fontSize: 'clamp(48px, 5.6vw, 88px)' }}>Your story <em>so far</em>.</h1>
-      <p className="lede" style={{ marginTop: 24 }}>{books.length} {books.length === 1 ? 'chapter' : 'chapters'}, {total} entries. Each month is bound from what you wrote. Open one to read it.</p>
+      <p className="lede" style={{ marginTop: 24 }}>{books.length} {books.length === 1 ? 'chapter' : 'chapters'}, {total} entries.</p>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))', gap: '40px 28px', marginTop: 64 }}>
         {books.map(({ m, s, ch, p, r }, i) => {
           const current = m === monthOf(todayISO());

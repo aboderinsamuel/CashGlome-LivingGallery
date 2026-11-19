@@ -37,7 +37,7 @@ export function Ledger({ state, dispatch, filter, setFilter, query, onAttach }: 
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 24, flexWrap: 'wrap', marginTop: 22 }}>
         <h1 className="display" style={{ fontSize: 'clamp(46px, 5vw, 76px)' }}>{filter ? <>Every <em>{cat(filter).name.toLowerCase()}</em></> : <>Every <em>line</em></>}</h1>
         <div style={{ display: 'flex', gap: 28 }}>
-          <div><div className="small">In</div><div className="stat-num num" style={{ fontSize: 24, color: 'var(--green)' }}>{money(sumIn, cur)}</div></div>
+          <div><div className="small">In</div><div className="stat-num num" style={{ fontSize: 24, color: 'var(--gold)' }}>{money(sumIn, cur)}</div></div>
           <div><div className="small">Out</div><div className="stat-num num" style={{ fontSize: 24 }}>{money(sumOut, cur)}</div></div>
         </div>
       </div>

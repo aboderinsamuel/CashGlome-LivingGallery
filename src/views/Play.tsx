@@ -76,8 +76,8 @@ export function Play({ state }: { state: State }) {
         <div className="kicker"><span style={{ font: 'italic 400 17px var(--serif)', color: 'var(--gold)' }}>Play</span></div>
         <h1 className="display">Look <em>closer</em>.</h1>
         <ol className="pl-how" aria-label="How Play works">
-          <li><b>The Rooms.</b> Twelve paintings cut into pieces. Swap pieces until the picture is whole; each room you restore opens the next, and each is harder. Restore Room X and the Reserve opens: {RESERVE.length} more paintings. Each room holds three seals: restore it, restore it without peeking, and restore it in close to the fewest moves. Seals are only ever added.</li>
-          <li><b>Find it.</b> A curator names a detail and you find it in the painting. Writing in your book cleans this month's painting and opens new details.</li>
+          <li><b>The Rooms.</b> Swap pieces until the painting is whole. Each room opens the next.</li>
+          <li><b>Find it.</b> A curator names a detail; you find it in the painting.</li>
         </ol>
       </header>
 
@@ -110,7 +110,7 @@ export function Play({ state }: { state: State }) {
       <section className="section">
         <div className="section-head">
           <h2 className="h2">The <em>Rooms</em></h2>
-          <p className="body-serif">{rooms.cleared} of {ROOMS.length} restored · {ROOMS.reduce((a, r) => a + sealCount(rooms, r.n), 0)} of {SEALS_IN_ALL} seals. A padlocked room opens when you restore the one before it; a restored room can be played again for the seals it lacks.</p>
+          <p className="body-serif">{rooms.cleared} of {ROOMS.length} restored · {ROOMS.reduce((a, r) => a + sealCount(rooms, r.n), 0)} of {SEALS_IN_ALL} seals. Replay any room for the seals it lacks.</p>
         </div>
         <div className="pl-wings">
           {WINGS.map((w) => (
@@ -146,7 +146,7 @@ export function Play({ state }: { state: State }) {
       <section className="section">
         <div className="section-head">
           <h2 className="h2">Find <em>it</em></h2>
-          <p className="body-serif">A curator names a detail; you find it in the whole painting. Warmer, colder, and a little light if you need it. {found} of {spots.length} found.</p>
+          <p className="body-serif">{found} of {spots.length} found. Writing in your book opens new details.</p>
         </div>
         <div className="pl-boards">
           {boards.map((b) => (
@@ -174,7 +174,7 @@ export function Play({ state }: { state: State }) {
       <section className="section">
         <div className="section-head">
           <h2 className="h2">Free <em>play</em></h2>
-          <p className="body-serif">Any painting, any size, as often as you like. Your own paintings are always here; the Reserve opens when you restore Room {ROMAN_ROOM[RESERVE_AFTER]}.</p>
+          <p className="body-serif">Any painting, any size. The Reserve opens after Room {ROMAN_ROOM[RESERVE_AFTER]}.</p>
         </div>
         <div className="pz-shelf">
           {puzzles.map((p) => (

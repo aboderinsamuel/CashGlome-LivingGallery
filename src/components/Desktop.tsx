@@ -226,11 +226,11 @@ function Widgets({ state, calm, onOpen }: { state: State; calm: boolean; onOpen:
   const card = useMemo(() => dayCardOf(state), [state]);
   const painting = paintingOf(s);
   const cur = state.profile.currency;
-  // Every widget says it opens: a small arrow in the corner that becomes a label on hover.
+  // Every widget says, in words, where it opens: a plain line at its foot, always visible.
   const W = (p: { children: ReactNode; d: number; go: string; onClick?: () => void; style?: React.CSSProperties }) => (
     <motion.button className="widget w-open" onClick={p.onClick} style={p.style} aria-label={p.go} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 + p.d * 0.08, type: 'spring', stiffness: 200, damping: 24 }}>
       {p.children}
-      <span className="w-go" aria-hidden><span>{p.go}</span><Icon.right size={12} /></span>
+      <span className="w-foot" aria-hidden>{p.go}<Icon.right size={12} /></span>
     </motion.button>
   );
   return (
@@ -239,13 +239,13 @@ function Widgets({ state, calm, onOpen }: { state: State; calm: boolean; onOpen:
         <div style={{ ['--card' as string]: 'rgba(0,0,0,0)' }}><RestorationPlate painting={painting} r={r} seen={r.restored} drift={false} ratio={16 / 11} calm /></div>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10, gap: 8, alignItems: 'baseline' }}>
           <span style={{ font: 'italic 400 13.5px/1.2 var(--serif)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{painting.title}</span>
-          <span className="num" style={{ font: '600 11px var(--ui)', opacity: 0.8 }}>{r.restored}/30</span>
+          <span style={{ font: '500 11px var(--ui)', opacity: 0.8, whiteSpace: 'nowrap' }}>{r.complete ? 'Restored' : `${r.restored} of 30 cleaned`}</span>
         </div>
       </W>
       <W d={2} go="Open the ledger" onClick={() => onOpen('ledger')}>
         <span className="wl">This month</span>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 10 }}>
-          <span><span style={{ display: 'block', font: '500 11px var(--ui)', opacity: 0.7 }}>In</span><span className="num" style={{ font: '360 22px var(--serif)', color: '#BFE3B4' }}>{money(s.inflow, cur, { compact: true })}</span></span>
+          <span><span style={{ display: 'block', font: '500 11px var(--ui)', opacity: 0.7 }}>In</span><span className="num" style={{ font: '360 22px var(--serif)', color: '#F1D99A' }}>{money(s.inflow, cur, { compact: true })}</span></span>
           <span><span style={{ display: 'block', font: '500 11px var(--ui)', opacity: 0.7 }}>Out</span><span className="num" style={{ font: '360 22px var(--serif)' }}>{money(s.spend, cur, { compact: true })}</span></span>
         </div>
       </W>

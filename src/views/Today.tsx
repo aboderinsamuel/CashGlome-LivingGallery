@@ -1,5 +1,5 @@
 // Today: the money first. What is safe to spend, what today cost, what is coming, who owes whom.
-// The month's painting sits beside it as a miniature; every line written lifts a patch of its varnish.
+// The month's painting is the hero, the money hangs beside it like a museum label; every line lifts a patch.
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useMemo, useState, type Dispatch } from 'react';
 import { computeStats } from '../lib/analytics';
@@ -12,7 +12,6 @@ import type { Entry, State } from '../lib/types';
 import { RestorationPlate, revealTime } from '../components/Restoration';
 import { Icon } from '../components/Icons';
 import { Sitting } from '../components/Sitting';
-import { Discoveries } from '../components/Discoveries';
 import { HousePlate } from '../components/HousePlate';
 import { safeToSpend } from '../stage/askPainting';
 import { circleStatus, peopleOf } from '../stage/books';
@@ -78,36 +77,62 @@ export function Today({ state, dispatch, voice, onVoiceDone, onFill, onLedger, o
   const setQuiet = (on: boolean) => dispatch({ type: 'quiet', date: today, on });
   const first = state.profile.name?.split(' ')[0];
 
+  const days = safe ? Math.max(1, Math.round(safe.free / Math.max(1, safe.perDay))) : 0;
+
   return (
     <div className="page td-page">
-      <header className="td-head">
-        <div className="td-kicker">{dateInWords(now)}</div>
-        <h1>{fresh ? <>Your money, <i>painted</i>.</> : <>Good <i>{greeting}</i>{first ? `, ${first}` : ''}.</>}</h1>
-        {!fresh && <HousePlate state={state} dispatch={dispatch} />}
-        {fresh && <p className="td-lede">Write what came in or went out, the way you’d say it. CashGlome keeps the sums, and every line cleans a patch of this month’s painting.</p>}
-      </header>
+      {/* Candlelight: the room is lit from the painting, not evenly. */}
+      <div className="td-light" aria-hidden />
 
-      {!fresh && <FirstWeek state={state} />}
+      <div className="td-wall">
+        {/* The painting is the hero; the money hangs beside it like its label. */}
+        <figure className="td-art">
+          <button className="td-plate" onClick={onPainting} aria-label={`${painting.title}. Open this month's chapter`}>
+            <RestorationPlate painting={painting} r={r} seen={shownSeen} ratio={4 / 5} drift={false} calm={state.settings.calm} lead={0.3} />
+          </button>
+          <figcaption className="td-label-card">
+            <i>{painting.title}</i>
+            <span>{painting.artist}, {painting.year}</span>
+            <span className="td-patches" aria-label={r.complete ? 'Restored' : `${r.restored} of ${PATCHES} patches cleaned`}>
+              {Array.from({ length: PATCHES }, (_, i) => <b key={i} className={i < r.restored ? 'on' : ''} />)}
+            </span>
+            <span className="td-count">{r.complete ? 'Restored. It hangs in your Gallery.' : `${r.restored} of ${PATCHES} cleaned · one per line`}</span>
+            <button className="td-link" onClick={onPainting}>Open the chapter<Icon.right size={12} /></button>
+          </figcaption>
+          <AnimatePresence>
+            {voice && (
+              <motion.div key={voice.key} className="td-voice" role="status" initial={{ opacity: 0, y: -6, scaleY: 0.6 }} animate={{ opacity: 1, y: 0, scaleY: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.45 }}>
+                <div className="who">{voice.who}<span>{voice.role}</span></div>
+                <p>“{voice.text}”</p>
+                <div className="where">{voice.where}</div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </figure>
 
-      {!fresh && todays.length === 0 && (evening || quietToday) && (
-        <Sitting painting={painting} todays={todays} quiet={quietToday} calm={state.settings.calm} onWrite={() => onFill('')} onQuiet={setQuiet} />
-      )}
+        <div className="td-money">
+          <header className="td-head">
+            <div className="td-kicker">{dateInWords(now)}</div>
+            <h1>{fresh ? <>Your money, <i>painted</i>.</> : <>Good <i>{greeting}</i>{first ? `, ${first}` : ''}.</>}</h1>
+            {fresh && <p className="td-lede">Write what you spent or earned, the way you’d say it. Every line cleans a patch of the painting.</p>}
+          </header>
 
-      <div className="td-grid">
-        <div className="td-main">
-          {/* The one loud thing. */}
           {safe ? (
             <section className="td-hero" aria-label="Safe to spend">
               <div className="td-label">Safe to spend today</div>
-              <div className="td-big num">{m(safe.perDay)}</div>
-              <p className="td-sub">{safe.until ? <>a day until pay {relDay(safe.until)}</> : <>a day for the rest of the month</>}. The working: <b className="num">{m(safe.free)}</b> free after what’s due, spread over {Math.max(1, Math.round(safe.free / Math.max(1, safe.perDay)))} days.</p>
+              <Big text={m(safe.perDay)} />
+              <div className="td-per">{safe.until ? <>a day, until pay {relDay(safe.until)}</> : <>a day, to the end of the month</>}</div>
+              <dl className="td-work">
+                <div><dt>Free after what’s due</dt><dd className="num">{m(safe.free)}</dd></div>
+                <div><dt>{safe.until ? 'Days until pay' : 'Days left'}</dt><dd className="num">÷ {days}</dd></div>
+              </dl>
               <button className="td-link" onClick={() => onAsk('How is safe to spend counted?')}>How is this counted?</button>
             </section>
           ) : !fresh ? (
             <section className="td-hero" aria-label="Today so far">
               <div className="td-label">Spent today</div>
-              <div className="td-big num">{m(spent)}</div>
-              <p className="td-sub">Tell me what you have and when pay comes, and I’ll count what is safe to spend each day.</p>
+              <Big text={m(spent)} />
+              <p className="td-per">Tell me what you have and when you’re paid, and I’ll work out a daily amount.</p>
               <div className="td-chips">
                 <button onClick={() => onFill('I have ')}>I have …</button>
                 <button onClick={() => onFill('I get paid  on the ')}>I get paid … on the …</button>
@@ -115,103 +140,86 @@ export function Today({ state, dispatch, voice, onVoiceDone, onFill, onLedger, o
             </section>
           ) : null}
 
-          <section className="td-section" aria-label="Today’s lines">
-            <div className="td-h">
-              <h2>Today</h2>
-              {todays.length > 0 && <span className="num">{spent > 0 && <>out {m(spent)}</>}{spent > 0 && came > 0 && ' · '}{came > 0 && <>in {m(came)}</>}</span>}
-            </div>
-            {todays.length ? (
-              <ul className="td-rows">
-                <AnimatePresence initial={false}>
-                  {todays.slice(0, 6).map((e) => (
-                    <motion.li key={e.id} layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.35 }}>
-                      <button onClick={() => onEdit(e)}>
-                        <span className="sw" style={{ background: cat(e.category).color }} aria-hidden />
-                        <span className="l">{e.label}<small>{cat(e.category).name}</small></span>
-                        <span className={'a num ' + e.dir}>{e.dir === 'in' ? '+' : '−'}{m(e.amount)}</span>
-                      </button>
-                    </motion.li>
-                  ))}
-                </AnimatePresence>
-              </ul>
-            ) : (
-              <div className="td-empty-row">
-                <p className="td-empty">{fresh ? 'Try one of the lines below the box, or write your own. It takes a second.' : quietToday ? 'A quiet day, kept.' : 'Nothing written today. That’s fine; a missed day costs nothing.'}</p>
-                {!fresh && !quietToday && !evening && <button className="chip td-quiet" onClick={() => setQuiet(true)}>Nothing today</button>}
-              </div>
-            )}
-            {todays.length > 6 && <button className="td-link" onClick={onLedger}>All {todays.length} lines today</button>}
-            {!fresh && todays.length > 0 && todays.length <= 6 && <button className="td-link" onClick={onLedger}>Open the ledger</button>}
-          </section>
-
-          {coming.length > 0 && (
-            <section className="td-section" aria-label="Coming up">
-              <div className="td-h"><h2>Coming <i>up</i></h2></div>
-              <ul className="td-seals">
-                {coming.slice(0, 5).map((c) => (
-                  <li key={c.key}>
-                    <span className={'seal ' + c.dir} aria-hidden>{c.dir === 'in' ? '+' : c.kind === 'circle' ? '○' : '−'}</span>
-                    <span className="l">{c.label}<small>{relDay(c.date, today)}</small></span>
-                    <span className={'a num ' + c.dir}>{c.amount ? (c.dir === 'in' ? '+' : '') + m(c.amount) : ''}</span>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
-
-          {people.length > 0 && (
-            <section className="td-section" aria-label="People">
-              <div className="td-h"><h2>People</h2><button className="td-link" onClick={onPeople}>All people</button></div>
-              <ul className="td-people">
-                {people.map((p) => (
-                  <li key={p.name}>
-                    <span className="initial" aria-hidden>{p.name[0]}</span>
-                    <span className="l">{p.name}</span>
-                    <span className={'a num ' + (p.net > 0 ? 'in' : 'out')}>{p.net > 0 ? `owes you ${m(p.net)}` : `you owe ${m(-p.net)}`}</span>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
-
-          {!fresh && <Discoveries painting={painting} restored={r.restored} month={month} calm={state.settings.calm} onPlay={onPlay} />}
-
-          {!fresh && (
-            <section className="td-ask" aria-label="Ask">
-              <span>Ask anything about your money</span>
-              <div className="td-chips">
-                {(safe ? ['Can I afford something?', 'Where did my money go this month?'] : ['Where did my money go this month?', 'What did I spend most on?']).map((q) => <button key={q} onClick={() => onAsk(q === 'Can I afford something?' ? undefined : q)}>{q}</button>)}
-              </div>
-            </section>
-          )}
+          {!fresh && <div className="td-house"><HousePlate state={state} dispatch={dispatch} /></div>}
         </div>
+      </div>
 
-        <aside className="td-art">
-          <button className="td-plate" onClick={onPainting} aria-label={`${painting.title}: open this month's chapter`}>
-            <RestorationPlate painting={painting} r={r} seen={shownSeen} ratio={4 / 5} drift={false} calm={state.settings.calm} lead={0.3} />
-            <span className="td-open">Open the chapter<Icon.right size={11} /></span>
-          </button>
-          <div className="td-caption">
-            <i>{painting.title}</i>
-            <span>{painting.artist}, {painting.year}</span>
-            <span className="num td-count">{r.complete ? 'Restored' : `${r.restored} of ${PATCHES} patches cleaned`}</span>
-            {!r.complete && <span className="td-why">Each line you write cleans one patch. All {PATCHES} and it hangs in your Gallery.</span>}
+      {!fresh && <FirstWeek state={state} />}
+
+      {!fresh && todays.length === 0 && (evening || quietToday) && (
+        <Sitting painting={painting} todays={todays} quiet={quietToday} calm={state.settings.calm} onWrite={() => onFill('')} onQuiet={setQuiet} />
+      )}
+
+      <div className="td-book">
+        <section className="td-section" aria-label="Today’s lines">
+          <div className="td-h">
+            <h2>Today</h2>
+            {todays.length > 0 && <span className="num">{spent > 0 && <>out {m(spent)}</>}{spent > 0 && came > 0 && ' · '}{came > 0 && <>in {m(came)}</>}</span>}
           </div>
-          <AnimatePresence>
-            {voice && (
-              <motion.div key={voice.key} className="td-voice" role="status" initial={{ opacity: 0, y: -6, scaleY: 0.6 }} animate={{ opacity: 1, y: 0, scaleY: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.45 }}>
-                <div className="td-voice-k">The painting talks back</div>
-                <div className="who">{voice.who}<span>{voice.role}</span></div>
-                <p>“{voice.text}”</p>
-                <div className="where">{voice.where}</div>
-              </motion.div>
+          {todays.length ? (
+            <ul className="td-rows">
+              <AnimatePresence initial={false}>
+                {todays.slice(0, 6).map((e) => (
+                  <motion.li key={e.id} layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.35 }}>
+                    <button onClick={() => onEdit(e)}>
+                      <span className="sw" style={{ background: cat(e.category).color }} aria-hidden />
+                      <span className="l">{e.label}<small>{cat(e.category).name}</small></span>
+                      <span className={'a num ' + e.dir}>{e.dir === 'in' ? '+' : '−'}{m(e.amount)}</span>
+                    </button>
+                  </motion.li>
+                ))}
+              </AnimatePresence>
+            </ul>
+          ) : (
+            <div className="td-empty-row">
+              <p className="td-empty">{fresh ? 'Try a line below, or write your own.' : quietToday ? 'A quiet day, kept.' : 'Nothing yet today.'}</p>
+              {!fresh && !quietToday && !evening && <button className="chip td-quiet" onClick={() => setQuiet(true)}>Nothing today</button>}
+            </div>
+          )}
+          {todays.length > 0 && <button className="td-link" onClick={onLedger}>{todays.length > 6 ? `All ${todays.length} lines today` : 'Open the ledger'}<Icon.right size={12} /></button>}
+        </section>
+
+        {(coming.length > 0 || people.length > 0) && (
+          <div className="td-side">
+            {coming.length > 0 && (
+              <section className="td-section" aria-label="Coming up">
+                <div className="td-h"><h2>Coming <i>up</i></h2></div>
+                <ul className="td-seals">
+                  {coming.slice(0, 4).map((c) => (
+                    <li key={c.key}>
+                      <span className={'seal ' + c.dir} aria-hidden>{c.dir === 'in' ? '+' : c.kind === 'circle' ? '○' : '−'}</span>
+                      <span className="l">{c.label}<small>{relDay(c.date, today)}</small></span>
+                      <span className={'a num ' + c.dir}>{c.amount ? (c.dir === 'in' ? '+' : '') + m(c.amount) : ''}</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
             )}
-          </AnimatePresence>
-          {fresh && <p className="td-hint">Under old varnish. Write a line and watch a patch lift.</p>}
-        </aside>
+            {people.length > 0 && (
+              <section className="td-section" aria-label="People">
+                <div className="td-h"><h2>People</h2><button className="td-link" onClick={onPeople}>All<Icon.right size={12} /></button></div>
+                <ul className="td-people">
+                  {people.map((p) => (
+                    <li key={p.name}>
+                      <span className="initial" aria-hidden>{p.name[0]}</span>
+                      <span className="l">{p.name}</span>
+                      <span className={'a num ' + (p.net > 0 ? 'in' : 'out')}>{p.net > 0 ? `owes you ${m(p.net)}` : `you owe ${m(-p.net)}`}</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
+}
+
+/** The one loud number: the currency sign smaller and raised, the figure in old-style numerals. */
+function Big({ text }: { text: string }) {
+  const m = text.match(/^([^\d−-]*)(.*)$/);
+  return <div className="td-big num">{m?.[1] && <span className="td-sign">{m[1].trim()}</span>}{m ? m[2] : text}</div>;
 }
 
 interface Coming { key: string; date: string; label: string; amount: number; dir: 'in' | 'out'; kind: 'routine' | 'pay' | 'circle' }
@@ -249,11 +257,11 @@ function FirstWeek({ state }: { state: State }) {
   const done = () => { setRead(true); try { localStorage.setItem(KEY, '1'); } catch { /* private mode */ } };
   return (
     <section className="fw" aria-label="How CashGlome works">
-      <div className="fw-head"><b>How this works</b><button className="td-link" onClick={done}>Got it, hide this</button></div>
+      <div className="fw-head"><b>How this works</b><button className="td-link" onClick={done}>Got it</button></div>
       <ol className="fw-cards">
-        <li><b>Write it as you’d say it.</b><span>Type “lunch 4k, taxi 3k, got paid 200k” in the box at the bottom, or say it. Each amount becomes a line in your Ledger.</span></li>
-        <li><b>The big number.</b><span>Safe to spend is what you can spend each day and still cover what’s due before pay. It counts only what you’ve written.</span></li>
-        <li><b>Why there’s a painting.</b><span>Each month hides a masterpiece under old varnish. Every line cleans a patch; finished ones hang in your Gallery, and their details become games in Play.</span></li>
+        <li><b>Write it as you’d say it.</b><span>“lunch 4k, taxi 3k, got paid 200k” in the bar below.</span></li>
+        <li><b>The big number.</b><span>What you can spend each day and still cover what’s due.</span></li>
+        <li><b>The painting.</b><span>Each line cleans a patch. Finished months hang in your Gallery.</span></li>
       </ol>
     </section>
   );

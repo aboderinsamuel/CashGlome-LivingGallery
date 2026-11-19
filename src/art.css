@@ -154,3 +154,9 @@
 .w-go > span { max-width: 0; overflow: hidden; white-space: nowrap; transition: max-width .25s ease, margin .25s ease; }
 .w-go svg { transform: rotate(-45deg); flex: none; }
 .widget.w-open:hover .w-go > span, .widget.w-open:focus-visible .w-go > span { max-width: 140px; margin: 0 4px 0 2px; }
+
+/* Widgets say where they open, in words, at their foot; no hover-only corner badge. */
+.w-foot { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin: 12px -4px -4px; padding: 8px 4px 0; border-top: 1px solid rgba(255,248,236,.16); font: 600 11.5px var(--ui); color: rgba(255,248,236,.86); }
+.widget.w-open:hover .w-foot { color: #FFF8EC; }
+.widget.w-open:hover .w-foot svg { transform: translateX(2px); }
+.w-foot svg { transition: transform .18s; }

@@ -1,81 +1,131 @@
-/* Today. Ink on paper, one loud number, the painting as a miniature beside it. Tokens from styles.css. */
-.td-page { max-width: 1040px; container-type: inline-size; }
-.td-head { margin-bottom: 26px; }
+/* Today: a gallery wall at candlelight. The month's painting is the hero; the money hangs beside it like its
+   museum label; the day's lines sit below like a ledger page. Tokens from styles.css and folio.css. */
+.td-page { max-width: 1080px; container-type: inline-size; position: relative; }
+.td-page > * { position: relative; z-index: 1; }
+
+/* The room is lit from the painting: a warm pool of light, darker toward the edges, a little paper grain. */
+.td-light { position: absolute !important; z-index: 0 !important; inset: -60px -80px auto -80px; height: 860px; pointer-events: none;
+  background:
+    radial-gradient(560px 480px at 26% 40%, color-mix(in srgb, var(--gold) 15%, transparent), transparent 72%),
+    radial-gradient(900px 620px at 30% 30%, color-mix(in srgb, var(--gold) 6%, transparent), transparent 80%); }
+.td-light::after { content: ''; position: absolute; inset: 0; opacity: .07; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  -webkit-mask-image: radial-gradient(closest-side, #000, transparent); mask-image: radial-gradient(closest-side, #000, transparent); }
+
+/* ——— The wall ——— */
+.td-wall { display: grid; grid-template-columns: minmax(240px, min(380px, 46vh)) minmax(0, 1fr); gap: clamp(32px, 5vw, 64px); align-items: start; padding-bottom: 34px; }
+
+.td-art { margin: 0; }
+.td-plate { position: relative; display: block; width: 100%; padding: 12px; border-radius: 3px; cursor: pointer;
+  background: linear-gradient(145deg, #E8CC86, #A97E31 45%, #E2C27A 70%, #8D6A28); box-shadow: var(--shadow-2); transition: transform .3s ease, box-shadow .3s ease; }
+.td-plate > :first-child { display: block; border-radius: 1px; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(0,0,0,.35); }
+.td-plate:hover { transform: translateY(-2px); }
+.td-label-card { display: grid; gap: 3px; margin-top: 18px; padding-left: 2px; }
+.td-label-card i { font: italic 400 18px/1.25 var(--serif); color: var(--ink); }
+.td-label-card > span:nth-child(2) { font: 400 14px/1.35 var(--serif); color: var(--ink-3); }
+.td-patches { display: grid; grid-template-columns: repeat(30, 1fr); gap: 2px; margin: 12px 0 6px; max-width: 260px; }
+.td-patches b { height: 6px; border-radius: 1px; background: color-mix(in srgb, var(--ink) 14%, transparent); transition: background .6s ease; }
+.td-patches b.on { background: var(--gold); }
+.td-label-card .td-count { font: 500 12.5px/1.4 var(--ui); color: var(--ink-3) !important; letter-spacing: 0; text-transform: none; }
+.td-label-card .td-link { justify-self: start; margin-top: 10px; }
+
+/* ——— The money, beside it ——— */
+.td-money { min-width: 0; padding-top: 6px; }
+.td-head { margin-bottom: 30px; }
 .td-kicker { font: 600 11.5px/1 var(--ui); letter-spacing: .12em; text-transform: uppercase; color: var(--gold); }
-.td-head h1 { font: 400 clamp(34px, 5vw, 52px)/1.04 var(--serif); letter-spacing: -.02em; margin: 12px 0 0; color: var(--ink); }
+.td-head h1 { font: 400 clamp(32px, 4vw, 44px)/1.05 var(--serif); letter-spacing: -.02em; margin: 12px 0 0; color: var(--ink); }
 .td-head h1 i, .td-h h2 i { font-style: italic; color: var(--gold); }
-.td-lede { font: 400 18px/1.5 var(--serif); color: var(--ink-2); max-width: 540px; margin: 12px 0 0; }
+.td-lede { font: 400 18px/1.5 var(--serif); color: var(--ink-2); max-width: 460px; margin: 14px 0 0; }
 
-.td-grid { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 40px; align-items: start; }
-.td-main { min-width: 0; }
+.td-hero { padding: 0; }
+.td-label { font: 600 11px/1 var(--ui); letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); }
+.td-big { display: flex; align-items: flex-start; gap: .04em; font: 400 clamp(64px, 9vw, 104px)/.95 var(--serif); letter-spacing: -.035em; color: var(--ink); margin: 14px 0 10px; font-variant-numeric: oldstyle-nums proportional-nums; }
+.td-sign { font-size: .42em; line-height: 1; margin-top: .22em; letter-spacing: 0; color: var(--ink-2); }
+.td-per { font: italic 400 18px/1.45 var(--serif); color: var(--ink-2); margin: 0 0 22px; max-width: 420px; }
 
-.td-hero { padding: 4px 0 26px; border-bottom: 1px solid var(--line); }
-.td-label { font: 600 11.5px/1 var(--ui); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); }
-.td-big { font: 400 clamp(54px, 8vw, 84px)/1 var(--serif); letter-spacing: -.03em; color: var(--ink); margin: 10px 0 8px; font-variant-numeric: lining-nums tabular-nums; }
-.td-sub { font: 400 17px/1.5 var(--serif); color: var(--ink-2); margin: 0 0 10px; max-width: 520px; }
-.td-sub b { color: var(--ink); font-weight: 500; }
-.td-link { font: 500 13.5px var(--ui); color: var(--gold); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+/* The working, set like a sum on a ledger page. */
+.td-work { display: grid; gap: 0; margin: 0 0 16px; max-width: 360px; border-top: 1px solid var(--line); }
+.td-work > div { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 9px 0; border-bottom: 1px solid var(--line); }
+.td-work dt { font: 400 14px var(--ui); color: var(--ink-3); }
+.td-work dd { margin: 0; font: 400 17px var(--serif); color: var(--ink); font-variant-numeric: tabular-nums; }
+
+.td-link { font: 500 13.5px var(--ui); color: var(--gold); display: inline-flex; align-items: center; gap: 4px; }
 
 .td-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 .td-chips button { font: italic 400 15px/1 var(--serif); color: var(--ink); padding: 9px 14px; border-radius: 999px; border: 1px solid var(--ink-4); background: var(--fill); min-height: 38px; }
 .td-chips button:hover { border-color: var(--gold); }
 
+/* The house: a small emblem under the money, not a button-shaped pill. */
+.td-house { margin-top: 30px; }
+.td-house .hp { margin: 0; padding: 0; border: 0; background: none; box-shadow: none; border-radius: 0; }
+.td-house .hp-crest, .td-house .hp-seal { width: 34px; height: 34px; }
+.td-house .hp-t b { font-size: 13px; }
+.td-house .hp-t i { font-size: 13.5px; }
+.td-house .hp-go { font-size: 12px; }
+
+/* ——— The book: today's lines, and what is coming ——— */
+.td-book { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: clamp(28px, 5vw, 56px); align-items: start; border-top: 1px solid var(--line); padding-top: 8px; }
+.td-book:not(:has(.td-side)) { grid-template-columns: minmax(0, 1fr); max-width: 640px; }
+.td-side { display: grid; gap: 8px; }
 .td-section { padding: 22px 0 6px; }
 .td-h { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
 .td-h h2 { font: 400 24px/1.1 var(--serif); margin: 0; color: var(--ink); }
 .td-h > span { font: 500 13px var(--ui); color: var(--ink-3); }
 .td-empty { font: italic 400 16px/1.5 var(--serif); color: var(--ink-2); margin: 6px 0 10px; }
 
-.td-rows, .td-seals, .td-people { list-style: none; margin: 0 0 10px; padding: 0; }
-.td-rows li button, .td-seals li, .td-people li { width: 100%; display: flex; align-items: center; gap: 12px; padding: 11px 2px; border-bottom: 1px solid var(--line); text-align: left; min-height: 52px; }
-.td-rows li button:hover { background: var(--fill); }
-.td-rows .sw { width: 10px; height: 26px; border-radius: 2px; flex: none; box-shadow: inset 0 0 0 1px rgba(0,0,0,.08); }
+.td-rows, .td-seals, .td-people { list-style: none; margin: 0 0 12px; padding: 0; }
+.td-rows li button, .td-seals li, .td-people li { width: 100%; display: flex; align-items: center; gap: 14px; padding: 11px 2px; border-bottom: 1px solid var(--line); text-align: left; min-height: 54px; }
+.td-rows li button { border-radius: 0; transition: background .15s; }
+.td-rows li button:hover { background: color-mix(in srgb, var(--ink) 4%, transparent); }
+/* A pigment pan, not a warning bar. */
+.td-rows .sw { width: 9px !important; height: 9px !important; border-radius: 50% !important; flex: none; box-shadow: inset 0 -1px 1px rgba(0,0,0,.25); }
 .td-rows .l, .td-seals .l, .td-people .l { flex: 1; min-width: 0; font: 400 17px/1.2 var(--serif); color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.td-rows .l small, .td-seals .l small { display: block; font: 400 12.5px/1.4 var(--ui); color: var(--ink-3); }
-.td-rows .a, .td-seals .a, .td-people .a { font: 500 16px var(--serif); font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap; }
+.td-rows .l small, .td-seals .l small { display: block; font: 400 12.5px/1.4 var(--ui); color: var(--ink-3); margin-top: 2px; }
+.td-rows .a, .td-seals .a, .td-people .a { font: 400 17px var(--serif); font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap; }
 .td-page .a.in { color: var(--gold); }
+.td-page .a.out { color: var(--ink); }
 
-.td-seals .seal { width: 30px; height: 30px; flex: none; border-radius: 50%; display: grid; place-items: center; font: 600 14px var(--serif); color: #F6E6C8;
-  background: radial-gradient(circle at 35% 30%, #C25A45, #8E2A20 72%); box-shadow: inset 0 -2px 3px rgba(0,0,0,.25), 0 1px 2px rgba(0,0,0,.2); }
-.td-seals .seal.in { background: radial-gradient(circle at 35% 30%, #F1D99A, #B08A3A 72%); color: #2A2016; }
-.td-people .initial { width: 32px; height: 32px; flex: none; border-radius: 50%; display: grid; place-items: center; font: italic 500 16px var(--serif); color: #2A2016; background: radial-gradient(circle at 35% 30%, #F1D99A, #C9A24B 70%); }
+.td-seals .seal { width: 28px; height: 28px; flex: none; border-radius: 50%; display: grid; place-items: center; font: 600 13px var(--serif); }
+.td-people .initial { width: 30px; height: 30px; flex: none; border-radius: 50%; display: grid; place-items: center; font: italic 500 15px var(--serif); }
 
-.td-ask { margin-top: 18px; padding: 16px 18px; border-radius: 14px; background: var(--fill); }
-.td-ask > span { font: italic 400 16px var(--serif); color: var(--ink-2); }
-
-/* The miniature */
-.td-art { position: sticky; top: 8px; }
-.td-plate { position: relative; display: block; width: 100%; padding: 8px; border-radius: 4px; background: linear-gradient(145deg, #E8CC86, #A97E31 45%, #E2C27A 70%, #8D6A28); box-shadow: var(--shadow-2); }
-.td-plate > :first-child { display: block; border-radius: 2px; overflow: hidden; }
-.td-open { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); display: inline-flex; align-items: center; gap: 6px; font: 600 12px var(--ui); color: #F6EEDC; background: rgba(20,16,11,.62); backdrop-filter: blur(6px); padding: 7px 12px; border-radius: 999px; white-space: nowrap; opacity: .92; }
-.td-plate:hover .td-open { opacity: 1; }
-.td-caption { display: grid; gap: 2px; margin-top: 12px; font: 400 13px/1.35 var(--serif); color: var(--ink-3); }
-.td-caption i { font-size: 15px; color: var(--ink); }
-.td-count { font: 600 11px var(--ui); letter-spacing: .06em; text-transform: uppercase; color: var(--gold); margin-top: 4px; }
-.td-hint { font: italic 400 14px/1.45 var(--serif); color: var(--ink-2); margin: 10px 0 0; }
-.td-voice { margin-top: 14px; padding: 12px 14px; border-radius: 3px; background: #F1E7D2; color: #2A2016; box-shadow: var(--shadow-1); transform-origin: top; }
+.td-voice { margin-top: 16px; padding: 12px 14px; border-radius: 3px; background: #F1E7D2; color: #2A2016; box-shadow: var(--shadow-1); transform-origin: top; }
 .td-voice .who { font: 600 11px var(--ui); letter-spacing: .08em; text-transform: uppercase; color: #8E2A20; }
 .td-voice .who span { font: italic 400 12px var(--serif); text-transform: none; letter-spacing: 0; color: #7A6A52; margin-left: 6px; }
 .td-voice p { font: italic 400 16px/1.4 var(--serif); margin: 6px 0; }
 .td-voice .where { font: 400 11.5px var(--ui); color: #7A6A52; }
 
-@container (max-width: 640px) {
-  .td-head { margin-bottom: 14px; }
-  .td-head h1 { font-size: 34px; }
-  .td-lede { font-size: 16px; }
-  .td-grid { grid-template-columns: 1fr; gap: 0; }
-  /* On a phone the miniature sits small at the top right of the money, not above it. */
-  .td-art { position: absolute; top: 0; right: 0; width: 92px; }
-  .td-main { position: relative; }
-  .td-grid { position: relative; }
+@media (prefers-reduced-motion: reduce) { .td-plate, .td-patches b { transition: none; } }
+
+/* ——— Narrower windows: a smaller painting, the book in one column ——— */
+@container (max-width: 760px) {
+  .td-wall { grid-template-columns: 150px minmax(0, 1fr); gap: 22px; }
+  .td-label-card i { font-size: 15px; }
+  .td-label-card > span:nth-child(2), .td-label-card .td-link { display: none; }
+  .td-patches { grid-template-columns: repeat(15, 1fr); row-gap: 2px; }
+  .td-plate { padding: 7px; }
+  .td-book { grid-template-columns: minmax(0, 1fr); gap: 0; }
+}
+
+/* ——— Phones: the money first, the painting a small plate at its side ——— */
+@container (max-width: 520px) {
+  .td-light { inset: -40px -20px auto; height: 520px; }
+  .td-wall { grid-template-columns: minmax(0, 1fr) 96px; gap: 14px; padding-bottom: 18px; }
+  .td-art { grid-column: 2; grid-row: 1; }
+  .td-money { grid-column: 1; grid-row: 1; padding-top: 0; }
   .td-plate { padding: 4px; }
-  .td-open, .td-caption span:not(.td-count), .td-caption i, .td-hint { display: none; }
-  .td-caption { margin-top: 6px; text-align: center; }
-  .td-count { font-size: 9.5px; letter-spacing: .04em; }
-  .td-hero { padding-right: 104px; }
-  .td-big { font-size: 52px; }
-  .td-sub { font-size: 15.5px; }
+  .td-label-card { margin-top: 8px; gap: 2px; }
+  .td-label-card i { display: none; }
+  .td-patches { grid-template-columns: repeat(10, 1fr); margin: 0 0 4px; }
+  .td-patches b { height: 4px; }
+  .td-count { font-size: 10.5px; line-height: 1.3; }
+  .td-head { margin-bottom: 18px; }
+  .td-head h1 { font-size: 30px; }
+  .td-lede { font-size: 16px; }
+  .td-big { font-size: 60px; margin: 10px 0 6px; }
+  .td-per { font-size: 16px; margin-bottom: 14px; }
+  .td-work dt { font-size: 13px; }
+  .td-work dd { font-size: 16px; }
+  .td-house { margin-top: 20px; }
   /* Under the money, clear of the "Added" notice that rises above the writing box. */
   .td-voice { position: fixed; left: 12px; right: 12px; top: calc(env(safe-area-inset-top) + 340px); bottom: auto; z-index: 30; margin: 0; }
-  .td-head:has(+ .td-grid) { padding-right: 104px; }
 }

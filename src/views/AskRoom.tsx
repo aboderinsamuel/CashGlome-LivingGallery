@@ -116,7 +116,7 @@ export function AskRoom({ state, turns, setTurns, first, onFirstDone }: { state:
         <div>
           <div className="ar-kicker">Florin, your assistant · speaking as {sitter.name}</div>
           <h1>Ask me <i>anything</i></h1>
-          <p>Ask about your money in plain words: “can I afford this?”, “where did it go?”. I read your book; every sum is counted on this device and shown with its working.</p>
+          <p>Ask in plain words. Every sum is counted on this device, with its working.</p>
         </div>
       </header>
 

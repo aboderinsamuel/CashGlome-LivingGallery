@@ -97,7 +97,7 @@ export function PeoplePage({ state, dispatch, onFill }: { state: State; dispatch
             </>
           ) : (
             <>
-              <p className="acc-empty">Nobody owes anybody yet. Write a loan in the bar below the way you’d say it, and the person appears here with a running balance. Tap one to try it:</p>
+              <p className="acc-empty">Nobody owes anybody yet. Write a loan in the bar below, or tap one:</p>
               <div className="acc-exs">{DEBT_EXAMPLES.map((x) => <Example key={x} text={x} onFill={onFill} />)}</div>
             </>
           )}
@@ -110,7 +110,7 @@ export function PeoplePage({ state, dispatch, onFill }: { state: State; dispatch
         <div className="acc-body">
           <div className="numeral">Savings circles <span>· II</span></div>
           <h2>Savings <i>circles</i></h2>
-          <p className="acc-note">Tontine, susu, tanda, hui, kye, chit fund, stokvel, arisan, partner: everyone pays in each round, and one takes the pot.</p>
+          <p className="acc-note">Ajo, susu, tanda, hui, chit fund, stokvel: everyone pays in, one takes the pot.</p>
           {circles.map((s) => (
             <div className="acc-circle" key={s.circle.id}>
               <div className="ring" aria-label={`Round ${s.round} of ${s.circle.members}`}>
@@ -126,7 +126,7 @@ export function PeoplePage({ state, dispatch, onFill }: { state: State; dispatch
               <button className="acc-x" onClick={() => dispatch({ type: 'removeCircle', id: s.circle.id })} aria-label={`Remove ${s.circle.name}`}>×</button>
             </div>
           ))}
-          {!circles.length && <p className="acc-hint">Describe your circle once, in a line like the one below. When you pay in, tap Paid this round, or write “ajo 20k” in the bar.</p>}
+          {!circles.length && <p className="acc-hint">Describe your circle once. Then tap Paid this round each time you pay in.</p>}
           <form className="acc-add" onSubmit={(e) => { e.preventDefault(); addCircle(); }}>
             <input value={circleLine} onChange={(e) => setCircleLine(e.target.value)} placeholder="Ajo of 10 people, 20k monthly, my turn is 4th" aria-label="Describe a savings circle" />
             <button type="submit" disabled={!circleLine.trim()}>Keep</button>
@@ -179,7 +179,7 @@ export function LedgerReports({ state }: { state: State }) {
         <div className="acc-body">
           <div className="numeral">Proof of income <span>· II</span></div>
           <h2>The income <i>record</i></h2>
-          <p className="acc-note">Up to six months of money in, set out for a landlord, a lender or a visa office. Printed from this device; nothing is uploaded.</p>
+          <p className="acc-note">Six months of money in, for a landlord, lender or visa office. Printed from this device.</p>
           <table className="acc-table">
             <thead><tr><th>Month</th><th>Sources</th><th className="r">Came in</th></tr></thead>
             <tbody>
