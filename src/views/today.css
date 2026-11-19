@@ -75,6 +75,7 @@
   .td-hero { padding-right: 104px; }
   .td-big { font-size: 52px; }
   .td-sub { font-size: 15.5px; }
-  .td-voice { position: fixed; left: 12px; right: 12px; top: auto; bottom: calc(env(safe-area-inset-bottom) + 178px); z-index: 30; margin: 0; }
+  /* Under the money, clear of the "Added" notice that rises above the writing box. */
+  .td-voice { position: fixed; left: 12px; right: 12px; top: calc(env(safe-area-inset-top) + 340px); bottom: auto; z-index: 30; margin: 0; }
   .td-head:has(+ .td-grid) { padding-right: 104px; }
 }

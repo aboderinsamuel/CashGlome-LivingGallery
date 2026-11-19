@@ -35,7 +35,8 @@ import { Collection } from './views/Collection';
 import { SettingsSheet } from './views/Settings';
 import { Edition } from './views/Edition';
 import { ShareSheet } from './components/ShareSheet';
-import { Welcome } from './views/Welcome';
+import { Onboarding } from './views/Onboarding';
+import { settleOverture } from './lib/overture';
 import { MemoryView } from './views/Memory';
 import { CheckIns, type CheckIn } from './components/CheckIns';
 import { describeMemory, dueRoutines, pendingRoutines, readMemory, routineEntry } from './lib/memory';
@@ -43,7 +44,6 @@ import { useCloudSync, useSyncStatus } from './lib/useCloud';
 import { museParse } from './lib/ai';
 import { parseStory } from './lib/parser';
 import { CashCard, Chips, PhoneApp } from './phone/PhoneApp';
-import { PhoneWelcome } from './phone/PhoneWelcome';
 import { haptic, useKeyboardViewport, useOnline, usePhone } from './phone/device';
 import { WITHDRAWAL, cashEntry, dueCash, markOffered, newPocket, recurringOffer, routineFrom } from './phone/moments';
 import { daysPhrase } from './lib/memory';
@@ -66,6 +66,9 @@ export default function App() {
   const clearVoice = useCallback(() => setVoice(null), []);
   const [askTurns, setAskTurns] = useState<AskTurn[]>(loadTurns);
   const [askFirst, setAskFirst] = useState<string | null>(null);
+  // First run: the cover, a name, and the first line. Shown until the book has been started.
+  const [welcoming, setWelcoming] = useState(() => !state.profile.onboarded && state.entries.length === 0);
+  const [firstLine, setFirstLine] = useState<string | null>(null);
   const [filter, setFilter] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [settings, setSettingsPane] = useState<Pane | null>(null);
@@ -344,6 +347,21 @@ export default function App() {
     } finally { setBusy(false); }
   }, [state.settings, cur, commit, phone, submitNow, dispatch, setView]);
 
+  // The first line from onboarding is written once the book has its name and currency.
+  useEffect(() => {
+    if (!firstLine || !state.profile.onboarded) return;
+    const t = firstLine; setFirstLine(null);
+    submit(t, {});
+  }, [firstLine, state.profile.onboarded, submit]);
+  const welcomed = useCallback(({ name, currency, line, sample }: { name: string; currency: string; line?: string; sample?: boolean }) => {
+    dispatch({ type: 'onboard', name, currency });
+    if (sample) dispatch({ type: 'addEntries', entries: demoEntries(currency) });
+    if (line) setFirstLine(line);
+    setView('today');
+    setWelcoming(false);
+    settleOverture();
+  }, [dispatch, setView]);
+
   // ——— Shared from another app (Android share menu): a bank receipt or alert lands in the box, read and ready ———
   useEffect(() => {
     if (!state.profile.onboarded) return;
@@ -598,6 +616,7 @@ export default function App() {
         {living && <motion.div key="living" className="living-over" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.35 }}><Stage state={state} dispatch={dispatch} onBack={() => setLiving(false)} onAsk={(q) => { setLiving(false); askAbout(q); }} /></motion.div>}
         {edition && <Edition key="edition" state={state} muse={muse[state.month] ?? null} close={() => setEdition(false)} onShare={() => setSharing(true)} />}
         {sharing && <ShareSheet key="share" state={state} title={muse[state.month]?.title} onClose={() => setSharing(false)} />}
+        {welcoming && <Onboarding key="welcome" initialCurrency={cur} calm={state.settings.calm} onDone={welcomed} />}
       </AnimatePresence>
     </MotionConfig>
   );
