@@ -2,7 +2,7 @@ import { AnimatePresence, MotionConfig, motion } from 'framer-motion';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useGlomeStore, toEntry } from './lib/store';
 import { aiEnabled, readMoney } from './lib/ai';
-import { badgesOf, chapterOf, computeStats } from './lib/analytics';
+import { badgesOf, chapterOf, computeStats, chapterNumeral } from './lib/analytics';
 import { chapterIsStale, chapterStep, loadChapters, museChapter, saveChapters, validChapter, type SavedChapter } from './lib/muse-story';
 import { cat } from './lib/categories';
 import { demoEntries } from './lib/demo';
@@ -52,7 +52,7 @@ import { daysPhrase } from './lib/memory';
 import { Stage } from './stage/Stage';
 import { examplesFor } from './stage/words';
 
-const TITLES: Record<View, string> = { today: 'Today', ask: 'Ask', people: 'People', chapter: 'Chapter', shelf: 'All chapters', ledger: 'Ledger', plans: 'Plans', memory: 'Routines & memory', collection: 'Gallery', accounts: 'People', play: 'Play' };
+const TITLES: Record<View, string> = { today: 'Today', ask: 'Ask', people: 'People', chapter: 'Chapter', shelf: 'Past chapters', ledger: 'Ledger', plans: 'Plans', memory: 'Routines & memory', collection: 'Gallery', accounts: 'People', play: 'Play' };
 // Lines the rules were not written for: other scripts go to the model.
 const OTHER_SCRIPT = /[Ͱ-῿　-鿿가-힯]/;
 const isMac = /Mac|iPhone|iPad/.test(navigator.platform) || window.glome?.platform === 'darwin';
@@ -135,7 +135,7 @@ export default function App() {
     return f;
   }, [state.entries]);
   const muse = useMemo(() => Object.fromEntries(months.map((m) => [m, validChapter(saved[m], firstOf[m]?.id, firstOf[m]?.n ?? 0)])), [months, saved, firstOf]);
-  const chapters = useMemo(() => months.map((m) => ({ month: m, title: (muse[m]?.title ?? chapterOf(state, computeStats(state.entries, m)).title).map((x) => x.t).join('') })), [months, state, muse]);
+  const chapters = useMemo(() => months.map((m) => ({ month: m, numeral: chapterNumeral(state.entries, m), title: (muse[m]?.title ?? chapterOf(state, computeStats(state.entries, m)).title).map((x) => x.t).join('') })), [months, state, muse]);
   const badges = useMemo(() => badgesOf(state), [state]);
   const wroteToday = useMemo(() => state.entries.some((e) => e.date === todayISO()), [state.entries]);
   // Details open and waiting to be found, counted beside Play (rechecked when you come back from a game).
@@ -568,7 +568,7 @@ export default function App() {
       { label: 'About CashGlome', action: () => openSettings('about') },
       'sep',
       { label: 'Settings…', kbd: kbd(','), action: () => openSettings() },
-      { label: 'Meta Muse…', action: () => openSettings('muse') },
+      { label: 'The AI (Muse)…', action: () => openSettings('muse') },
       'sep',
       { label: 'Sounds', checked: state.settings.sound, action: () => dispatch({ type: 'settings', patch: { sound: !state.settings.sound } }) },
     ] },

@@ -97,7 +97,7 @@ export function AskPanel({ state, dispatch, aiOn, turns, setTurns, first, onClos
                 <button className="btn primary" onClick={() => decide(true)}>Use Muse</button>
                 <button className="btn" onClick={() => decide(false)}>Keep it on this device</button>
               </div>
-              <div className="small" style={{ marginTop: 8 }}>You can change this later in Settings, Meta Muse.</div>
+              <div className="small" style={{ marginTop: 8 }}>You can change this later in Settings, under The AI.</div>
             </div>
           )}
           <div ref={end} />

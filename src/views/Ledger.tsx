@@ -41,6 +41,7 @@ export function Ledger({ state, dispatch, filter, setFilter, query, onAttach }: 
           <div><div className="small">Out</div><div className="stat-num num" style={{ fontSize: 24 }}>{money(sumOut, cur)}</div></div>
         </div>
       </div>
+      <p className="purpose">Everything you wrote this month, day by day, with what came in and went out. Click any line to correct it.</p>
       <div style={{ display: 'flex', gap: 10, alignItems: 'center', margin: '34px 0 18px', flexWrap: 'wrap' }}>
         <div className="seg">
           {(['all', 'out', 'in'] as const).map((d) => <button key={d} className={dir === d ? 'on' : ''} onClick={() => setDir(d)}>{d === 'all' ? 'All' : d === 'in' ? 'Money in' : 'Money out'}</button>)}
@@ -153,7 +154,7 @@ function Inspector({ e, cur, dispatch, close, onAttach }: { e: Entry; cur: strin
           </Field>
         )}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
-          <span className="small">{e.source === 'muse' ? 'Read by Meta Muse' : e.source === 'manual' ? 'Edited by you' : 'Read on this device'} · {money(e.amount, cur)}</span>
+          <span className="small">{e.source === 'muse' ? 'Read by Muse' : e.source === 'manual' ? 'Edited by you' : 'Read on this device'} · {money(e.amount, cur)}</span>
           <button className="btn danger" onClick={() => { dispatch({ type: 'remove', id: e.id }); close(); }}><Icon.trash size={14} /> Delete</button>
         </div>
       </div>

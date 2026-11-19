@@ -48,7 +48,7 @@ export function PeoplePage({ state, dispatch }: { state: State; dispatch: Dispat
       <section className="acc-folio">
         <Vignette id="taxcollectors" focus="50% 45%" />
         <div className="acc-body">
-          <div className="numeral">I</div>
+          <div className="numeral">Debts and loans <span>· I</span></div>
           <h2>Who owes <i>whom</i></h2>
           {people.length ? (
             <>
@@ -73,7 +73,7 @@ export function PeoplePage({ state, dispatch }: { state: State; dispatch: Dispat
       <section className="acc-folio">
         <Vignette id="jumak" focus="50% 50%" />
         <div className="acc-body">
-          <div className="numeral">II</div>
+          <div className="numeral">Savings circles <span>· II</span></div>
           <h2>Savings <i>circles</i></h2>
           <p className="acc-note">Tontine, susu, tanda, hui, kye, chit fund, stokvel, arisan, partner: everyone pays in each round, and one takes the pot.</p>
           {circles.map((s) => (
@@ -118,7 +118,7 @@ export function LedgerReports({ state }: { state: State }) {
       <section className="acc-folio">
         <Vignette id="market" focus="50% 55%" />
         <div className="acc-body">
-          <div className="numeral">I</div>
+          <div className="numeral">Your inflation <span>· I</span></div>
           <h2>Your own <i>prices</i></h2>
           {prices.rate !== null ? (
             <>
@@ -140,7 +140,7 @@ export function LedgerReports({ state }: { state: State }) {
       <section className="acc-folio acc-record">
         <Vignette id="balance" focus="50% 40%" />
         <div className="acc-body">
-          <div className="numeral">II</div>
+          <div className="numeral">Proof of income <span>· II</span></div>
           <h2>The income <i>record</i></h2>
           <p className="acc-note">Up to six months of money in, set out for a landlord, a lender or a visa office. Printed from this device; nothing is uploaded.</p>
           <table className="acc-table">

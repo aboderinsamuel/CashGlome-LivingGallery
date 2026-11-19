@@ -119,7 +119,7 @@ export function Onboarding({ initialCurrency, calm, onDone }: Props) {
               Your money, <em>painted</em>.
             </motion.h1>
             <motion.p className="ob-lede" initial={calm ? false : { opacity: 0 }} animate={{ opacity: sent ? 0 : 1 }} transition={{ delay: 0.5, duration: 0.6 }}>
-              Write what today cost. Each line brushes colour into the painting, and your first one calls you to your house for the year.
+              A private diary for your money. Write what you spend and earn, see where it goes, and watch a painting come back to life as you do.
             </motion.p>
             <motion.div className="ob-slip-wrap" initial={calm ? false : { opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.65, duration: 0.6 }}>
               <form className={'ob-slip' + (sent ? ' sent' : '') + (voice ? ' rec' : '')} onSubmit={(e) => { e.preventDefault(); send(); }}>

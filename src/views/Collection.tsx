@@ -34,7 +34,7 @@ export function Collection({ state, onOpen, onCamera, onPlay }: { state: State; 
         <div className="kicker"><span style={{ font: 'italic 400 17px var(--serif)', color: 'var(--gold)' }}>The gallery</span></div>
         <h1 className="display" style={{ marginTop: 10 }}>{months.length === 1 ? 'One painting' : `${months.length} paintings`}, <em>yours</em>.</h1>
         <p className="lede" style={{ marginTop: 14 }}>
-          {done ? `${done} fully restored. ` : ''}{state.entries.length} {state.entries.length === 1 ? 'line' : 'lines'} written over {daysWritten} {daysWritten === 1 ? 'day' : 'days'}. A finished painting hangs here for good.
+          Every month you write gets its own painting, cleaned a little with each line. {done ? `${done} fully restored. ` : ''}{state.entries.length} {state.entries.length === 1 ? 'line' : 'lines'} written over {daysWritten} {daysWritten === 1 ? 'day' : 'days'}. A finished painting hangs here for good.
         </p>
       </div>
 

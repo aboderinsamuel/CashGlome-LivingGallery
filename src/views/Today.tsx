@@ -88,6 +88,8 @@ export function Today({ state, dispatch, voice, onVoiceDone, onFill, onLedger, o
         {fresh && <p className="td-lede">Write what came in or went out, the way you’d say it. CashGlome keeps the sums, and every line cleans a patch of this month’s painting.</p>}
       </header>
 
+      {!fresh && <FirstWeek state={state} />}
+
       {!fresh && todays.length === 0 && (evening || quietToday) && (
         <Sitting painting={painting} todays={todays} quiet={quietToday} calm={state.settings.calm} onWrite={() => onFill('')} onQuiet={setQuiet} />
       )}
@@ -99,7 +101,7 @@ export function Today({ state, dispatch, voice, onVoiceDone, onFill, onLedger, o
             <section className="td-hero" aria-label="Safe to spend">
               <div className="td-label">Safe to spend today</div>
               <div className="td-big num"><span className="td-ring">{m(safe.perDay)}<Chalk kind="circle" calm={state.settings.calm} delay={0.5} style={{ left: -18, top: -10, width: 'calc(100% + 36px)', height: 'calc(100% + 20px)' }} /></span></div>
-              <p className="td-sub">{safe.until ? <>until pay {relDay(safe.until)}</> : <>a day for the rest of the month</>}, after what’s due. About <b className="num">{m(safe.free)}</b> is free in all.</p>
+              <p className="td-sub">{safe.until ? <>a day until pay {relDay(safe.until)}</> : <>a day for the rest of the month</>}. The working: <b className="num">{m(safe.free)}</b> free after what’s due, spread over {Math.max(1, Math.round(safe.free / Math.max(1, safe.perDay)))} days.</p>
               <button className="td-link" onClick={() => onAsk('How is safe to spend counted?')}>How is this counted?</button>
             </section>
           ) : !fresh ? (
@@ -194,10 +196,12 @@ export function Today({ state, dispatch, voice, onVoiceDone, onFill, onLedger, o
             <i>{painting.title}</i>
             <span>{painting.artist}, {painting.year}</span>
             <span className="num td-count">{r.complete ? 'Restored' : `${r.restored} of ${PATCHES} patches cleaned`}</span>
+            {!r.complete && <span className="td-why">Each line you write cleans one patch. All {PATCHES} and it hangs in your Gallery.</span>}
           </div>
           <AnimatePresence>
             {voice && (
               <motion.div key={voice.key} className="td-voice" role="status" initial={{ opacity: 0, y: -6, scaleY: 0.6 }} animate={{ opacity: 1, y: 0, scaleY: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.45 }}>
+                <div className="td-voice-k">The painting talks back</div>
                 <div className="who">{voice.who}<span>{voice.role}</span></div>
                 <p>“{voice.text}”</p>
                 <div className="where">{voice.where}</div>
@@ -234,4 +238,24 @@ function comingUp(s: State, today: string): Coming[] {
   // Show each routine once: its next date.
   const seen = new Set<string>();
   return out.sort((a, b) => a.date.localeCompare(b.date)).filter((x) => { const k = x.label + x.dir; if (seen.has(k)) return false; seen.add(k); return true; });
+}
+
+/** The first week: three plain cards on what Today shows and why there is a painting. Gone once read. */
+function FirstWeek({ state }: { state: State }) {
+  const KEY = 'cg-guide-read';
+  const [read, setRead] = useState(() => { try { return localStorage.getItem(KEY) === '1'; } catch { return false; } });
+  const first = state.entries.reduce((a, e) => (e.date < a ? e.date : a), todayISO());
+  const days = Math.round((Date.parse(todayISO()) - Date.parse(first)) / 864e5);
+  if (read || days > 7) return null;
+  const done = () => { setRead(true); try { localStorage.setItem(KEY, '1'); } catch { /* private mode */ } };
+  return (
+    <section className="fw" aria-label="How CashGlome works">
+      <div className="fw-head"><b>How this works</b><button className="td-link" onClick={done}>Got it, hide this</button></div>
+      <ol className="fw-cards">
+        <li><b>Write it as you’d say it.</b><span>Type “lunch 4k, taxi 3k, got paid 200k” in the box at the bottom, or say it. Each amount becomes a line in your Ledger.</span></li>
+        <li><b>The big number.</b><span>Safe to spend is what you can spend each day and still cover what’s due before pay. It counts only what you’ve written.</span></li>
+        <li><b>Why there’s a painting.</b><span>Each month hides a masterpiece under old varnish. Every line cleans a patch; finished ones hang in your Gallery, and their details become games in Play.</span></li>
+      </ol>
+    </section>
+  );
 }

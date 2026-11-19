@@ -155,10 +155,22 @@ const TITLES: Record<string, [string, string, string]> = {
   health: ['A month of ', 'getting well', '.'],
 };
 
+/** A number in Roman numerals, for any count of chapters. */
+export function toRoman(n: number) {
+  const t: [number, string][] = [[1000, 'M'], [900, 'CM'], [500, 'D'], [400, 'CD'], [100, 'C'], [90, 'XC'], [50, 'L'], [40, 'XL'], [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']];
+  let out = ''; for (const [v, r] of t) while (n >= v) { out += r; n -= v; } return out || 'I';
+}
+/** Your chapters count your months in the book, not the calendar: the first month you wrote is Chapter I. */
+export function chapterNumeral(entries: { date: string }[], month: string) {
+  const months = new Set(entries.map((e) => e.date.slice(0, 7)).filter((m) => m <= month));
+  months.add(month);
+  return toRoman(months.size);
+}
+
 export function chapterOf(state: State, s: Stats): Chapter {
   const cur = state.profile.currency;
   const m = (n: number) => money(n, cur, { compact: n >= 1e6 });
-  const numeral = ROMAN[Number(s.month.slice(5, 7)) - 1];
+  const numeral = chapterNumeral(state.entries, s.month);
   const character = characterOf(s);
   const mon = monthLabel(s.month).split(' ')[0];
   if (!s.entries.length) {
@@ -260,15 +272,17 @@ export interface Badge { id: string; name: string; desc: string; sticker: string
 export function badgesOf(state: State): Badge[] {
   const e = state.entries;
   const s = computeStats(e, state.month);
-  const streak = streakOf(e);
+  // Days written, in any order, and coming back after a break: kind ones, never a streak to lose.
+  const days = [...new Set(e.map((x) => x.date))].sort();
+  const cameBack = days.some((d, i) => i > 0 && (Date.parse(d) - Date.parse(days[i - 1])) / 864e5 >= 4);
   const B = (id: string, name: string, desc: string, sticker: string, color: string, progress: number): Badge => ({ id, name, desc, sticker, color, progress: Math.max(0, Math.min(1, progress)), done: progress >= 1 });
   return [
     B('first', 'First line', 'Write your first entry', 'star', '#FFC93C', e.length),
     B('25', 'Regular', 'Write 25 entries', 'books', '#0E7C86', e.length / 25),
     B('100', 'Archivist', 'Write 100 entries', 'box', '#D9B98C', e.length / 100),
-    B('s3', 'Warming up', 'Write 3 days in a row', 'bulb', '#F2E3B3', streak / 3),
-    B('s7', 'One full week', 'Write 7 days in a row', 'ticket', '#FF9EC7', streak / 7),
-    B('s30', 'Unbroken', 'Write 30 days in a row', 'clover', '#B9D36C', streak / 30),
+    B('d3', 'Warming up', 'Write on 3 different days, any days', 'bulb', '#F2E3B3', days.length / 3),
+    B('d30', 'A month of pages', 'Write on 30 different days, gaps and all', 'clover', '#B9D36C', days.length / 30),
+    B('back', 'Welcome back', 'Come back after a few days away. Missing days costs nothing.', 'ticket', '#FF9EC7', cameBack ? 1 : 0),
     B('vault', 'First deposit', 'Put money into savings', 'piggy', '#146B45', e.filter((x) => x.category === 'savings').length),
     B('save20', 'Twenty percent', 'Keep 20% of a month\'s income', 'coin', '#FFB547', s.inflow ? s.savingsRate / 0.2 : 0),
     B('feel', 'Honest', 'Mark how 10 spends felt', 'heart', '#FF5E8A', e.filter((x) => x.feeling).length / 10),

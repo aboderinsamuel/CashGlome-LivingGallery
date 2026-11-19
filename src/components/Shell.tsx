@@ -60,7 +60,7 @@ interface SidebarProps {
   setView: (v: View) => void;
   month: string;
   setMonth: (m: string) => void;
-  chapters: { month: string; title: string }[];
+  chapters: { month: string; title: string; numeral: string }[];
   counts: { ledger: number; play?: number };
   name: string;
   onEdition: () => void;
@@ -111,7 +111,7 @@ export function Sidebar(p: SidebarProps) {
               <button key={c.month} className={'toc' + (p.view === 'chapter' && p.month === c.month ? ' on' : '')} onClick={() => { p.setMonth(c.month); p.setView('chapter'); }} title={c.title}>
                 <span>{monthLabel(c.month).split(' ')[0]}{c.month.slice(0, 4) !== String(new Date().getFullYear()) ? ` ’${c.month.slice(2, 4)}` : ''}</span>
                 <span className="lead" />
-                <span className="rn">{ROMAN[Number(c.month.slice(5, 7)) - 1]}</span>
+                <span className="rn">{c.numeral}</span>
               </button>
             ))}
           </>

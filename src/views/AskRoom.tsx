@@ -98,9 +98,9 @@ export function AskRoom({ state, turns, setTurns, first, onFirstDone }: { state:
       <header className="ar-head">
         <img src={artSrc(painting.id, 'sm')} alt="" className="ar-face" />
         <div>
-          <div className="ar-kicker">Muse · {sitter.name}</div>
+          <div className="ar-kicker">Muse, the assistant · speaking as {sitter.name}</div>
           <h1>Ask me <i>anything</i></h1>
-          <p>Money, plans, a date, this painting. I know your book; this device does the counting.</p>
+          <p>Ask about your money in plain words: “can I afford this?”, “where did it go?”. I read your book; every sum is counted on this device and shown with its working.</p>
         </div>
       </header>
 

@@ -37,7 +37,7 @@ export function Plans({ state, dispatch }: { state: State; dispatch: (a: Action)
     setAsking(true);
     try {
       const a = ai ? await museAsk(state, question).catch(() => localAsk(state, question)) : localAsk(state, question);
-      setAnswer({ q: question, a, by: ai ? 'Meta Muse' : 'CashGlome, on this device' });
+      setAnswer({ q: question, a, by: ai ? 'Muse' : 'CashGlome, on this device' });
     } finally { setAsking(false); setQ(''); }
   };
 
@@ -45,6 +45,7 @@ export function Plans({ state, dispatch }: { state: State; dispatch: (a: Action)
     <div className="page">
       <div className="kicker">Plans</div>
       <h1 className="display" style={{ marginTop: 24, fontSize: 'clamp(48px, 5.6vw, 92px)' }}>The next <em>chapter</em>.</h1>
+      <p className="purpose">The goals you're saving for, and what a small change in your spending would add up to.</p>
       <p className="lede" style={{ marginTop: 24 }}>
         {s.inflow ? <>At your current pace you'll keep about <b style={{ fontWeight: 500, color: 'var(--ink)' }}>{money(Math.max(0, s.inflow - pj.projectedSpend), cur)}</b> this month. Here's what that could turn into.</> : <>Write down what comes in, and this page will show you what it could turn into.</>}
       </p>
@@ -96,7 +97,7 @@ export function Plans({ state, dispatch }: { state: State; dispatch: (a: Action)
       <section className="section">
         <div className="section-head">
           <h2 className="h2">Ask <em>anything</em></h2>
-          <p className="body-serif">“Can I afford a {cur === 'NGN' ? '300k' : '900'} phone?” “Where can I cut back?” Answers use your real numbers. {ai ? 'Answered by Meta Muse.' : 'Answered on this device. Connect Meta Muse in Settings for fuller answers.'}</p>
+          <p className="body-serif">“Can I afford a {cur === 'NGN' ? '300k' : '900'} phone?” “Where can I cut back?” Answers use your real numbers. {ai ? 'Answered by Muse, with every sum counted on this device.' : 'Answered on this device, with the working shown.'}</p>
         </div>
         <div className="card" style={{ padding: 8, display: 'flex', gap: 8, alignItems: 'center' }}>
           <input className="field" style={{ border: 0, height: 44, fontSize: 16, font: '400 19px var(--serif)', background: 'transparent', boxShadow: 'none' }} placeholder="Ask about your money…" value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && ask()} />

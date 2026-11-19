@@ -24,7 +24,7 @@ export function HousePlate({ state, dispatch }: { state: State; dispatch: (a: Ac
   return (
     <>
       {h && !due ? (
-        <button className="hp" style={{ ['--house' as string]: h.color }} onClick={() => setOpen({ calling: call!, by: 'book', replay: true })} aria-label={`${houseName(h)}. See your Calling again`}>
+        <button className="hp" title="Houses are a bit of fun: once a year your spending calls you to one of six, each a painting." style={{ ['--house' as string]: h.color }} onClick={() => setOpen({ calling: call!, by: 'book', replay: true })} aria-label={`${houseName(h)}. See your Calling again`}>
           <span className="hp-crest" style={crest} aria-hidden />
           <span className="hp-t"><b>{houseName(h)}</b><i>{h.motto}</i></span>
           <span className="hp-go">See the Calling<Icon.right size={13} /></span>

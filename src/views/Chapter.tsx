@@ -82,6 +82,7 @@ export function Chapter({ state, dispatch, museChapter, onOpenCategory, onEditio
           <motion.p className="lede" style={{ marginTop: 26 }} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.06, duration: 0.4, ease }}>
             {ch.lede}
           </motion.p>
+          <p className="purpose">Each month of your book is a chapter: a story of where the money went, and a painting under old varnish. Every line you write cleans one of its 30 patches.</p>
           {empty && s.isCurrent && (
             <motion.div className="starts" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12, duration: 0.35 }}>
               <button className="start" onClick={() => onWrite(cur === 'NGN' ? 'Lunch 3,500' : 'Lunch 14')}><Icon.list size={22} /><b>Type</b><span>{cur === 'NGN' ? '“Lunch 3,500”' : '“Lunch 14”'}</span></button>
