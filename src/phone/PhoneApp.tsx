@@ -11,7 +11,7 @@ import type { Action } from '../lib/store';
 import type { Entry, State } from '../lib/types';
 import { Icon } from '../components/Icons';
 import { RestorationPlate, revealTime } from '../components/Restoration';
-import { ChapterTabs, TabBar, placeOf, type Place, type View } from '../components/Shell';
+import { ChapterTabs, TabBar, tabOf, type Tab, type View } from '../components/Shell';
 import { cardSeason, chipsFor, closeDay, dateInWords, dayClosed, monthName, partOfDay, promptFor, type CashPocket, type Chip } from './moments';
 import { haptic } from './device';
 
@@ -37,13 +37,13 @@ interface Props {
 }
 
 const PAGE_TITLE: Record<PhonePage, string> = { read: 'The chapter', plans: 'Plans', memory: 'Routines & memory' };
-const PLACE_TITLE: Record<Place, string> = { today: 'Today', ledger: 'Ledger', ask: 'Ask', people: 'People', chapter: 'Chapter', play: 'Play' };
+const PLACE_TITLE: Record<Tab, string> = { today: 'Today', ledger: 'Ledger', ask: 'Ask', people: 'People', chapter: 'Paintings' };
 
 export function PhoneApp(p: Props) {
   const { state, view } = p;
   const [page, setPage] = useState<PhonePage | null>(null);
   const isNow = state.month === monthOf(todayISO());
-  const place = placeOf(view);
+  const place = tabOf(view);
   // Plans and routines arrive from Your book as pushed pages.
   const pushed: PhonePage | null = page ?? (view === 'plans' ? 'plans' : view === 'memory' ? 'memory' : null);
   const go = (v: View) => { haptic(); setPage(null); p.setView(v); };
@@ -87,9 +87,9 @@ export function PhoneApp(p: Props) {
         {pushed ? <div className="ph-page">{pushed === 'read' ? p.pages.read : p.pages[pushed]}</div>
           : place === 'chapter' ? (
             <>
-              <ChapterTabs view={view} setView={go} onEdition={p.onEdition} onLiving={p.onLiving} />
+              <ChapterTabs phone view={view} setView={go} onEdition={p.onEdition} onLiving={p.onLiving} />
               {view === 'chapter' ? <PhoneHome key={state.month} state={state} dispatch={p.dispatch} museChapter={p.museChapter} isNow={isNow} onRead={() => setPage('read')} onLedger={() => go('ledger')} onShare={p.onShare} onLiving={p.onLiving} />
-                : <div className="ph-page">{view === 'shelf' ? p.pages.shelf : p.pages.collection}</div>}
+                : <div className="ph-page">{view === 'shelf' ? p.pages.shelf : view === 'play' ? p.pages.play : p.pages.collection}</div>}
             </>
           )
           : <div className="ph-page">{p.pages[place === 'people' ? 'people' : place]}</div>}

@@ -6,11 +6,14 @@ import { artSrc, NATIVE_TITLE, PAINTINGS } from '../lib/art';
 import { useWindow } from './Desktop';
 import { AppIcon } from './Logo';
 
-/** The five places, and the pages reached from them. 'accounts' is kept as another name for People. */
+/** The places, and the pages reached from them. 'accounts' is kept as another name for People. */
 export type View = 'today' | 'ledger' | 'ask' | 'people' | 'chapter' | 'play' | 'shelf' | 'collection' | 'plans' | 'memory' | 'accounts';
-export type Place = 'today' | 'ledger' | 'ask' | 'people' | 'chapter' | 'play';
-/** Which of the five places a page belongs to. */
-export const placeOf = (v: View): Place => (v === 'shelf' || v === 'collection' ? 'chapter' : v === 'accounts' ? 'people' : v === 'plans' || v === 'memory' ? 'today' : v);
+export type Place = 'today' | 'ledger' | 'ask' | 'people' | 'plans' | 'chapter' | 'collection' | 'play';
+/** Which place in the sidebar a page belongs to. */
+export const placeOf = (v: View): Place => (v === 'shelf' ? 'chapter' : v === 'accounts' ? 'people' : v === 'memory' ? 'today' : v);
+/** On a phone there are five tabs: the paintings (chapter, gallery, play) share one. */
+export type Tab = 'today' | 'ledger' | 'ask' | 'people' | 'chapter';
+export const tabOf = (v: View): Tab => { const p = placeOf(v); return p === 'collection' || p === 'play' ? 'chapter' : p === 'plans' ? 'today' : p; };
 
 const isDesktop = !!window.glome?.isDesktop;
 const isMacDesktop = isDesktop && window.glome?.platform === 'darwin';
@@ -28,13 +31,28 @@ export function TrafficLights() {
   );
 }
 
-const PLACES: { v: Place; label: string; icon: (size: number) => ReactNode }[] = [
+type PlaceItem = { v: Place; label: string; icon: (size: number) => ReactNode };
+/** The sidebar, in the book's three acts: write it down, see it painted, ask about it. */
+const ACTS: { act: string; places: PlaceItem[] }[] = [
+  { act: 'Write', places: [
+    { v: 'today', label: 'Today', icon: (z) => <Icon.sun size={z} /> },
+    { v: 'ledger', label: 'Ledger', icon: (z) => <Icon.list size={z} /> },
+    { v: 'people', label: 'People', icon: (z) => <Icon.person size={z} /> },
+    { v: 'plans', label: 'Plans', icon: (z) => <Icon.flag size={z} /> },
+  ] },
+  { act: 'See', places: [
+    { v: 'chapter', label: 'Chapter', icon: (z) => <Icon.book size={z} /> },
+    { v: 'collection', label: 'Gallery', icon: (z) => <Icon.seal size={z} /> },
+    { v: 'play', label: 'Play', icon: (z) => <Icon.games size={z} /> },
+  ] },
+  { act: 'Ask', places: [{ v: 'ask', label: 'Ask', icon: (z) => <Icon.ask size={z} /> }] },
+];
+const TABS: { v: Tab; label: string; icon: (size: number) => ReactNode }[] = [
   { v: 'today', label: 'Today', icon: (z) => <Icon.sun size={z} /> },
   { v: 'ledger', label: 'Ledger', icon: (z) => <Icon.list size={z} /> },
   { v: 'ask', label: 'Ask', icon: (z) => <Icon.ask size={z} /> },
   { v: 'people', label: 'People', icon: (z) => <Icon.person size={z} /> },
-  { v: 'chapter', label: 'Chapter', icon: (z) => <Icon.book size={z} /> },
-  { v: 'play', label: 'Play', icon: (z) => <Icon.games size={z} /> },
+  { v: 'chapter', label: 'Paintings', icon: (z) => <Icon.book size={z} /> },
 ];
 
 interface SidebarProps {
@@ -49,6 +67,8 @@ interface SidebarProps {
   /** Your book: name, currency, categories, routines, plans, backup, look and sound. */
   onBook: () => void;
   onMusic: () => void;
+  /** Routines & memory, in Your book. */
+  onRoutines: () => void;
   musicOn: boolean;
   /** The painting hung in the sidebar (the wallpaper setting): a painting id. */
   wall?: string;
@@ -65,7 +85,10 @@ export function Sidebar(p: SidebarProps) {
       <div className="lights" onPointerDown={(e) => win?.startDrag(e)} onDoubleClick={() => win?.zoom()}><TrafficLights /></div>
       <div className="side-scroll nodrag">
         <div className="side-brand"><AppIcon size={34} style={{ borderRadius: 8 }} />CashGlome</div>
-        {PLACES.map((x) => (
+        {ACTS.map((g) => (
+          <div key={g.act} className="side-act">
+            <div className="side-label">{g.act}</div>
+            {g.places.map((x) => (
           <div key={x.v}>
             <button className={'side-item place' + (place === x.v ? ' on' : '')} onClick={() => p.setView(x.v)} aria-current={place === x.v ? 'page' : undefined}>
               {x.icon(17)}{x.label}{x.v === 'ledger' && p.counts.ledger > 0 && <span className="count">{p.counts.ledger}</span>}{x.v === 'play' && !!p.counts.play && <span className="count new" title={`${p.counts.play} to find`}>{p.counts.play} to find</span>}
@@ -73,11 +96,12 @@ export function Sidebar(p: SidebarProps) {
             {x.v === 'chapter' && place === 'chapter' && (
               <div className="side-subs">
                 <Sub v="chapter" label="This month" icon={<Icon.book size={14} />} />
-                <Sub v="shelf" label="All chapters" icon={<Icon.shelf size={14} />} />
-                <Sub v="collection" label="Gallery" icon={<Icon.seal size={14} />} />
+                <Sub v="shelf" label="Past chapters" icon={<Icon.shelf size={14} />} />
                 <button className="side-sub" onClick={p.onEdition}><Icon.play size={14} />Play the Edition</button>
               </div>
             )}
+          </div>
+        ))}
           </div>
         ))}
         {place === 'chapter' && p.chapters.length > 1 && (
@@ -104,12 +128,15 @@ export function Sidebar(p: SidebarProps) {
           </figure>
         )}
       </div>
-      <button className={'side-music nodrag' + (p.musicOn ? ' on' : '')} onClick={p.onMusic}><Icon.music size={15} />Music{p.musicOn && <span className="music-live" aria-hidden />}</button>
+      <div className="side-book nodrag">
+        <button className="side-music" onClick={p.onRoutines}><Icon.repeat size={15} />Routines &amp; memory</button>
+        <button className={'side-music' + (p.musicOn ? ' on' : '')} onClick={p.onMusic}><Icon.music size={15} />Music{p.musicOn && <span className="music-live" aria-hidden />}</button>
+      </div>
       <button className="me nodrag" onClick={p.onBook} aria-label="Your book: settings, categories, routines and backup">
         <span className="avatar">{(p.name || 'Y').charAt(0).toUpperCase()}</span>
         <span style={{ minWidth: 0, flex: 1, overflow: 'hidden' }}>
           <span style={{ display: 'block', fontWeight: 600, fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name || 'Your book'}</span>
-          <span className="small" style={{ display: 'block', whiteSpace: 'nowrap' }}>Settings and categories</span>
+          <span className="small" style={{ display: 'block', whiteSpace: 'nowrap' }}>Your book: settings</span>
         </span>
         <Icon.right size={14} />
       </button>
@@ -117,12 +144,12 @@ export function Sidebar(p: SidebarProps) {
   );
 }
 
-/** The five places along the bottom, labelled. Used on narrow windows and on phones. */
+/** The five tabs along the bottom, labelled. Used on narrow windows and on phones. */
 export function TabBar({ view, setView, className = 'tabbar glass' }: { view: View; setView: (v: View) => void; className?: string }) {
-  const place = placeOf(view);
+  const place = tabOf(view);
   return (
     <nav className={className} aria-label="Places">
-      {PLACES.map((x) => (
+      {TABS.map((x) => (
         <button key={x.v} className={place === x.v ? 'on' : ''} onClick={() => setView(x.v)} aria-current={place === x.v ? 'page' : undefined}>
           {x.icon(20)}<span>{x.label}</span>
         </button>
@@ -132,11 +159,11 @@ export function TabBar({ view, setView, className = 'tabbar glass' }: { view: Vi
 }
 
 /** The Chapter's three rooms, and two ways to look at the month. */
-export function ChapterTabs({ view, setView, onEdition, onLiving }: { view: View; setView: (v: View) => void; onEdition: () => void; onLiving: () => void }) {
+export function ChapterTabs({ view, setView, onEdition, onLiving, phone }: { view: View; setView: (v: View) => void; onEdition: () => void; onLiving: () => void; phone?: boolean }) {
   const T = ({ v, label }: { v: View; label: string }) => <button role="tab" aria-selected={view === v} className={view === v ? 'on' : ''} onClick={() => setView(v)}>{label}</button>;
   return (
     <div className="ch-tabs">
-      <div className="ch-seg" role="tablist" aria-label="Chapter"><T v="chapter" label="This month" /><T v="shelf" label="All chapters" /><T v="collection" label="Gallery" /></div>
+      <div className="ch-seg" role="tablist" aria-label="Chapter"><T v="chapter" label="This month" /><T v="shelf" label="Past chapters" />{phone && <><T v="collection" label="Gallery" /><T v="play" label="Play" /></>}</div>
       <div className="ch-acts">
         <button onClick={onLiving}><Icon.sun size={15} />See it alive</button>
         <button onClick={onEdition}><Icon.play size={12} />Play the Edition</button>

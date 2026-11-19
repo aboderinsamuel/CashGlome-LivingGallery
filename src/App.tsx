@@ -478,14 +478,14 @@ export default function App() {
         view={view} setView={setView} month={state.month} setMonth={setMonth} chapters={chapters}
         counts={{ ledger: monthCount, play: toFind }}
         name={state.profile.name}
-        onEdition={() => setEdition(true)} onBook={() => openSettings()} onMusic={() => setMusic((x) => !x)} musicOn={!!state.settings.music?.on || music} wall={wall}
+        onEdition={() => setEdition(true)} onBook={() => openSettings()} onRoutines={() => openSettings('routines')} onMusic={() => setMusic((x) => !x)} musicOn={!!state.settings.music?.on || music} wall={wall}
       />
 
       <main className="main" ref={main}>
         {/* The new page is on screen in the same frame as the tap; it only settles in, like iOS. No waiting for the old one to leave. */}
         <motion.div key={`${view}:${state.month}`} initial={{ opacity: 0.4, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18, ease: [0.2, 0.8, 0.2, 1] }}>
             {view === 'today' && <Today state={state} dispatch={dispatch} voice={voice} onVoiceDone={clearVoice} onFill={(t) => composer.current?.fill(t)} onLedger={goView('ledger')} onPeople={goView('people')} onAsk={askAbout} onPainting={() => setLiving(true)} onEdit={() => setView('ledger')} onPlay={goView('play')} />}
-            {(view === 'chapter' || view === 'shelf' || view === 'collection') && <ChapterTabs view={view} setView={setView} onEdition={() => setEdition(true)} onLiving={() => setLiving(true)} />}
+            {(view === 'chapter' || view === 'shelf') && <ChapterTabs view={view} setView={setView} onEdition={() => setEdition(true)} onLiving={() => setLiving(true)} />}
             {view === 'chapter' && <Chapter state={state} dispatch={dispatch} museChapter={muse[state.month] ?? null} onOpenCategory={(id) => { setFilter(id); setView('ledger'); }} onEdition={() => setEdition(true)} onWrite={(h) => composer.current?.fill(h ?? '')} onPlans={goView('plans')} onGallery={goView('collection')} onSay={() => composer.current?.speak()} onSnap={() => setCapture({ file: null })} onShare={() => setSharing(true)} />}
             {view === 'shelf' && <Shelf state={state} months={months} onOpen={(m) => { setMonth(m); setView('chapter'); }} />}
             {view === 'ledger' && <><Ledger state={state} dispatch={dispatch} filter={filter} setFilter={setFilter} query={query} onAttach={(e) => setCapture({ file: null, attach: e })} /><LedgerReports state={state} /></>}
