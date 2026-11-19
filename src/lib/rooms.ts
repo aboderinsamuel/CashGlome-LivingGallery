@@ -48,15 +48,32 @@ export const RESERVE = Object.keys(PAINTINGS).filter((id) => !ROOMS.some((r) => 
 export const ROMAN_ROOM = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
 
 const KEY = 'cg-rooms';
-type Saved = { cleared: number; best: Record<number, number> };
+/** The two seals beyond Restored. Earned once, kept for good: nothing is ever taken away. */
+export interface Seals { eye?: boolean; hand?: boolean }
+type Saved = { cleared: number; best: Record<number, number>; seals: Record<number, Seals> };
 export function roomsOf(): Saved {
-  try { const s = JSON.parse(localStorage.getItem(KEY) ?? ''); if (typeof s?.cleared === 'number') return { cleared: s.cleared, best: s.best ?? {} }; } catch { /* first time */ }
-  return { cleared: 0, best: {} };
+  try { const s = JSON.parse(localStorage.getItem(KEY) ?? ''); if (typeof s?.cleared === 'number') return { cleared: s.cleared, best: s.best ?? {}, seals: s.seals ?? {} }; } catch { /* first time */ }
+  return { cleared: 0, best: {}, seals: {} };
 }
-/** A room restored: the next one opens. Returns the saved progress. */
-export function clearRoom(n: number, moves: number): Saved {
+/** Seals a room holds, Restored included: 0 to 3. */
+export const sealCount = (s: Saved, n: number) => (n <= s.cleared ? 1 + (s.seals[n]?.eye ? 1 : 0) + (s.seals[n]?.hand ? 1 : 0) : 0);
+export const SEALS_IN_ALL = 36;
+
+/** The fewest swaps that can put this shuffle right: every piece, less one for each loop of pieces. */
+export function fewestMoves(tiles: number[]) {
+  const seen = new Array(tiles.length).fill(false); let loops = 0;
+  for (let i = 0; i < tiles.length; i++) { if (seen[i]) continue; loops++; for (let j = i; !seen[j]; j = tiles[j]) seen[j] = true; }
+  return tiles.length - loops;
+}
+/** Sure hand: the fewest moves, with a little room for a slip. */
+export const sureHand = (fewest: number) => fewest + Math.max(1, Math.round(fewest * 0.1));
+
+/** A room restored: the next one opens, and any new seal is kept. Returns the saved progress. */
+export function clearRoom(n: number, moves: number, earned: Seals = {}): Saved {
   const s = roomsOf();
-  const next: Saved = { cleared: Math.max(s.cleared, n), best: { ...s.best, [n]: s.best[n] ? Math.min(s.best[n], moves) : moves } };
+  const had = s.seals[n] ?? {};
+  const next: Saved = { cleared: Math.max(s.cleared, n), best: { ...s.best, [n]: s.best[n] ? Math.min(s.best[n], moves) : moves },
+    seals: { ...s.seals, [n]: { eye: had.eye || earned.eye, hand: had.hand || earned.hand } } };
   try { localStorage.setItem(KEY, JSON.stringify(next)); } catch { /* private mode */ }
   window.dispatchEvent(new Event('cg-found'));
   return next;

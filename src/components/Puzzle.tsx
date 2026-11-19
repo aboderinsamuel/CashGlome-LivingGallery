@@ -2,10 +2,10 @@
 // Played free (any size), or as one of the Rooms, where the size and the help are set by the room.
 // No clock: when the picture is whole, it says so plainly and opens the next room.
 import { AnimatePresence, motion } from 'framer-motion';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { artSrc, type Painting } from '../lib/art';
-import { ROMAN_ROOM, ROOMS, wingOf, type Room } from '../lib/rooms';
+import { fewestMoves, ROMAN_ROOM, ROOMS, roomsOf, sureHand, wingOf, type Room, type Seals } from '../lib/rooms';
 import { sfx } from '../lib/sound';
 import { Icon } from './Icons';
 
@@ -28,7 +28,7 @@ interface Props {
   onClose: () => void;
   /** Played as a room: fixed size and help, and a way on to the next. */
   room?: Room;
-  onSolved?: (moves: number) => void;
+  onSolved?: (moves: number, earned: Seals) => void;
   onNext?: () => void;
 }
 
@@ -47,10 +47,16 @@ export function Puzzle({ painting, calm, onClose, room, onSolved, onNext }: Prop
   const solved = tiles.every((t, i) => t === i);
   const placed = tiles.filter((t, i) => t === i).length;
   const last = room && room.n === ROOMS.length;
+  // For the seals: the fewest moves this shuffle allows, whether the whole was peeked at, and what was held before.
+  const fewest = useRef(fewestMoves(tiles));
+  const peeked = useRef(false);
+  const [won, setWon] = useState<{ eye: boolean; hand: boolean; hadEye: boolean; hadHand: boolean; first: boolean } | null>(null);
+  const target = sureHand(fewest.current);
 
   useEffect(() => { const img = new Image(); img.onload = () => setRatio(img.naturalWidth / img.naturalHeight); img.src = src; }, [src]);
   useEffect(() => { const k = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); }; window.addEventListener('keydown', k); return () => window.removeEventListener('keydown', k); }, [onClose]);
-  const deal = (n: number) => { setSize(n); setTiles(shuffled(n * n)); setPick(null); setMoves(0); setBest(bestOf(room ? key : `${painting.id}-${n}`)); };
+  const deal = (n: number) => { const t = shuffled(n * n); fewest.current = fewestMoves(t); peeked.current = false; setWon(null); setSize(n); setTiles(t); setPick(null); setMoves(0); setBest(bestOf(room ? key : `${painting.id}-${n}`)); };
+  const startPeek = () => { peeked.current = true; setPeek(true); };
 
   const tap = (slot: number) => {
     if (solved) return;
@@ -64,7 +70,12 @@ export function Puzzle({ painting, calm, onClose, room, onSolved, onNext }: Prop
     if (next.every((t, i) => t === i)) {
       const m = moves + 1;
       if (!best || m < best) { saveBest(key, m); setBest(m); }
-      onSolved?.(m);
+      if (room) {
+        const saved = roomsOf(), had = saved.seals[room.n] ?? {};
+        const earned = { eye: !peeked.current, hand: m <= target };
+        setWon({ ...earned, hadEye: !!had.eye, hadHand: !!had.hand, first: saved.cleared < room.n });
+        onSolved?.(m, earned);
+      } else onSolved?.(m, {});
       setTimeout(() => { sfx.restore(); buzz([12, 70, 22]); }, 250);
     }
   };
@@ -77,15 +88,16 @@ export function Puzzle({ painting, calm, onClose, room, onSolved, onNext }: Prop
   return createPortal(
     <motion.div className="pz" role="dialog" aria-label={`${title}: ${painting.title}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
       <div className="pz-top">
-        <div className="pz-clue"><span>{room ? `${title} · ${wingOf(room.n).name} · ${n * n} pieces` : title}</span><b>{painting.title}</b></div>
+        <div className="pz-clue"><span>{room ? `${title} · ${wingOf(room.n).name} · ${n * n} pieces` : title}</span><b>{painting.title}</b>
+          {room && <i className="pz-goal">Three seals: restore it{room.peek ? ', without peeking' : ''}, in {target} moves or fewer.</i>}</div>
         {!room && (
           <div className="pz-sizes" role="radiogroup" aria-label="How many pieces">
             {[3, 4, 5, 6].map((s) => <button key={s} role="radio" aria-checked={size === s} className={size === s ? 'on' : ''} onClick={() => deal(s)}>{s * s} pieces</button>)}
           </div>
         )}
         {canPeek && !solved && (
-          <button className="pz-quiet" onPointerDown={() => setPeek(true)} onPointerUp={() => setPeek(false)} onPointerLeave={() => setPeek(false)}
-            onKeyDown={(e) => e.key === ' ' && setPeek(true)} onKeyUp={() => setPeek(false)} aria-label="Hold to see the whole painting">Hold to peek</button>
+          <button className="pz-quiet" onPointerDown={startPeek} onPointerUp={() => setPeek(false)} onPointerLeave={() => setPeek(false)}
+            onKeyDown={(e) => e.key === ' ' && startPeek()} onKeyUp={() => setPeek(false)} aria-label="Hold to see the whole painting">Hold to peek</button>
         )}
         <button className="pz-quiet" onClick={onClose}><Icon.close size={14} />Close</button>
       </div>
@@ -109,7 +121,23 @@ export function Puzzle({ painting, calm, onClose, room, onSolved, onNext }: Prop
                 <motion.div className="pz-won-card" initial={calm ? false : { scale: 0.86, y: 16 }} animate={{ scale: 1, y: 0 }} transition={{ delay: calm ? 0 : 0.85, type: 'spring', stiffness: 220, damping: 18 }}>
                   <span className="pz-won-seal" aria-hidden>{room ? ROMAN_ROOM[room.n] : <Icon.check size={22} />}</span>
                   <b>{room ? <>Room {ROMAN_ROOM[room.n]}, <em>restored</em>.</> : <>Whole <em>again</em>.</>}</b>
-                  <span>{moves} {moves === 1 ? 'move' : 'moves'}{best === moves ? ' · your best' : best ? ` · your best is ${best}` : ''}</span>
+                  <span>{moves} {moves === 1 ? 'move' : 'moves'}{room ? ` · fewest possible ${fewest.current}` : ''}{best === moves ? ' · your best' : best ? ` · your best is ${best}` : ''}</span>
+                  {room && won && (
+                    <ol className="pz-seals" aria-label="Seals for this room">
+                      {([
+                        ['Restored', 'The picture is whole.', true, won.first],
+                        ['By eye', room.peek ? 'No peeking.' : 'No peek in this room.', won.eye || won.hadEye, won.eye && !won.hadEye],
+                        ['Sure hand', `${target} moves or fewer.`, won.hand || won.hadHand, won.hand && !won.hadHand],
+                      ] as const).map(([name, rule, has, fresh], i) => (
+                        <motion.li key={name} className={(has ? 'has' : '') + (fresh ? ' fresh' : '')}
+                          initial={calm ? false : { scale: 0.4, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+                          transition={{ delay: calm ? 0 : 1.1 + i * 0.22, type: 'spring', stiffness: 380, damping: 16 }}>
+                          <span className="pz-seal-wax" aria-hidden>{has ? <Icon.check size={14} /> : null}</span>
+                          <b>{name}</b><small>{has ? (fresh ? 'New' : rule) : (i === 1 ? 'Play again without peeking' : `Play again in ${target} or fewer`)}</small>
+                        </motion.li>
+                      ))}
+                    </ol>
+                  )}
                   {room && !last && <span className="pz-won-next">Room {ROMAN_ROOM[room.n + 1]} is open{room.n + 1 === 10 ? ': the Master’s Room, 36 pieces.' : '.'}{room.n === 10 ? ' The Reserve is open too.' : ''}</span>}
                   {last && <span className="pz-won-next">Every room restored. The Reserve is yours.</span>}
                   <div className="pz-won-acts">
