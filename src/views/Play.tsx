@@ -12,6 +12,7 @@ import type { State } from '../lib/types';
 import { Hunt, huntedOf, Lens, saveHunted } from '../components/Discoveries';
 import { Puzzle } from '../components/Puzzle';
 import { Icon } from '../components/Icons';
+import { clearRoom, RESERVE, RESERVE_AFTER, ROMAN_ROOM, ROOMS, roomsOf, WINGS, type Room } from '../lib/rooms';
 
 /** One painting's three details, and where each stands. */
 interface Board { key: string; painting: Painting; where: string; restored: number; always?: boolean }
@@ -39,6 +40,10 @@ export function Play({ state }: { state: State }) {
   const [hunt, setHunt] = useState<Spot | null>(null);
   const [lens, setLens] = useState<Spot | null>(null);
   const [puzzle, setPuzzle] = useState<Painting | null>(null);
+  const [room, setRoom] = useState<Room | null>(null);
+  const [rooms, setRooms] = useState(roomsOf);
+  const current = ROOMS.find((r) => r.n === rooms.cleared + 1) ?? null;
+  const reserveOpen = rooms.cleared >= RESERVE_AFTER;
   const [tick, setTick] = useState(0);
 
   const boards = useMemo(() => boardsOf(state), [state.entries, state.quiet, state.house]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -65,32 +70,68 @@ export function Play({ state }: { state: State }) {
       <header className="pl-head">
         <div className="kicker"><span style={{ font: 'italic 400 17px var(--serif)', color: 'var(--gold)' }}>Play</span></div>
         <h1 className="display">Look <em>closer</em>.</h1>
-        <p className="lede">Two games made from the paintings you restore. Every line you write cleans a patch and opens another detail to find. No clock, nothing to lose.</p>
+        <ol className="pl-how" aria-label="How Play works">
+          <li><b>The Rooms.</b> Twelve paintings cut into pieces. Swap pieces until the picture is whole; each room you restore opens the next, and each is harder. Restore Room X and the Reserve opens: {RESERVE.length} more paintings.</li>
+          <li><b>Find it.</b> A curator names a detail and you find it in the painting. Writing in your book cleans this month's painting and opens new details.</li>
+        </ol>
       </header>
 
-      {/* The next game, ready to start */}
+      {/* Where you are: the next room, ready */}
       <section className="pl-next">
-        {next ? (
-          <button className="pl-hero" onClick={() => setHunt(next)}>
-            <span className="pl-hero-art" style={{ backgroundImage: `url(${artSrc(next.b.painting.id, 'md')})` }} aria-hidden><span className="pl-hero-lens" style={{ left: "50%", top: "50%" }} /></span>
+        {current ? (
+          <button className="pl-hero" onClick={() => setRoom(current)}>
+            <span className="pl-hero-art pz-thumb" style={{ backgroundImage: `url(${artSrc(current.painting, 'md')})` }} aria-hidden><i /><i /><i /><i /></span>
             <span className="pl-hero-t">
-              <span className="pl-k">Find it · {ready.length === 1 ? 'one detail' : `${ready.length} details`} waiting</span>
+              <span className="pl-k">{rooms.cleared ? `Next · Room ${ROMAN_ROOM[current.n]} of ${ROOMS.length}` : `Start here · Room I of ${ROOMS.length}`}</span>
+              <b>{PAINTINGS[current.painting].title}</b>
+              <i>{PAINTINGS[current.painting].artist}, {PAINTINGS[current.painting].year} · {current.size * current.size} pieces{current.hints ? '' : ', no glow'}{current.peek ? '' : ', no peek'}</i>
+              <span className="pl-cta">{rooms.cleared ? 'Enter the room' : 'Begin'}<Icon.right size={15} /></span>
+            </span>
+          </button>
+        ) : next ? (
+          <button className="pl-hero" onClick={() => setHunt(next)}>
+            <span className="pl-hero-art" style={{ backgroundImage: `url(${artSrc(next.b.painting.id, 'md')})` }} aria-hidden><span className="pl-hero-lens" style={{ left: '50%', top: '50%' }} /></span>
+            <span className="pl-hero-t">
+              <span className="pl-k">Every room restored · Find it</span>
               <b>{next.d.title}</b>
               <i>Somewhere in {next.b.painting.title}, {next.b.painting.artist}</i>
               <span className="pl-cta">Start looking<Icon.right size={15} /></span>
             </span>
           </button>
-        ) : puzzles[0] ? (
-          <button className="pl-hero" onClick={() => setPuzzle(puzzles[0])}>
-            <span className="pl-hero-art pz-thumb" style={{ backgroundImage: `url(${artSrc(puzzles[0].id, 'md')})` }} aria-hidden><i /><i /><i /><i /></span>
-            <span className="pl-hero-t">
-              <span className="pl-k">Put it back together</span>
-              <b>{puzzles[0].title}</b>
-              <i>Every detail found for now. Write a few lines and more open. Meanwhile, a puzzle.</i>
-              <span className="pl-cta">Shuffle the pieces<Icon.right size={15} /></span>
-            </span>
-          </button>
         ) : null}
+      </section>
+
+      {/* The Rooms: a ladder, wing by wing */}
+      <section className="section">
+        <div className="section-head">
+          <h2 className="h2">The <em>Rooms</em></h2>
+          <p className="body-serif">{rooms.cleared} of {ROOMS.length} restored. A padlocked room opens when you restore the one before it.</p>
+        </div>
+        <div className="pl-wings">
+          {WINGS.map((w) => (
+            <div key={w.name} className="pl-wing">
+              <div className="pl-wing-head"><b>{w.name}</b><span>Rooms {ROMAN_ROOM[w.from]}–{ROMAN_ROOM[w.to]} · {w.rule}</span></div>
+              <div className="pl-rooms">
+                {ROOMS.filter((r) => r.n >= w.from && r.n <= w.to).map((r) => {
+                  const done = r.n <= rooms.cleared, open = r.n === rooms.cleared + 1, locked = !done && !open;
+                  const pt = PAINTINGS[r.painting];
+                  return (
+                    <button key={r.n} className={'pl-room' + (done ? ' done' : open ? ' open' : ' locked')} disabled={locked} onClick={() => setRoom(r)}
+                      aria-label={locked ? `Room ${ROMAN_ROOM[r.n]}, locked. Restore Room ${ROMAN_ROOM[r.n - 1]} first` : `Room ${ROMAN_ROOM[r.n]}: ${pt.title}${done ? ', restored' : ''}`}>
+                      <span className="pl-room-art" style={locked ? undefined : { backgroundImage: `url(${artSrc(r.painting, 'sm')})` }} aria-hidden>
+                        {locked && <Icon.lock size={20} />}
+                        {done && <span className="pl-room-seal"><Icon.check size={13} /></span>}
+                      </span>
+                      <span className="pl-room-n">Room {ROMAN_ROOM[r.n]}</span>
+                      <span className="pl-room-t">{locked ? `Restore Room ${ROMAN_ROOM[r.n - 1]} first` : pt.title}</span>
+                      <span className="pl-room-s">{done ? (rooms.best[r.n] ? `Restored · best ${rooms.best[r.n]} moves` : 'Restored') : open ? 'Open now' : `${r.size * r.size} pieces`}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
       </section>
 
       {/* Find it */}
@@ -121,26 +162,45 @@ export function Play({ state }: { state: State }) {
         </div>
       </section>
 
-      {/* Put it back together */}
+      {/* Free play: your own paintings always, the Reserve after Room X */}
       <section className="section">
         <div className="section-head">
-          <h2 className="h2">Put it back <em>together</em></h2>
-          <p className="body-serif">Your paintings, cut into 9, 16 or 25 pieces and shuffled. Pick a piece, then the place it belongs.</p>
+          <h2 className="h2">Free <em>play</em></h2>
+          <p className="body-serif">Any painting, any size, as often as you like. Your own paintings are always here; the Reserve opens when you restore Room {ROMAN_ROOM[RESERVE_AFTER]}.</p>
         </div>
         <div className="pz-shelf">
           {puzzles.map((p) => (
             <button key={p.id} className="pz-pick" onClick={() => setPuzzle(p)} aria-label={`Puzzle: ${p.title}`}>
               <span className="pz-thumb" style={{ backgroundImage: `url(${artSrc(p.id, 'md')})` }} aria-hidden><i /><i /><i /><i /></span>
-              <span className="pz-name"><i>{p.title}</i><span>{p.artist}</span></span>
+              <span className="pz-name"><i>{p.title}</i><span>{p.artist} · yours</span></span>
               <span className="pz-play">Play<Icon.right size={13} /></span>
             </button>
           ))}
+        </div>
+        <div className={'pl-reserve' + (reserveOpen ? ' open' : '')}>
+          <div className="pl-wing-head"><b>The Reserve</b><span>{reserveOpen ? `${RESERVE.length} paintings, open to you.` : `${RESERVE.length} paintings, padlocked until Room ${ROMAN_ROOM[RESERVE_AFTER]} is restored. ${Math.max(0, RESERVE_AFTER - rooms.cleared)} rooms to go.`}</span></div>
+          <div className="pz-shelf">
+            {RESERVE.filter((id) => !puzzles.some((p) => p.id === id)).map((id) => PAINTINGS[id]).map((p) => (
+              <button key={p.id} className={'pz-pick' + (reserveOpen ? '' : ' locked')} disabled={!reserveOpen} onClick={() => setPuzzle(p)} aria-label={reserveOpen ? `Puzzle: ${p.title}` : `${p.title}, locked until Room ${ROMAN_ROOM[RESERVE_AFTER]}`}>
+                <span className="pz-thumb" style={{ backgroundImage: `url(${artSrc(p.id, 'sm')})` }} aria-hidden>{!reserveOpen && <span className="pz-lock"><Icon.lock size={18} /></span>}</span>
+                <span className="pz-name"><i>{p.title}</i><span>{p.artist}, {p.year}</span></span>
+                {reserveOpen && <span className="pz-play">Play<Icon.right size={13} /></span>}
+              </button>
+            ))}
+          </div>
         </div>
       </section>
 
       {createPortal(<AnimatePresence>{hunt && <Hunt key={hunt.b.key + hunt.i} painting={hunt.b.painting} d={hunt.d} calm={calm} onFound={() => won(hunt)} onClose={() => setHunt(null)} />}</AnimatePresence>, document.body)}
       {createPortal(<AnimatePresence>{lens && <Lens key={'l' + lens.b.key + lens.i} painting={lens.b.painting} d={lens.d} fresh calm={calm} onClose={() => setLens(null)} />}</AnimatePresence>, document.body)}
       <AnimatePresence>{puzzle && <Puzzle key={puzzle.id} painting={puzzle} calm={calm} onClose={() => setPuzzle(null)} />}</AnimatePresence>
+      <AnimatePresence>
+        {room && (
+          <Puzzle key={'room' + room.n} room={room} painting={PAINTINGS[room.painting]} calm={calm} onClose={() => setRoom(null)}
+            onSolved={(m) => setRooms(clearRoom(room.n, m))}
+            onNext={() => { const r = ROOMS.find((x) => x.n === room.n + 1); setRoom(null); if (r) setTimeout(() => setRoom(r), 350); }} />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

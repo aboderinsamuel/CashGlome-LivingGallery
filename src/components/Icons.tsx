@@ -22,6 +22,7 @@ export const Icon = {
   arrowUR: I(<path d="M6 14 14 6M7.5 6H14v6.5" />),
   /** Play: a picture in four pieces, one lifted out of place. */
   games: I(<path d="M3.5 3.5h6v6h-6zM3.5 10.5h6v6h-6zM10.5 10.5h6v6h-6zM11.8 2.2h5.9v5.9h-5.9z" />),
+  lock: I(<><rect x="4.5" y="9" width="11" height="8" rx="1.6" /><path d="M7 9V6.6a3 3 0 0 1 6 0V9" /></>),
   close: I(<path d="m5 5 10 10M15 5 5 15" />),
   camera: I(<><path d="M3 7.2c0-1 .8-1.8 1.8-1.8h1.7l1.2-1.9h4.6l1.2 1.9h1.7c1 0 1.8.8 1.8 1.8v7.3c0 1-.8 1.8-1.8 1.8H4.8c-1 0-1.8-.8-1.8-1.8Z" /><circle cx="10" cy="10.6" r="3" /></>),
   stop: I(<rect x="5.5" y="5.5" width="9" height="9" rx="2" fill="currentColor" stroke="none" />),

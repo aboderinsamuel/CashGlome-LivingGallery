@@ -13,8 +13,11 @@ export function MusicDock({ state, open, onClose, onChange }: { state: State; op
   useEffect(() => {
     if (!open) return;
     const k = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    // A click anywhere outside the panel (except the Music button itself) closes it; the music keeps playing.
+    const away = (e: PointerEvent) => { const t = e.target as HTMLElement; if (!t.closest('.music-pop, .side-music, [data-music]')) onClose(); };
     window.addEventListener('keydown', k);
-    return () => window.removeEventListener('keydown', k);
+    const t = setTimeout(() => window.addEventListener('pointerdown', away), 0);
+    return () => { clearTimeout(t); window.removeEventListener('keydown', k); window.removeEventListener('pointerdown', away); };
   }, [open, onClose]);
   if (!ref && !open) return null;
   return (
@@ -24,11 +27,12 @@ export function MusicDock({ state, open, onClose, onChange }: { state: State; op
         <span style={{ flex: 1 }} />
         {ref && <button className="link-btn" onClick={() => window.open(window.glome?.isDesktop ? appURI(ref) : webURL(ref), '_blank')}>Open in Spotify</button>}
         <button className="link-btn" onClick={onChange}>{ref ? 'Change' : 'Choose'}</button>
+        <button className="music-close" onClick={onClose} aria-label="Close music"><Icon.close size={13} />Close</button>
       </div>
       {ref
         ? <iframe key={ref.id} title="Spotify player" src={embedURL(ref)} width="100%" height="152" loading="lazy" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" style={{ border: 0, borderRadius: 12, display: 'block' }} />
         : <p className="small" style={{ margin: 0 }}>Play a Spotify playlist while you write. Choose one in Settings.</p>}
-      <div className="small" style={{ marginTop: 8 }}>Spotify plays 30-second previews unless you're signed in to Spotify here. Open in Spotify plays everything in the Spotify app.</div>
+      <div className="small" style={{ marginTop: 8 }}>Spotify plays 30-second previews unless you're signed in to Spotify here. Closing this keeps the music playing.</div>
     </div>
   );
 }

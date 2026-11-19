@@ -6,6 +6,7 @@ import { createPortal } from 'react-dom';
 import { artSrc, type Painting } from '../lib/art';
 import { aim, AT, discoveriesOf, type Discovery } from '../lib/discoveries';
 import { Icon } from './Icons';
+import { sfx } from '../lib/sound';
 
 const KEY = 'cg-found-';
 const seenOf = (month: string) => { try { return Number(localStorage.getItem(KEY + month) ?? 0); } catch { return 0; } };
@@ -91,7 +92,7 @@ export function Hunt({ painting, d, calm, onFound, onClose }: { painting: Painti
   useEffect(() => { const k = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); }; window.addEventListener('keydown', k); return () => window.removeEventListener('keydown', k); }, [onClose]);
   // How close counts as found: the detail's own size, from how close the curator had to look.
   const radius = Math.max(6, 30 / d.zoom);
-  const win = () => { if (done) return; setDone(true); try { navigator.vibrate?.([12, 60, 20]); } catch { /* none */ } setTimeout(onFound, calm ? 200 : 1100); };
+  const win = () => { if (done) return; setDone(true); sfx.restore(); try { navigator.vibrate?.([12, 60, 20]); } catch { /* none */ } setTimeout(onFound, calm ? 300 : 1700); };
   const tap = (e: React.MouseEvent) => {
     if (done || !box.current) return;
     const r = box.current.getBoundingClientRect();
@@ -123,6 +124,7 @@ export function Hunt({ painting, d, calm, onFound, onClose }: { painting: Painti
         <motion.div ref={box} className={'hunt-pic' + (done ? ' done' : '')} onClick={tap} initial={calm ? false : { scale: 0.96, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.6, ease: [0.2, 0.8, 0.2, 1] }}>
           <img src={artSrc(painting.id, 'lg')} alt={painting.title} draggable={false} />
           {glow && !done && <motion.span key={misses >= 5 ? 'g2' : 'g1'} className="hunt-glow" style={glow} initial={{ opacity: 0, scale: 1.3 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 1.4 }} aria-hidden />}
+          {done && <motion.span className="hunt-found" style={{ left: `${d.x}%`, top: `${d.y}%`, translate: d.y < 25 ? "-50% 46px" : undefined }} initial={{ opacity: 0, y: 10, scale: 0.8 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ delay: 0.25, type: 'spring', stiffness: 260, damping: 16 }}><Icon.check size={16} />Found it</motion.span>}
           {done && <motion.span className="hunt-hit" style={{ left: `${d.x}%`, top: `${d.y}%`, width: `${radius * 2.4}%` }} initial={{ scale: 2.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.6, ease: [0.2, 0.8, 0.2, 1] }} aria-hidden />}
           {!done && marks.map((m, i) => (
             <motion.span key={m.x + ':' + m.y} className={'hunt-mark' + (i === marks.length - 1 ? ' last' : '')} style={{ left: `${m.x}%`, top: `${m.y}%` }} initial={{ scale: 0.4, opacity: 0 }} animate={{ scale: 1, opacity: i === marks.length - 1 ? 1 : 0.4 }}>
