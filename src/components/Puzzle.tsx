@@ -70,7 +70,7 @@ export function Puzzle({ painting, calm, onClose, room, onSolved, onNext }: Prop
   };
 
   // The board fits the screen in the painting's own proportions.
-  const board = useMemo(() => ({ aspectRatio: String(ratio), width: `min(calc(100vw - 64px), calc((100vh - 220px) * ${ratio}))` }), [ratio]);
+  const board = useMemo(() => ({ aspectRatio: String(ratio), width: `min(calc(100vw - clamp(20px, 6vw, 64px)), calc((100vh - 220px) * ${ratio}))` }), [ratio]);
   const n = size;
   const title = room ? `Room ${ROMAN_ROOM[room.n]}` : 'Put it back together';
 

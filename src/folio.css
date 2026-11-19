@@ -376,7 +376,7 @@
 .pz-name span { font: 500 12px var(--grot); color: var(--ink-3); }
 .pz-play { display: inline-flex; align-items: center; gap: 4px; font: 600 13px var(--grot); color: var(--sanguine); }
 
-.pz { position: fixed; inset: 0; z-index: 150; display: grid; grid-template-rows: auto 1fr auto; gap: 14px; padding: 22px 32px; background: #0d0a07; color: #F3EBDB; }
+.pz { position: fixed; inset: 0; z-index: 150; display: grid; grid-template-rows: auto 1fr auto; gap: 14px; padding: 22px clamp(10px, 3vw, 32px); background: #0d0a07; color: #F3EBDB; }
 .pz-top { display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
 .pz-clue { display: grid; gap: 2px; margin-right: auto; }
 .pz-clue span { font: 600 11px var(--grot); letter-spacing: .2em; text-transform: uppercase; color: rgba(243,235,219,.6); }
@@ -521,3 +521,9 @@
 
 /* Short windows: the places come first; the wall picture steps out. */
 @media (max-height: 760px) { .side-plate { display: none; } }
+
+/* Phones: the house plate is a card, the way on under the words, never a squeezed pill. */
+@media (max-width: 600px) {
+  .hp { display: grid; grid-template-columns: auto 1fr; column-gap: 12px; row-gap: 6px; width: 100%; border-radius: 16px; padding: 12px 14px 12px 12px; }
+  .hp-go { grid-column: 2; margin-left: 0; }
+}

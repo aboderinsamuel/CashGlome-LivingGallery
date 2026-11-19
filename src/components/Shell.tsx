@@ -163,9 +163,9 @@ export function ChapterTabs({ view, setView, onEdition, phone }: { view: View; s
   return (
     <div className="ch-tabs">
       <div className="ch-seg" role="tablist" aria-label="Chapter"><T v="chapter" label="This month" /><T v="shelf" label="Past chapters" />{phone && <><T v="collection" label="Gallery" /><T v="play" label="Play" /></>}</div>
-      <div className="ch-acts">
+      {(view === 'chapter' || view === 'shelf') && <div className="ch-acts">
         <button onClick={onEdition} title="Your month as a short slideshow, to watch or share"><Icon.play size={12} />Month in review</button>
-      </div>
+      </div>}
     </div>
   );
 }
