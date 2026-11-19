@@ -321,3 +321,79 @@
 .side-brand { display: flex; align-items: center; gap: 10px; }
 .side-brand img { flex: none; box-shadow: 0 2px 0 var(--chip-edge); }
 .side-brand::after { left: 54px !important; }
+
+/* The house plate under the greeting: crest, name and motto; or the invitation to be called. */
+.hp { display: inline-flex; align-items: center; gap: 12px; margin-top: 14px; padding: 8px 14px 8px 8px; border-radius: 999px; background: var(--card); border: 1px solid var(--chip-edge); box-shadow: 0 2px 0 var(--chip-edge); text-align: left; max-width: 100%; transition: transform 80ms, box-shadow 80ms; }
+.hp:hover { border-color: var(--house, var(--sanguine)); }
+.hp:active { transform: translateY(2px); box-shadow: 0 0 0 transparent; }
+.hp-crest { width: 40px; height: 40px; border-radius: 50%; flex: none; background-repeat: no-repeat; box-shadow: 0 0 0 2px var(--house), 0 0 0 3.5px var(--card), 0 0 0 4.5px var(--metal-line, var(--chip-edge)); }
+.hp-seal { width: 40px; height: 40px; flex: none; display: grid; place-items: center; background: var(--wax); color: var(--wax-ink, #F6E7D7); font: italic 600 16px var(--serif); border-radius: 47% 53% 50% 50% / 52% 48% 52% 48%; box-shadow: 0 2px 0 var(--wax-edge); }
+.hp-t { display: grid; gap: 1px; min-width: 0; }
+.hp-t b { font: 600 14px/1.2 var(--grot); color: var(--ink); letter-spacing: -.01em; }
+.hp-t i { font: italic 400 14px/1.25 var(--serif); color: var(--ink-2); }
+.hp-go { display: inline-flex; align-items: center; gap: 4px; margin-left: 10px; font: 600 12.5px var(--grot); color: var(--sanguine); white-space: nowrap; }
+.hp.invite { border-style: dashed; }
+
+/* Discoveries as a hunt: an unlocked detail waits to be found in the whole painting. */
+.disc-lens.hunt .disc-glass { background-size: cover; background-position: center; filter: sepia(.5) brightness(.8); }
+.disc-q { display: grid; place-items: center; width: 100%; height: 100%; border-radius: 50%; background: rgba(23, 18, 12, .45); color: #FFF8EC; font: italic 500 18px var(--serif); }
+.disc-lens.hunt .disc-t em { font-style: italic; color: var(--sanguine); }
+.hunt-scrim { position: fixed; inset: 0; z-index: 150; display: grid; grid-template-rows: auto 1fr auto; gap: 14px; padding: 22px 32px; background: #0d0a07; color: #F3EBDB; }
+.hunt-top { display: flex; align-items: flex-end; gap: 16px; }
+.hunt-clue { display: grid; gap: 2px; margin-right: auto; }
+.hunt-clue span { font: 600 11px var(--grot); letter-spacing: .2em; text-transform: uppercase; color: rgba(243,235,219,.6); }
+.hunt-clue b { font: italic 400 clamp(24px, 3vw, 36px)/1.1 var(--serif); color: #FFF8EC; }
+.hunt-acts { display: flex; gap: 8px; }
+.hunt-quiet { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; border-radius: 18px; border: 1px solid rgba(243,235,219,.3); color: #F3EBDB; font: 500 13.5px var(--grot); }
+.hunt-quiet:hover { background: rgba(243,235,219,.08); }
+.hunt-stage { min-height: 0; display: grid; place-items: center; }
+.hunt-pic { position: relative; cursor: crosshair; line-height: 0; box-shadow: 0 0 0 1px rgba(243,235,219,.15), 0 30px 80px rgba(0,0,0,.6); }
+.hunt-pic img { display: block; max-width: calc(100vw - 64px); max-height: calc(100vh - 190px); width: auto; height: auto; user-select: none; }
+.hunt-pic.done { cursor: default; }
+.hunt-mark, .hunt-glow, .hunt-hit { position: absolute; translate: -50% -50%; pointer-events: none; border-radius: 50%; }
+.hunt-mark { width: 30px; height: 30px; border: 2px solid rgba(255,248,236,.9); box-shadow: 0 0 0 1px rgba(0,0,0,.35), inset 0 0 0 1px rgba(0,0,0,.25); }
+.hunt-mark em { position: absolute; left: 50%; top: calc(100% + 6px); translate: -50% 0; white-space: nowrap; line-height: 1; padding: 5px 10px; border-radius: 12px; background: rgba(13,10,7,.82); font: italic 400 15px var(--serif); color: #FFF8EC; }
+.hunt-glow { aspect-ratio: 1; background: radial-gradient(circle, rgba(255,236,190,.38) 0%, rgba(255,230,180,.16) 45%, rgba(255,230,180,0) 70%); mix-blend-mode: screen; }
+.hunt-hit { aspect-ratio: 1; border: 3px solid #E9C46A; box-shadow: 0 0 0 9999px rgba(13,10,7,.55), 0 0 30px rgba(233,196,106,.8); }
+.hunt-foot { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; font: 400 13px var(--grot); color: rgba(243,235,219,.65); }
+.hunt-label i { font: italic 400 15px var(--serif); color: #F3EBDB; margin-right: 8px; }
+.hunt-say { font: italic 400 17px var(--serif); color: #FFF8EC; }
+
+/* The restorer's puzzle */
+.pz-shelf { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 18px; margin-top: 18px; }
+.pz-pick { display: grid; gap: 10px; text-align: left; padding: 10px; border-radius: 14px; background: var(--card); border: 1px solid var(--chip-edge); box-shadow: 0 2px 0 var(--chip-edge); transition: transform 120ms, box-shadow 120ms; }
+.pz-pick:hover { transform: translateY(-3px); box-shadow: 0 5px 0 var(--chip-edge), 0 18px 30px -18px rgba(40,25,5,.5); }
+.pz-thumb { position: relative; aspect-ratio: 4 / 3; border-radius: 8px; background-size: cover; background-position: center; overflow: hidden; }
+/* The cuts, drawn over the thumbnail; a piece sits a little out of place. */
+.pz-thumb i { position: absolute; background: rgba(238,230,214,.85); }
+.pz-thumb i:nth-child(1) { left: 33.3%; top: 0; bottom: 0; width: 1.5px; } .pz-thumb i:nth-child(2) { left: 66.6%; top: 0; bottom: 0; width: 1.5px; }
+.pz-thumb i:nth-child(3) { top: 33.3%; left: 0; right: 0; height: 1.5px; } .pz-thumb i:nth-child(4) { top: 66.6%; left: 0; right: 0; height: 1.5px; }
+.pz-thumb::after { content: ''; position: absolute; left: 33.3%; top: 33.3%; width: 33.3%; height: 33.3%; background: inherit; background-size: 300% 300%; background-position: 0 100%; box-shadow: 0 6px 14px rgba(0,0,0,.45); transform: translate(8%, -10%) rotate(-4deg); transition: transform .3s; }
+.pz-pick:hover .pz-thumb::after { transform: none; }
+.pz-name { display: grid; gap: 2px; }
+.pz-name i { font: italic 400 16px/1.2 var(--serif); color: var(--ink); }
+.pz-name span { font: 500 12px var(--grot); color: var(--ink-3); }
+.pz-play { display: inline-flex; align-items: center; gap: 4px; font: 600 13px var(--grot); color: var(--sanguine); }
+
+.pz { position: fixed; inset: 0; z-index: 150; display: grid; grid-template-rows: auto 1fr auto; gap: 14px; padding: 22px 32px; background: #0d0a07; color: #F3EBDB; }
+.pz-top { display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+.pz-clue { display: grid; gap: 2px; margin-right: auto; }
+.pz-clue span { font: 600 11px var(--grot); letter-spacing: .2em; text-transform: uppercase; color: rgba(243,235,219,.6); }
+.pz-clue b { font: italic 400 clamp(24px, 3vw, 36px)/1.1 var(--serif); color: #FFF8EC; }
+.pz-sizes { display: inline-flex; padding: 3px; border-radius: 20px; border: 1px solid rgba(243,235,219,.25); }
+.pz-sizes button { height: 30px; padding: 0 12px; border-radius: 15px; font: 500 13px var(--grot); color: rgba(243,235,219,.75); }
+.pz-sizes button.on { background: #F3EBDB; color: #17120C; }
+.pz-quiet { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; border-radius: 18px; border: 1px solid rgba(243,235,219,.3); color: #F3EBDB; font: 500 13.5px var(--grot); }
+.pz-stage { min-height: 0; display: grid; place-items: center; }
+.pz-board { display: grid; gap: 3px; max-width: 100%; transition: gap .7s ease, box-shadow .7s; box-shadow: 0 30px 80px rgba(0,0,0,.6); }
+.pz-tile { display: block; width: 100%; height: 100%; border-radius: 2px; background-repeat: no-repeat; cursor: pointer; outline: 0; box-shadow: inset 0 0 0 1px rgba(0,0,0,.25); transition: filter .2s, box-shadow .2s; }
+.pz-tile:hover { filter: brightness(1.12); }
+.pz-tile:focus-visible { box-shadow: inset 0 0 0 3px #E9C46A; }
+.pz-tile.picked { box-shadow: inset 0 0 0 3px #E9C46A, 0 10px 26px rgba(0,0,0,.6); filter: brightness(1.15); z-index: 2; position: relative; transform: scale(1.04); }
+.pz-tile.home { box-shadow: none; }
+.pz-board.whole { gap: 0; box-shadow: 0 0 0 10px #A27B2C, 0 0 0 12px #E9C46A, 0 0 0 14px #5A4214, 0 30px 80px rgba(0,0,0,.6); }
+.pz-board.whole .pz-tile { border-radius: 0; cursor: default; filter: none; }
+.pz-foot { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; font: 400 13px var(--grot); color: rgba(243,235,219,.65); }
+.pz-label i { font: italic 400 15px var(--serif); color: #F3EBDB; margin-right: 8px; }
+.pz-say { font: italic 400 17px var(--serif); color: #FFF8EC; display: inline-flex; align-items: center; gap: 14px; }
+.pz-again { font: 600 13px var(--grot); font-style: normal; height: 34px; padding: 0 14px; border-radius: 17px; background: #F3EBDB; color: #17120C; }

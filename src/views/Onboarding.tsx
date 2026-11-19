@@ -103,7 +103,7 @@ export function Onboarding({ initialCurrency, calm, onDone }: Props) {
     <motion.div className={'ob ob-at-' + act + (sent ? ' ob-sent' : '')} role="dialog" aria-label="Welcome to CashGlome" exit={{ opacity: 0, transition: { duration: 0.7 } }}>
       <div className="ob-art">
         <LivingCanvas id={ART} stage={stage} mood={NEUTRAL} night={0} strokes={strokes} flash={flash} focus={[0.5, 0.42]} onReady={setGlReady} />
-        {glReady === false && <img src={`./art/${ART}.jpg`} alt="" className="ob-still" />}
+        {glReady !== true && <img src={`./art/${ART}.jpg`} alt="" className={'ob-still' + (glReady === null ? ' wait' : '')} />}
         <div className="ob-veil" aria-hidden />
       </div>
 
@@ -119,7 +119,7 @@ export function Onboarding({ initialCurrency, calm, onDone }: Props) {
               Your money, <em>painted</em>.
             </motion.h1>
             <motion.p className="ob-lede" initial={calm ? false : { opacity: 0 }} animate={{ opacity: sent ? 0 : 1 }} transition={{ delay: 0.5, duration: 0.6 }}>
-              Write what today cost. Every line brushes colour into the painting, and the sums stay on your phone.
+              Write what today cost. Each line brushes colour into the painting, and your first one calls you to your house for the year.
             </motion.p>
             <motion.div className="ob-slip-wrap" initial={calm ? false : { opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.65, duration: 0.6 }}>
               <form className={'ob-slip' + (sent ? ' sent' : '') + (voice ? ' rec' : '')} onSubmit={(e) => { e.preventDefault(); send(); }}>
@@ -144,11 +144,12 @@ export function Onboarding({ initialCurrency, calm, onDone }: Props) {
                 <motion.span key={i + p.label} className={'ob-read' + (p.dir === 'in' ? ' in' : '')} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}>
                   <i style={{ background: cat(p.category).color }} />{p.label}<b className="num">{p.dir === 'in' ? '+' : '−'}{money(p.amount, p.currency ?? currency)}</b>
                 </motion.span>
-              )) : note ? <span className="ob-note">{note}</span> : null}
+              )) : note ? <span className="ob-note">{note}</span> : (
+                <ul className="ob-promise" aria-label="Promises"><li>No sign-up</li><li>Works offline</li><li>No bank login</li><li>No ads</li></ul>
+              )}
             </div>
             {!sent && (
               <motion.div className="ob-cover-foot" initial={calm ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1, duration: 0.6 }}>
-                <ul className="ob-promise" aria-label="Promises"><li>No sign-up</li><li>Works offline</li><li>No bank login</li><li>No ads</li></ul>
                 <div className="ob-acts">
                   <button type="button" className="ob-quiet" onClick={() => onDone({ name: '', currency, sample: true })}>Look around an example month</button>
                   {cloudConfigured && <><span aria-hidden>·</span><button type="button" className="ob-quiet" onClick={() => setAct('return')}>I already have a book</button></>}

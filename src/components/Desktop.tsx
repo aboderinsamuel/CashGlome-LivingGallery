@@ -226,19 +226,23 @@ function Widgets({ state, calm, onOpen }: { state: State; calm: boolean; onOpen:
   const card = useMemo(() => dayCardOf(state), [state]);
   const painting = paintingOf(s);
   const cur = state.profile.currency;
-  const W = (p: { children: ReactNode; d: number; onClick?: () => void; style?: React.CSSProperties }) => (
-    <motion.button className="widget" onClick={p.onClick} style={p.style} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 + p.d * 0.08, type: 'spring', stiffness: 200, damping: 24 }}>{p.children}</motion.button>
+  // Every widget says it opens: a small arrow in the corner that becomes a label on hover.
+  const W = (p: { children: ReactNode; d: number; go: string; onClick?: () => void; style?: React.CSSProperties }) => (
+    <motion.button className="widget w-open" onClick={p.onClick} style={p.style} aria-label={p.go} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 + p.d * 0.08, type: 'spring', stiffness: 200, damping: 24 }}>
+      {p.children}
+      <span className="w-go" aria-hidden><span>{p.go}</span><Icon.right size={12} /></span>
+    </motion.button>
   );
   return (
     <div style={{ position: 'absolute', right: 24, top: 48, width: 224, display: 'grid', gap: 14, zIndex: 2 }}>
-      <W d={1} onClick={() => onOpen('app')} style={{ padding: 12 }}>
+      <W d={1} go="Open the painting" onClick={() => onOpen('app')} style={{ padding: 12 }}>
         <div style={{ ['--card' as string]: 'rgba(0,0,0,0)' }}><RestorationPlate painting={painting} r={r} seen={r.restored} drift={false} ratio={16 / 11} calm /></div>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10, gap: 8, alignItems: 'baseline' }}>
           <span style={{ font: 'italic 400 13.5px/1.2 var(--serif)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{painting.title}</span>
           <span className="num" style={{ font: '600 11px var(--ui)', opacity: 0.8 }}>{r.restored}/30</span>
         </div>
       </W>
-      <W d={2} onClick={() => onOpen('ledger')}>
+      <W d={2} go="Open the ledger" onClick={() => onOpen('ledger')}>
         <span className="wl">This month</span>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 10 }}>
           <span><span style={{ display: 'block', font: '500 11px var(--ui)', opacity: 0.7 }}>In</span><span className="num" style={{ font: '360 22px var(--serif)', color: '#BFE3B4' }}>{money(s.inflow, cur, { compact: true })}</span></span>
@@ -246,7 +250,7 @@ function Widgets({ state, calm, onOpen }: { state: State; calm: boolean; onOpen:
         </div>
       </W>
       {card && (
-        <W d={3} onClick={() => onOpen('app')}>
+        <W d={3} go="Open Today" onClick={() => onOpen('app')}>
           <span className="wl">Today's card</span>
           <div style={{ font: '360 19px/1.15 var(--serif)', marginTop: 8 }}>{card.title}</div>
           <div style={{ font: '400 12px/1.4 var(--ui)', opacity: 0.78, marginTop: 6 }}>{card.line}</div>

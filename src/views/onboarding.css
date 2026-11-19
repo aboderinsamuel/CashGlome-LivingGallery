@@ -146,3 +146,9 @@
   .cpick-list { max-height: 58vh; }
 }
 @media (prefers-reduced-motion: reduce) { .ob-bars.on i, .ob-mic.on, .ob-typed > i { animation: none; } }
+
+/* The promises sit where the read line will appear, so there's no empty gap and nothing jumps. */
+.ob-reads { align-items: center; }
+.ob-reads .ob-promise { margin: 0; }
+/* While the shader warms up, the painting itself, drawn faint in chalk, instead of a black screen. */
+.ob-still.wait { filter: grayscale(1) sepia(1) hue-rotate(-25deg) saturate(2.2) contrast(1.4) brightness(1.15); opacity: .7; }

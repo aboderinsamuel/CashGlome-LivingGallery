@@ -346,12 +346,18 @@ export default function App() {
   }, [state.settings, cur, commit, phone, submitNow, dispatch, setView]);
 
   // The first line from onboarding is written once the book has its name and currency.
+  // Taken from a ref, exactly once: clearing state alone isn't seen before this effect runs again.
+  const firstLineRef = useRef<string | null>(null);
   useEffect(() => {
-    if (!firstLine || !state.profile.onboarded) return;
-    const t = firstLine; setFirstLine(null);
-    submit(t, {});
+    if (!firstLine || !state.profile.onboarded || firstLineRef.current === firstLine) return;
+    firstLineRef.current = firstLine;
+    setFirstLine(null);
+    submit(firstLine, {});
   }, [firstLine, state.profile.onboarded, submit]);
+  const welcomedOnce = useRef(false);
   const welcomed = useCallback(({ name, currency, line, sample, house }: { name: string; currency: string; line?: string; sample?: boolean; house?: Calling }) => {
+    if (welcomedOnce.current) return;
+    welcomedOnce.current = true;
     dispatch({ type: 'onboard', name, currency });
     if (house) dispatch({ type: 'house', calling: house });
     if (sample) dispatch({ type: 'addEntries', entries: demoEntries(currency) });

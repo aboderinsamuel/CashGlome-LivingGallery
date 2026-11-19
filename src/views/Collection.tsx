@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
-import { useMemo, useRef } from 'react';
+import { AnimatePresence } from 'framer-motion';
+import { useMemo, useRef, useState } from 'react';
 import { badgesOf, computeStats } from '../lib/analytics';
 import { paintingOf, restorationOf, PATCHES } from '../lib/art';
 import { money, monthLabel, monthOf, todayISO } from '../lib/format';
@@ -8,6 +9,9 @@ import { Sticker } from '../components/Stickers';
 import { RestorationPlate } from '../components/Restoration';
 import { Photo, usePicture } from '../components/Photo';
 import { Icon } from '../components/Icons';
+import { Puzzle } from '../components/Puzzle';
+import { HOUSES } from '../lib/houses';
+import { artSrc, PAINTINGS, type Painting } from '../lib/art';
 import type { Entry } from '../lib/types';
 
 /** The gallery: one painting per month on a salon wall, and the sticker book. */
@@ -27,6 +31,12 @@ export function Collection({ state, onOpen, onCamera }: { state: State; onOpen: 
   }, [state.entries]);
   const done = months.filter((x) => x.r.complete).length;
   const daysWritten = new Set(state.entries.map((e) => e.date)).size;
+  const [puzzle, setPuzzle] = useState<Painting | null>(null);
+  // The puzzles are your own paintings, and your house's.
+  const puzzles = useMemo(() => {
+    const ids = [...new Set([...months.map((x) => x.painting.id), ...(state.house ? [HOUSES[state.house.id].painting] : [])])];
+    return ids.map((id) => PAINTINGS[id]).filter(Boolean);
+  }, [months, state.house]);
 
   return (
     <div className="page" ref={ref}>
@@ -58,6 +68,24 @@ export function Collection({ state, onOpen, onCamera }: { state: State; onOpen: 
             ))}
           </div>
         </div>
+      </section>
+
+      {/* The restorer's puzzle */}
+      <section className="section">
+        <div className="section-head">
+          <h2 className="h2">Put it back <em>together</em></h2>
+          <p className="body-serif">Your paintings, cut into pieces and shuffled. Swap them until the picture is whole. No clock.</p>
+        </div>
+        <div className="pz-shelf">
+          {puzzles.map((p) => (
+            <button key={p.id} className="pz-pick" onClick={() => setPuzzle(p)} aria-label={`Puzzle: ${p.title}`}>
+              <span className="pz-thumb" style={{ backgroundImage: `url(${artSrc(p.id, 'md')})` }} aria-hidden><i /><i /><i /><i /></span>
+              <span className="pz-name"><i>{p.title}</i><span>{p.artist}</span></span>
+              <span className="pz-play">Play<Icon.right size={13} /></span>
+            </button>
+          ))}
+        </div>
+        <AnimatePresence>{puzzle && <Puzzle key={puzzle.id} painting={puzzle} calm={calm} onClose={() => setPuzzle(null)} />}</AnimatePresence>
       </section>
 
       {/* Paintings made from the user's own photos */}

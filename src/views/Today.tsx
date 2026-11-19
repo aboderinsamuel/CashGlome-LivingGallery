@@ -14,6 +14,7 @@ import { Icon } from '../components/Icons';
 import { Chalk } from '../components/Chalk';
 import { Sitting } from '../components/Sitting';
 import { Discoveries } from '../components/Discoveries';
+import { HousePlate } from '../components/HousePlate';
 import { safeToSpend } from '../stage/askPainting';
 import { circleStatus, peopleOf } from '../stage/books';
 import { dateInWords } from '../stage/words';
@@ -81,6 +82,7 @@ export function Today({ state, dispatch, voice, onVoiceDone, onFill, onLedger, o
       <header className="td-head">
         <div className="td-kicker">{dateInWords(now)}</div>
         <h1>{fresh ? <>Your money, <i>painted</i>.</> : <>Good <i>{greeting}</i>{first ? `, ${first}` : ''}.</>}</h1>
+        {!fresh && <HousePlate state={state} dispatch={dispatch} />}
         {fresh && <p className="td-lede">Write what came in or went out, the way you’d say it. CashGlome keeps the sums, and every line cleans a patch of this month’s painting.</p>}
       </header>
 

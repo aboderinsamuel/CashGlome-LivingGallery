@@ -61,9 +61,10 @@ export function Calling({ calling, askName, name: given = '', replay, calm, by, 
   useEffect(() => {
     if (reduce) return;
     if (replay) { later(900, () => setBeat(3)); later(2600, () => setBeat(4)); return () => timers.current.forEach(clearTimeout); }
-    later(1500, () => setBeat(1));
+    // The lockup holds long enough to be read: The Calling, the year.
+    later(2500, () => setBeat(1));
     const { seq, gaps } = ticks(target, shown);
-    let t = 1600;
+    let t = 2600;
     seq.forEach((h, i) => {
       t += gaps[Math.min(i, gaps.length - 1)];
       later(t, () => { setShown(h); buzz(i > seq.length - 4 ? 9 : 4); if (i > seq.length - 5) sfx.tap(); });
@@ -81,7 +82,14 @@ export function Calling({ calling, askName, name: given = '', replay, calm, by, 
     timers.current.forEach(clearTimeout); timers.current = [];
     setShown(target); setBeat(3); later(1400, () => setBeat(4));
   };
-  const finish = () => { buzz(10); endOverture(1600); onDone(name.trim()); };
+  // Once only: a held Enter or a double tap must not sign the book twice while the room fades out.
+  const done = useRef(false);
+  const finish = () => {
+    if (done.current) return;
+    done.current = true;
+    (document.activeElement as HTMLElement | null)?.blur?.();
+    buzz(10); endOverture(1600); onDone(name.trim());
+  };
 
   const letters = useMemo(() => house.word.toUpperCase().split(''), [house.word]);
   const fs = `min(calc((100vw - 40px) / ${Math.max(4, letters.length) * 0.66}), 210px)`;
@@ -135,8 +143,9 @@ export function Calling({ calling, askName, name: given = '', replay, calm, by, 
       {/* The bloom when it holds. */}
       {beat === 2 && !reduce && <motion.div className="cl-bloom" aria-hidden initial={{ opacity: 0.95, scale: 0.2 }} animate={{ opacity: 0, scale: 5 }} transition={{ duration: 1.3, ease: [0.1, 0.8, 0.2, 1] }} />}
 
-      {/* The name, a hand high. */}
+      {/* The name, a hand high, and under it the label, why, and the signature: one stack, so they never collide. */}
       {beat >= 3 && (
+      <div className="cl-stack">
         <div className="cl-title">
           <motion.div className="cl-pre" initial={reduce ? false : { opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.7, ease }}>
             <motion.span className="cl-band" initial={reduce ? false : { scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: 0.6, ease }} />
@@ -154,24 +163,9 @@ export function Calling({ calling, askName, name: given = '', replay, calm, by, 
             <b>{house.motto[0]}</b>{house.motto.slice(1)}
           </motion.p>
         </div>
-      )}
 
-      {/* The crest: a roundel cut from the painting, with the house's name turning around it. */}
-      {beat >= 3 && (
-        <motion.div className="cl-crest" aria-hidden initial={reduce ? false : { scale: 2.4, opacity: 0, rotate: -30 }} animate={{ scale: 1, opacity: 1, rotate: 0 }} transition={{ type: 'spring', stiffness: 220, damping: 18, delay: 0.7 }}>
-          <svg viewBox="0 0 120 120" className="cl-ring">
-            <defs><path id="cl-arc" d="M60 60 m-49 0 a49 49 0 1 1 98 0 a49 49 0 1 1 -98 0" /></defs>
-            <circle cx="60" cy="60" r="57" className="cl-ring-o" />
-            <circle cx="60" cy="60" r="41" className="cl-ring-i" />
-            <text><textPath href="#cl-arc" textLength="304">{ring}</textPath></text>
-          </svg>
-          <span className="cl-crest-img" style={crest()} />
-        </motion.div>
-      )}
-
-      {/* The label: which painting, and why. Then sign and enter. */}
-      {beat >= 4 && (
-        <motion.div className="cl-foot" initial={reduce ? false : { opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease }} onClick={(e) => e.stopPropagation()}>
+        {/* The label: which painting, and why. Then sign and enter. Its room is kept from the start. */}
+        <motion.div className="cl-foot" style={{ visibility: beat >= 4 ? 'visible' : 'hidden' }} initial={reduce ? false : { opacity: 0, y: 24 }} animate={beat >= 4 ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }} transition={{ duration: 0.7, ease }} onClick={(e) => e.stopPropagation()}>
           <div className="cl-label"><i>{art.title}</i><span>{art.artist}, {art.year}</span></div>
           <p className="cl-why">
             {calling.why.length ? <>Called by {calling.why.slice(0, -1).join(', ')}{calling.why.length > 1 ? ' and ' : ''}{calling.why[calling.why.length - 1]}. </> : null}
@@ -186,6 +180,20 @@ export function Calling({ calling, askName, name: given = '', replay, calm, by, 
             <button className="cl-go solo" onClick={finish} autoFocus>{replay ? 'Back to my book' : 'Enter my book'}<Icon.right size={15} /></button>
           )}
           {askName && <p className="cl-fine">The name is only for the greeting, and it stays on this device.</p>}
+        </motion.div>
+      </div>
+      )}
+
+      {/* The crest: a roundel cut from the painting, with the house's name turning around it. */}
+      {beat >= 3 && (
+        <motion.div className="cl-crest" aria-hidden initial={reduce ? false : { scale: 2.4, opacity: 0, rotate: -30 }} animate={{ scale: 1, opacity: 1, rotate: 0 }} transition={{ type: 'spring', stiffness: 220, damping: 18, delay: 0.7 }}>
+          <svg viewBox="0 0 120 120" className="cl-ring">
+            <defs><path id="cl-arc" d="M60 60 m-49 0 a49 49 0 1 1 98 0 a49 49 0 1 1 -98 0" /></defs>
+            <circle cx="60" cy="60" r="57" className="cl-ring-o" />
+            <circle cx="60" cy="60" r="41" className="cl-ring-i" />
+            <text><textPath href="#cl-arc" textLength="304">{ring}</textPath></text>
+          </svg>
+          <span className="cl-crest-img" style={crest()} />
         </motion.div>
       )}
 
