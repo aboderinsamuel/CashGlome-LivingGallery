@@ -1,9 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useMemo, useState } from 'react';
 import { computeStats, goalEta, projection, tipsOf } from '../lib/analytics';
-import { aiEnabled } from '../lib/ai';
 import { findAmounts } from '../lib/parser';
-import { localAsk, museAsk } from '../lib/muse-story';
 import { money, uid } from '../lib/format';
 import type { State } from '../lib/types';
 import type { Action } from '../lib/store';
@@ -21,10 +19,6 @@ export function Plans({ state, dispatch }: { state: State; dispatch: (a: Action)
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
   const [sticker, setSticker] = useState('plane');
-  const [q, setQ] = useState('');
-  const [answer, setAnswer] = useState<{ q: string; a: string; by: string } | null>(null);
-  const [asking, setAsking] = useState(false);
-  const ai = aiEnabled(state.settings);
 
   const addGoal = () => {
     const amt = findAmounts(amount)[0]?.value ?? Number(amount);
@@ -32,15 +26,6 @@ export function Plans({ state, dispatch }: { state: State; dispatch: (a: Action)
     dispatch({ type: 'goal', goal: { id: uid(), name: name.trim(), amount: amt, emoji: sticker } });
     setName(''); setAmount('');
   };
-  const ask = async () => {
-    const question = q.trim(); if (!question || asking) return;
-    setAsking(true);
-    try {
-      const a = ai ? await museAsk(state, question).catch(() => localAsk(state, question)) : localAsk(state, question);
-      setAnswer({ q: question, a, by: ai ? 'Muse' : 'CashGlome, on this device' });
-    } finally { setAsking(false); setQ(''); }
-  };
-
   return (
     <div className="page">
       <div className="kicker">Plans</div>
@@ -91,32 +76,6 @@ export function Plans({ state, dispatch }: { state: State; dispatch: (a: Action)
             <button className="btn primary" onClick={addGoal} disabled={!name.trim() || !amount.trim()}><Icon.plus size={14} /> Add goal</button>
           </div>
         </div>
-      </section>
-
-      {/* Ask */}
-      <section className="section">
-        <div className="section-head">
-          <h2 className="h2">Ask <em>anything</em></h2>
-          <p className="body-serif">“Can I afford a {cur === 'NGN' ? '300k' : '900'} phone?” “Where can I cut back?” Answers use your real numbers. {ai ? 'Answered by Muse, with every sum counted on this device.' : 'Answered on this device, with the working shown.'}</p>
-        </div>
-        <div className="card" style={{ padding: 8, display: 'flex', gap: 8, alignItems: 'center' }}>
-          <input className="field" style={{ border: 0, height: 44, fontSize: 16, font: '400 19px var(--serif)', background: 'transparent', boxShadow: 'none' }} placeholder="Ask about your money…" value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && ask()} />
-          <button className="send" onClick={ask} disabled={!q.trim() || asking} aria-label="Ask">
-            {asking ? <span className="brushing" aria-label="Thinking"><i /><i /><i /></span> : <Icon.up size={18} />}
-          </button>
-        </div>
-        <AnimatePresence mode="wait">
-          {answer && (
-            <motion.div key={answer.q} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} style={{ marginTop: 22, display: 'grid', gridTemplateColumns: '40px 1fr', gap: 16 }}>
-              <span className="avatar" style={{ width: 40, height: 40, background: 'var(--ink)', color: 'var(--paper)', font: 'italic 400 20px var(--serif)' }}>A</span>
-              <div>
-                <div className="small">You asked “{answer.q}”</div>
-                <p style={{ font: '400 22px/1.45 var(--serif)', letterSpacing: '-0.012em', margin: '8px 0 0', maxWidth: 680 }}>{answer.a}</p>
-                <div className="small" style={{ marginTop: 10 }}>{answer.by} · General guidance, not financial advice.</div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </section>
 
       {/* Habits */}

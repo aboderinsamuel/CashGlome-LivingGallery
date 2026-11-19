@@ -114,8 +114,8 @@ export function LedgerReports({ state }: { state: State }) {
 
   return (
     <div className="page acc acc-reports">
-      {/* IV. Prices */}
-      <section className="acc-folio">
+      {/* IV. Prices: only once something has been bought twice */}
+      {prices.rate !== null && <section className="acc-folio">
         <Vignette id="market" focus="50% 55%" />
         <div className="acc-body">
           <div className="numeral">Your inflation <span>· I</span></div>
@@ -134,7 +134,7 @@ export function LedgerReports({ state }: { state: State }) {
             <p className="acc-empty">When you buy the same thing in two different months (bread, fuel, data, the bus), your own inflation rate appears here.</p>
           )}
         </div>
-      </section>
+      </section>}
 
       {/* V. Income record */}
       <section className="acc-folio acc-record">

@@ -14,6 +14,7 @@ import { brainConfigured } from '../stage/brain';
 import { peopleOf } from '../stage/books';
 import { castOf } from '../stage/voices';
 import './ask-room.css';
+import '../stage/stage.css';
 
 export interface AskTurn { q: string; a: MuseAnswer | null; at: number }
 const KEY = 'cg-ask-room';

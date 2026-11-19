@@ -49,7 +49,6 @@ import { CashCard, Chips, PhoneApp } from './phone/PhoneApp';
 import { haptic, useKeyboardViewport, useOnline, usePhone } from './phone/device';
 import { WITHDRAWAL, cashEntry, dueCash, markOffered, newPocket, recurringOffer, routineFrom } from './phone/moments';
 import { daysPhrase } from './lib/memory';
-import { Stage } from './stage/Stage';
 import { examplesFor } from './stage/words';
 
 const TITLES: Record<View, string> = { today: 'Today', ask: 'Ask', people: 'People', chapter: 'Chapter', shelf: 'Past chapters', ledger: 'Ledger', plans: 'Plans', memory: 'Routines & memory', collection: 'Gallery', accounts: 'People', play: 'Play' };
@@ -62,8 +61,6 @@ type Pane = import('./views/Settings').Pane;
 export default function App() {
   const [state, dispatch] = useGlomeStore();
   const [view, setViewRaw] = useState<View>('today');
-  // The living painting, full size, over everything: opened from the miniature on Today or from the Chapter.
-  const [living, setLiving] = useState(false);
   const [voice, setVoice] = useState<Voice | null>(null);
   const clearVoice = useCallback(() => setVoice(null), []);
   const [askTurns, setAskTurns] = useState<AskTurn[]>(loadTurns);
@@ -484,8 +481,8 @@ export default function App() {
       <main className="main" ref={main}>
         {/* The new page is on screen in the same frame as the tap; it only settles in, like iOS. No waiting for the old one to leave. */}
         <motion.div key={`${view}:${state.month}`} initial={{ opacity: 0.4, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18, ease: [0.2, 0.8, 0.2, 1] }}>
-            {view === 'today' && <Today state={state} dispatch={dispatch} voice={voice} onVoiceDone={clearVoice} onFill={(t) => composer.current?.fill(t)} onLedger={goView('ledger')} onPeople={goView('people')} onAsk={askAbout} onPainting={() => setLiving(true)} onEdit={() => setView('ledger')} onPlay={goView('play')} />}
-            {(view === 'chapter' || view === 'shelf') && <ChapterTabs view={view} setView={setView} onEdition={() => setEdition(true)} onLiving={() => setLiving(true)} />}
+            {view === 'today' && <Today state={state} dispatch={dispatch} voice={voice} onVoiceDone={clearVoice} onFill={(t) => composer.current?.fill(t)} onLedger={goView('ledger')} onPeople={goView('people')} onAsk={askAbout} onPainting={goView('chapter')} onEdit={() => setView('ledger')} onPlay={goView('play')} />}
+            {(view === 'chapter' || view === 'shelf') && <ChapterTabs view={view} setView={setView} onEdition={() => setEdition(true)} />}
             {view === 'chapter' && <Chapter state={state} dispatch={dispatch} museChapter={muse[state.month] ?? null} onOpenCategory={(id) => { setFilter(id); setView('ledger'); }} onEdition={() => setEdition(true)} onWrite={(h) => composer.current?.fill(h ?? '')} onPlans={goView('plans')} onGallery={goView('collection')} onSay={() => composer.current?.speak()} onSnap={() => setCapture({ file: null })} onShare={() => setSharing(true)} />}
             {view === 'shelf' && <Shelf state={state} months={months} onOpen={(m) => { setMonth(m); setView('chapter'); }} />}
             {view === 'ledger' && <><Ledger state={state} dispatch={dispatch} filter={filter} setFilter={setFilter} query={query} onAttach={(e) => setCapture({ file: null, attach: e })} /><LedgerReports state={state} /></>}
@@ -532,7 +529,7 @@ export default function App() {
   const phoneWindow = phone && (
     <PhoneApp
       state={state} dispatch={dispatch} view={view} setView={setView} setMonth={setMonth} museChapter={muse[state.month] ?? null} online={online}
-      onBook={() => openSettings()} onEdition={() => setEdition(true)} onShare={() => setSharing(true)} onLiving={() => setLiving(true)}
+      onBook={() => openSettings()} onEdition={() => setEdition(true)} onShare={() => setSharing(true)} onLiving={goView('collection')}
       composer={
         <Composer ref={composer} currency={cur} aiOn={ai || brainConfigured} busy={busy} notice={notice} onSubmit={submit} onCamera={(file) => setCapture({ file: file ?? null })} onAsk={askAbout} onRemember={remember}
           idle={state.entries.length === 0 ? <FirstLines cur={cur} onFill={(t) => composer.current?.fill(t)} /> : <Chips state={state} onRepeat={repeat} onFill={(t) => composer.current?.fill(t)} />}
@@ -542,7 +539,7 @@ export default function App() {
           </>} />
       }
       pages={{
-        today: <Today state={state} dispatch={dispatch} voice={voice} onVoiceDone={clearVoice} onFill={(t) => composer.current?.fill(t)} onLedger={goView('ledger')} onPeople={goView('people')} onAsk={askAbout} onPainting={() => setLiving(true)} onEdit={() => setView('ledger')} onPlay={goView('play')} />,
+        today: <Today state={state} dispatch={dispatch} voice={voice} onVoiceDone={clearVoice} onFill={(t) => composer.current?.fill(t)} onLedger={goView('ledger')} onPeople={goView('people')} onAsk={askAbout} onPainting={goView('chapter')} onEdit={() => setView('ledger')} onPlay={goView('play')} />,
         ledger: <><Ledger state={state} dispatch={dispatch} filter={filter} setFilter={setFilter} query={query} onAttach={(e) => setCapture({ file: null, attach: e })} /><LedgerReports state={state} /></>,
         ask: <AskRoom state={state} turns={askTurns} setTurns={setAskTurns} first={askFirst} onFirstDone={() => setAskFirst(null)} />,
         people: <PeoplePage state={state} dispatch={dispatch} />,
@@ -625,7 +622,6 @@ export default function App() {
       <AnimatePresence>
         {settings && <SettingsSheet key="settings" state={state} dispatch={dispatch} initial={settings} close={() => setSettingsPane(null)} />}
         {capture && <CaptureSheet key="capture" file={capture.file} attachTo={capture.attach?.label} settings={state.settings} currency={cur} onDone={captured} onClose={() => setCapture(null)} />}
-        {living && <motion.div key="living" className="living-over" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.35 }}><Stage state={state} dispatch={dispatch} onBack={() => setLiving(false)} onAsk={(q) => { setLiving(false); askAbout(q); }} /></motion.div>}
         {edition && <Edition key="edition" state={state} muse={muse[state.month] ?? null} close={() => setEdition(false)} onShare={() => setSharing(true)} />}
         {sharing && <ShareSheet key="share" state={state} title={muse[state.month]?.title} onClose={() => setSharing(false)} />}
         {welcoming && <Onboarding key="welcome" initialCurrency={cur} calm={state.settings.calm} onDone={welcomed} />}

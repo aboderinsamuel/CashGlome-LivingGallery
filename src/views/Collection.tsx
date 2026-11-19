@@ -105,6 +105,7 @@ export function Collection({ state, onOpen, onCamera, onPlay }: { state: State; 
 
 function StillLifes({ entries, cur, onCamera }: { entries: Entry[]; cur: string; onCamera: () => void }) {
   const hung = entries.filter((e) => e.photo).sort((a, b) => (b.date + b.createdAt).localeCompare(a.date + a.createdAt));
+  if (!hung.length) return null;
   return (
     <section className="section">
       <div className="salon still">

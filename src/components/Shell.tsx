@@ -97,7 +97,6 @@ export function Sidebar(p: SidebarProps) {
               <div className="side-subs">
                 <Sub v="chapter" label="This month" icon={<Icon.book size={14} />} />
                 <Sub v="shelf" label="Past chapters" icon={<Icon.shelf size={14} />} />
-                <button className="side-sub" onClick={p.onEdition}><Icon.play size={14} />Play the Edition</button>
               </div>
             )}
           </div>
@@ -159,14 +158,13 @@ export function TabBar({ view, setView, className = 'tabbar glass' }: { view: Vi
 }
 
 /** The Chapter's three rooms, and two ways to look at the month. */
-export function ChapterTabs({ view, setView, onEdition, onLiving, phone }: { view: View; setView: (v: View) => void; onEdition: () => void; onLiving: () => void; phone?: boolean }) {
+export function ChapterTabs({ view, setView, onEdition, phone }: { view: View; setView: (v: View) => void; onEdition: () => void; onLiving?: () => void; phone?: boolean }) {
   const T = ({ v, label }: { v: View; label: string }) => <button role="tab" aria-selected={view === v} className={view === v ? 'on' : ''} onClick={() => setView(v)}>{label}</button>;
   return (
     <div className="ch-tabs">
       <div className="ch-seg" role="tablist" aria-label="Chapter"><T v="chapter" label="This month" /><T v="shelf" label="Past chapters" />{phone && <><T v="collection" label="Gallery" /><T v="play" label="Play" /></>}</div>
       <div className="ch-acts">
-        <button onClick={onLiving}><Icon.sun size={15} />See it alive</button>
-        <button onClick={onEdition}><Icon.play size={12} />Play the Edition</button>
+        <button onClick={onEdition} title="Your month as a short slideshow, to watch or share"><Icon.play size={12} />Month in review</button>
       </div>
     </div>
   );

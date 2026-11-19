@@ -188,9 +188,9 @@ export function Today({ state, dispatch, voice, onVoiceDone, onFill, onLedger, o
         </div>
 
         <aside className="td-art">
-          <button className="td-plate" onClick={onPainting} aria-label={`${painting.title}: open the living painting`}>
+          <button className="td-plate" onClick={onPainting} aria-label={`${painting.title}: open this month's chapter`}>
             <RestorationPlate painting={painting} r={r} seen={shownSeen} ratio={4 / 5} drift={false} calm={state.settings.calm} lead={0.3} />
-            <span className="td-open"><Icon.play size={11} /> See it alive</span>
+            <span className="td-open">Open the chapter<Icon.right size={11} /></span>
           </button>
           <div className="td-caption">
             <i>{painting.title}</i>

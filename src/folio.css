@@ -518,3 +518,6 @@
 @media (max-width: 900px) { .fw-cards { grid-template-columns: 1fr; } }
 .td-why { display: block; margin-top: 4px; font: 400 13px/1.4 var(--grot); color: var(--ink-3); max-width: 240px; }
 .td-voice-k { font: 600 10.5px var(--grot); letter-spacing: .16em; text-transform: uppercase; opacity: .7; margin-bottom: 4px; }
+
+/* Short windows: the places come first; the wall picture steps out. */
+@media (max-height: 760px) { .side-plate { display: none; } }

@@ -1,6 +1,5 @@
 import { CategoriesPane } from './Categories';
 import { MemoryView } from './Memory';
-import { Plans } from './Plans';
 import { motion } from 'framer-motion';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { askKeptLocal, setAskKeptLocal } from '../stage/muse';
@@ -15,13 +14,12 @@ import { AppIcon } from '../components/Logo';
 import { artSrc, PAINTINGS, seasonalWallpaper, WALLPAPERS } from '../lib/art';
 import { canLinkSpotify, linkSpotify, MUSIC_PICKS, myPlaylists, parseSpotify, spotifyLinked, unlinkSpotify, type MyPlaylist } from '../lib/spotify';
 
-export type Pane = 'general' | 'categories' | 'routines' | 'plans' | 'account' | 'appearance' | 'music' | 'muse' | 'data' | 'about';
+export type Pane = 'general' | 'categories' | 'routines' | 'account' | 'appearance' | 'music' | 'muse' | 'data' | 'about';
 // Tints are pigments from the paintings: umber, ochre, lapis, verdigris, vermilion, madder, gold.
 const PANES: { id: Pane; label: string; icon: ReactNode; tint: string; group?: string }[] = [
   { id: 'general', label: 'You and your money', icon: <Icon.person size={14} />, tint: '#7A5534' },
   { id: 'categories', label: 'Categories & income', icon: <Icon.list size={14} />, tint: '#C9962E' },
   { id: 'routines', label: 'Routines & memory', icon: <Icon.repeat size={14} />, tint: '#3E8C86' },
-  { id: 'plans', label: 'Plans', icon: <Icon.flag size={14} />, tint: '#A3384F' },
   { id: 'account', label: 'Backup & account', icon: <Icon.cloud size={14} />, tint: '#2B3FA8', group: 'Settings' },
   { id: 'music', label: 'Music', icon: <Icon.music size={14} />, tint: '#8E2A20' },
   { id: 'appearance', label: 'Look & sound', icon: <Icon.sun size={14} />, tint: '#B08A3A' },
@@ -62,7 +60,6 @@ export function SettingsSheet({ state, dispatch, close, initial = 'general' }: {
           {pane === 'general' && <General state={state} dispatch={dispatch} />}
           {pane === 'categories' && <CategoriesPane state={state} dispatch={dispatch} />}
           {pane === 'routines' && <div className="in-sheet"><MemoryView state={state} dispatch={dispatch} notify={() => {}} /></div>}
-          {pane === 'plans' && <div className="in-sheet"><Plans state={state} dispatch={dispatch} /></div>}
           {pane === 'account' && <Group><div style={{ padding: 16 }}><Account /></div></Group>}
           {pane === 'appearance' && <Appearance state={state} dispatch={dispatch} />}
           {pane === 'music' && <Music state={state} dispatch={dispatch} />}

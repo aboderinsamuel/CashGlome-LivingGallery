@@ -144,7 +144,7 @@ function PhoneHome({ state, dispatch, museChapter, isNow, onRead, onLedger, onSh
       </div>
 
       <figure className="ph-art">
-        <button className="ph-plate" onClick={onLiving} aria-label={`${painting.title}: see it alive`}>
+        <button className="ph-plate" onClick={onLiving} aria-label={`${painting.title}: open the gallery`}>
           <RestorationPlate painting={painting} r={r} seen={shownSeen} ratio={1} drift={false} calm={state.settings.calm} lead={0.25} />
         </button>
         <figcaption className="ph-label">

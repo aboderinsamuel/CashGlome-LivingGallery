@@ -56,7 +56,6 @@
 .ph-main .ch-acts button { flex: 1; justify-content: center; height: 34px; font-size: 12.5px; }
 
 /* ——— The living painting, over everything, with a way back ——— */
-.living-over { position: fixed; inset: 0; z-index: 90; }
 .st-back { display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 14px 0 10px; border-radius: 19px; font: 600 14px/1 var(--ui); color: var(--bone, #F6EEDC); background: rgba(20, 16, 11, .5); backdrop-filter: blur(8px); }
 .st-back i { font: italic 400 15px/1 var(--serif); opacity: .75; margin-left: 4px; }
 @media (max-width: 760px) { .st-back i { display: none; } }
