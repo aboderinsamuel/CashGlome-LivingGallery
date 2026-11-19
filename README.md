@@ -21,6 +21,7 @@
   <a href="https://cashglome-gallery.vercel.app"><b>Open the live app</b></a> ·
   <a href="#the-problem">The problem</a> ·
   <a href="#what-happens-in-the-first-ten-seconds">First ten seconds</a> ·
+  <a href="#muse-ask-anything">Muse</a> ·
   <a href="#hybrid-ai-what-runs-where">Hybrid AI</a> ·
   <a href="#run-it-locally">Run it</a> ·
   <a href="#the-paintings">The paintings</a>
@@ -32,9 +33,9 @@
 |---|---|
 | **Category** | Web |
 | **What it is** | A money diary you write in one line ("bolt 6k, lunch 4.5k, got paid 350k"), set inside a living Old Master. Every entry glazes a patch of the painting into colour; the sitters speak; the month's painting is yours to keep. |
-| **Hybrid AI** | **Gemini Nano on the device** reads lines in any language and voices the sitters, and the person's own words never leave the browser. **Gemini in the cloud** takes over only when the device has no model, and then sees categories, never the line or the sums. Every result carries a wax seal that says where it was read. |
-| **Not a prompt wrapper** | No model ever does arithmetic. The model reads words into entries; the device adds them up exactly and shows its working. A rules engine reads English and pidgin offline with no model at all. |
-| **Provenance** | CashGlome's money reader and ledger existed before the hackathon in a private repository; that history is kept here, honestly, in the first 15 commits. Everything hackathon-specific (the living canvas and its shader, the Firebase hybrid brain, the sitters, the 58-painting world library, the room bar) is in the commits after them. |
+| **Hybrid AI** | **Gemini Nano on the device** reads lines in any language and voices the sitters, and the person's own words never leave the browser. **Gemini in the cloud** takes over only when the device has no model, and then sees categories, never the line or the sums. **Muse**, the painting's voice, is a Gemini conversation about anything ("should I go on a date this weekend?") that calls tools running on the device for every figure. Every result carries a wax seal that says where it was written. |
+| **Not a prompt wrapper** | No model ever does arithmetic. The model reads words into entries and talks; the device adds everything up exactly and shows its working. A rules engine reads English and pidgin offline with no model at all. |
+| **Provenance** | CashGlome's money reader and ledger existed before the hackathon in a private repository; that history is kept here, honestly, in the first 15 commits. Everything hackathon-specific (the living canvas and its shader, the Firebase hybrid brain, Muse, the sitters, the 58-painting world library, the painted onboarding, the evening sitting and Discoveries, the Folio design) is in the commits after them. |
 
 ## The problem
 
@@ -51,13 +52,37 @@ CashGlome answers these from one line a day, privately, on the device, with no b
 
 ## What happens in the first ten seconds
 
-1. The month's painting fills the screen as a **chalk underdrawing**, the way a Renaissance workshop started a panel.
-2. You write a line in the quill: `lunch 6k, bus 2.5k, got paid 350k`.
-3. Each entry becomes a **brush stroke of glaze** that restores a patch of the painting to full colour, where you can see it.
-4. A **sitter answers**, dry and kind, in your language: the Moneylender's wife, a Bruegel harvester, a Korean wrestler.
-5. **Today's museum label** names your day as if it hung in a gallery.
+1. Teniers's painted gallery fills the screen as a **red-chalk underdrawing**, the way a Renaissance workshop started a panel. A line writes itself (`bus 2.5k, lunch 6k, got paid 360k`), and each entry lands as a stroke of colour on a canvas in the room.
+2. **Your turn.** "Now *you*. What did today cost?" You write your own line, in your own words and currency; it becomes entries as you type, and each one glazes a patch back into colour.
+3. **Who keeps this book?** Your first name, or skip it. No account, no email.
+4. A **wax seal** presses down: *Chapter one begins.* The book opens on Today, already holding your first line.
+
+<p align="center">
+  <img src="docs/shots/folio-1-cover.jpg" alt="The cover: a line types itself and colours the painted gallery" width="24%" />
+  <img src="docs/shots/folio-2-first-line.jpg" alt="Your first line over the red-chalk underdrawing" width="24%" />
+  <img src="docs/shots/folio-3-today.jpg" alt="Today: safe to spend, circled in red chalk" width="24%" />
+  <img src="docs/shots/folio-4-muse.jpg" alt="Muse answering whether to go on a date, with its working" width="24%" />
+</p>
 
 As the month goes on, the whole canvas moves through **sinopia → grisaille → glaze → varnish**. The week's money sets the light: calm is Vermeer's window, a rush brings Caravaggio's dark in from the edges, plenty gilds the highlights, and after dark the room goes to candlelight.
+
+## One small act a day
+
+Nobody types every expense forever, so the daily act is the reward, not the chore:
+
+- **The evening sitting.** In the evening, Today opens on the month's painting by candlelight and asks one question: *what did today cost?* One line is enough.
+- **"Nothing today" counts.** A quiet day is kept with one tap and cleans a patch, the same as a line. A missed day costs nothing: no streaks, no guilt.
+- **Discoveries.** At a third, two thirds and the whole of the restoration, a curator's lens finds a detail people walk past: the mirror in *The Moneylender and His Wife*, the falling inn sign in *Hunters in the Snow*. Keeping the book teaches you the painting.
+- **Muse.** Ask the painting anything. It knows your book, it's warm and a little dry, and it never scolds.
+
+## Muse: ask anything
+
+Muse speaks as a figure in the month's painting. It's a real Gemini conversation, so it'll talk about a date, a trip, a bad week or the painting itself, and bring your money in when it matters.
+
+- It gets a **summary of the book** (this month's totals by category, what's free to spend, who owes whom) and **tools that run on the device**: `search_entries` (exact totals, counts and a category split) and `can_afford` (balance, routines and pay day). Any figure from your book comes from those, copied exactly, and the answer shows the same figures as its working.
+- When it **guesses** (what a dinner for two usually costs), it says so, and the answer is labelled *holds an estimate*.
+- **Keep Ask on this device** sends nothing: Gemini Nano answers if the browser has it, the book's own rules if not. **Offline** works the same way.
+- Code: [`src/stage/muse.ts`](src/stage/muse.ts).
 
 ## Hybrid AI: what runs where
 
@@ -66,6 +91,7 @@ As the month goes on, the whole canvas moves through **sinopia → grisaille →
 | Read a line in another language or script | First choice; sees the line | Only if the device has no model | Your words are the most private thing in the app |
 | A sitter's reply | Sees your line | Sees only the kinds of things bought | Wit needs context; the cloud gets none |
 | Today's museum label | `PREFER_ON_DEVICE` | Fallback | Only categories go in, so either is safe |
+| Muse, a conversation about anything | When "Keep Ask on this device" is on, or offline; given the device's figures | Gemini with function calling: the question, a summary of the book, and tool results | Talk needs a big model; every figure still comes from the device |
 | Sums, totals, safe to spend | Always, in plain code | Never | Arithmetic is never left to a model |
 
 The brain is [`src/stage/brain.ts`](src/stage/brain.ts). It decides what may leave the device before any call is made, rather than leaving that to the SDK, and every result returns `inferenceSource` so the wax seal can say "Read on this device" or "Read in the cloud". App Check with reCAPTCHA Enterprise keeps the Gemini API for this app only.

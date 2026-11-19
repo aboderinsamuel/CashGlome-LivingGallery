@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Icon } from './Icons';
 import { ROMAN } from '../lib/analytics';
 import { monthLabel } from '../lib/format';
+import { artSrc, NATIVE_TITLE, PAINTINGS } from '../lib/art';
 import { useWindow } from './Desktop';
 
 /** The five places, and the pages reached from them. 'accounts' is kept as another name for People. */
@@ -47,6 +48,7 @@ interface SidebarProps {
   onBook: () => void;
   onMusic: () => void;
   musicOn: boolean;
+  /** The painting hung in the sidebar (the wallpaper setting): a painting id. */
   wall?: string;
 }
 
@@ -58,7 +60,6 @@ export function Sidebar(p: SidebarProps) {
   );
   return (
     <aside className="sidebar glass drag">
-      {p.wall && <div className="side-wall" style={{ backgroundImage: `url(${p.wall})` }} aria-hidden />}
       <div className="lights" onPointerDown={(e) => win?.startDrag(e)} onDoubleClick={() => win?.zoom()}><TrafficLights /></div>
       <div className="side-scroll nodrag">
         <div className="side-brand">CashGlome</div>
@@ -88,6 +89,17 @@ export function Sidebar(p: SidebarProps) {
               </button>
             ))}
           </>
+        )}
+        {p.wall && PAINTINGS[p.wall] && (
+          <figure className="side-plate nodrag" aria-label={`On the wall: ${PAINTINGS[p.wall].title}, ${PAINTINGS[p.wall].artist}, ${PAINTINGS[p.wall].year}`}>
+            <span className="side-plate-frame"><img src={artSrc(p.wall, 'sm')} alt="" loading="lazy" /></span>
+            <figcaption>
+              <span className="kick">On the wall</span>
+              <i>{PAINTINGS[p.wall].title}</i>
+              {NATIVE_TITLE[p.wall] && <span className="native">{NATIVE_TITLE[p.wall]}</span>}
+              <span>{PAINTINGS[p.wall].artist}, {PAINTINGS[p.wall].year}</span>
+            </figcaption>
+          </figure>
         )}
       </div>
       <button className={'side-music nodrag' + (p.musicOn ? ' on' : '')} onClick={p.onMusic}><Icon.music size={15} />Music{p.musicOn && <span className="music-live" aria-hidden />}</button>

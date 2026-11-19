@@ -465,7 +465,7 @@ export default function App() {
         view={view} setView={setView} month={state.month} setMonth={setMonth} chapters={chapters}
         counts={{ ledger: monthCount }}
         name={state.profile.name}
-        onEdition={() => setEdition(true)} onBook={() => openSettings()} onMusic={() => setMusic((x) => !x)} musicOn={!!state.settings.music?.on || music} wall={artSrc(wall, 'sm')}
+        onEdition={() => setEdition(true)} onBook={() => openSettings()} onMusic={() => setMusic((x) => !x)} musicOn={!!state.settings.music?.on || music} wall={wall}
       />
 
       <main className="main" ref={main}>
