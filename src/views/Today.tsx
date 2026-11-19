@@ -11,7 +11,6 @@ import type { Action } from '../lib/store';
 import type { Entry, State } from '../lib/types';
 import { RestorationPlate, revealTime } from '../components/Restoration';
 import { Icon } from '../components/Icons';
-import { Chalk } from '../components/Chalk';
 import { Sitting } from '../components/Sitting';
 import { Discoveries } from '../components/Discoveries';
 import { HousePlate } from '../components/HousePlate';
@@ -100,7 +99,7 @@ export function Today({ state, dispatch, voice, onVoiceDone, onFill, onLedger, o
           {safe ? (
             <section className="td-hero" aria-label="Safe to spend">
               <div className="td-label">Safe to spend today</div>
-              <div className="td-big num"><span className="td-ring">{m(safe.perDay)}<Chalk kind="circle" calm={state.settings.calm} delay={0.5} style={{ left: -18, top: -10, width: 'calc(100% + 36px)', height: 'calc(100% + 20px)' }} /></span></div>
+              <div className="td-big num">{m(safe.perDay)}</div>
               <p className="td-sub">{safe.until ? <>a day until pay {relDay(safe.until)}</> : <>a day for the rest of the month</>}. The working: <b className="num">{m(safe.free)}</b> free after what’s due, spread over {Math.max(1, Math.round(safe.free / Math.max(1, safe.perDay)))} days.</p>
               <button className="td-link" onClick={() => onAsk('How is safe to spend counted?')}>How is this counted?</button>
             </section>

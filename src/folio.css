@@ -190,7 +190,6 @@
 }
 
 /* Today's one number, circled in chalk. */
-.td-ring { position: relative; display: inline-block; }
 .td-aday { display: inline-block; margin-left: 14px; font-size: 18px; transform: rotate(-4deg) translateY(-0.9em); }
 .ph-tabs button.on::before { display: none !important; }
 
