@@ -140,7 +140,7 @@ export function CaptureSheet({ file: initial, settings, currency, attachTo, onDo
               <div className="cap-foot">
                 <span className="small cap-privacy">
                   <Icon.check size={12} />
-                  {reading?.engine === 'muse' ? 'Muse read it. The photo stays on this device.' : 'Read on this device. Nothing was uploaded.'}
+                  {reading?.engine === 'muse' ? 'Florin read it. The photo stays on this device.' : 'Read on this device. Nothing was uploaded.'}
                 </span>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button className="btn" onClick={onClose}>Cancel</button>

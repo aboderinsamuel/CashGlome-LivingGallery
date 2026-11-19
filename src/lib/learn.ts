@@ -1,5 +1,5 @@
 // Categories that learn. When you correct one ("Bolt" is getting around, not shopping), CashGlome remembers
-// it on this device and files the same thing the same way next time, whether Muse or the offline reader
+// it on this device and files the same thing the same way next time, whether Florin or the offline reader
 // read it. The most common complaint about money apps is categories that never learn; this is the fix.
 import { cat } from './categories';
 import type { Entry, Parsed } from './types';

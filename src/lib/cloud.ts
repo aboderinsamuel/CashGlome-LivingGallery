@@ -1,7 +1,7 @@
 // CashGlome cloud: an account, and every entry, goal, memory and setting synced between your devices.
 // Local-first: the device always has the whole world and works offline. When signed in, changes go up
 // and come down in the background; the newest edit of each thing wins (checked again on the server).
-// Never uploaded: the Meta Muse key, Spotify tokens, photos.
+// Never uploaded: the Meta Florin key, Spotify tokens, photos.
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
 import type { Remote } from './store';
 import type { Entry, Goal, Memory, State } from './types';

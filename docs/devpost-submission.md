@@ -20,7 +20,7 @@ We wanted the opposite: a diary that takes one line a day, keeps it on the phone
 
 **See.** Each month is a Chapter with a title and a public-domain masterpiece (58 of them, from every continent) that starts as a red-chalk underdrawing. Every entry is a brush stroke of glaze that restores a patch. The week's money sets the light: calm is Vermeer's window, a rushed week brings Caravaggio's dark in from the edges. Finished paintings hang in your gallery for good.
 
-**Ask.** Muse is the voice of a figure in the painting, and you can ask it anything: "Should I go on a date this weekend?" "Where did my money go?" "Tell me about this painting." It's a real Gemini conversation that knows your book, but it never does arithmetic. Every figure comes from tools that run on the device, and the answer shows its working.
+**Ask.** Florin is the voice of a figure in the painting, and you can ask it anything: "Should I go on a date this weekend?" "Where did my money go?" "Tell me about this painting." It's a real Gemini conversation that knows your book, but it never does arithmetic. Every figure comes from tools that run on the device, and the answer shows its working.
 
 **One small act a day.** Nobody types every expense forever:
 - In the evening, the painting asks one question by candlelight: *what did today cost?*
@@ -39,7 +39,7 @@ We wanted the opposite: a diary that takes one line a day, keeps it on the phone
   - The sitters' one-liners send the cloud categories only, never sums or the line.
   - Today's museum label uses `PREFER_ON_DEVICE`.
   - Every result reports `inferenceSource`, so a wax seal says where it was written.
-- **Muse**, in [`src/stage/muse.ts`](https://github.com/aboderinsamuel/CashGlome-LivingGallery/blob/main/src/stage/muse.ts): a Gemini chat with function calling.
+- **Florin**, in [`src/stage/muse.ts`](https://github.com/aboderinsamuel/CashGlome-LivingGallery/blob/main/src/stage/muse.ts): a Gemini chat with function calling.
   - The model gets a summary of the book and two tools that run on the device: `search_entries` (exact totals, counts and a category split) and `can_afford` (balance, routines and pay day).
   - Replies stream word by word. Guessed figures are labelled as estimates.
   - "Keep Ask on this device" and offline both route to Gemini Nano or the book's own rules, so nothing is sent.
@@ -60,7 +60,7 @@ We wanted the opposite: a diary that takes one line a day, keeps it on the phone
 ## Accomplishments that we're proud of
 
 - The first ten seconds: chalk turning to colour as you type, with no sign-up.
-- Muse answers "should I go on a date?" with your real numbers, a labelled guess at the cost, and the working underneath.
+- Florin answers "should I go on a date?" with your real numbers, a labelled guess at the cost, and the working underneath.
 - It works with no keys, no network and no model, and only gets better when Gemini is there.
 - A painting library that is the world's, not one continent's: Zhang Zeduan, Kim Hong-do, Hokusai, Raja Ravi Varma and the Shahnameh hang beside Bruegel and van Eyck.
 
@@ -95,7 +95,7 @@ firebase-ai-logic, gemini, gemini-nano, firebase-app-check, recaptcha-enterprise
 
 CashGlome's money reader and ledger existed before the hackathon in a private repository. That history is kept honestly in the first 15 commits of the public repo. Everything hackathon-specific is in the commits after them:
 - the living canvas and its shader;
-- the Firebase hybrid brain and Muse;
+- the Firebase hybrid brain and Florin;
 - the sitters;
 - the 58-painting world library;
 - the painted onboarding, the evening sitting and Discoveries;

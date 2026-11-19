@@ -2,7 +2,7 @@
 // - Routines ("4k on transport every weekday") are logged for them, or confirmed with one tap.
 // - A balance ("40k in the bank") plus everything written since gives today's money.
 // - Pay days end the horizon: "can I afford it?" means "and still cover my routines until I'm paid?".
-// Everything here is counted on the device. Muse only ever reads the results.
+// Everything here is counted on the device. Florin only ever reads the results.
 import { cat } from './categories';
 import { daysInMonth, money, todayISO, uid } from './format';
 import { findAmounts, parseOne } from './parser';
@@ -309,7 +309,7 @@ function summariseRoutines(days: RunwayDay[], cur: string) {
   return parts.length ? ` (${parts.join(', ')})` : '';
 }
 
-/* ——— What Muse is told ——— */
+/* ——— What Florin is told ——— */
 /** Everything remembered, as plain facts for the model. Marked as data so it's never taken as instructions. */
 export function memoryDigest(s: State) {
   const cur = s.profile.currency;

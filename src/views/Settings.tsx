@@ -12,7 +12,7 @@ import { Icon } from '../components/Icons';
 import { Account } from '../components/Account';
 import { AppIcon } from '../components/Logo';
 import { artSrc, PAINTINGS, seasonalWallpaper, WALLPAPERS } from '../lib/art';
-import { canLinkSpotify, linkSpotify, MUSIC_PICKS, myPlaylists, parseSpotify, spotifyLinked, unlinkSpotify, type MyPlaylist } from '../lib/spotify';
+import { canLinkSpotify, forgetSpotifySignIn, linkSpotify, MUSIC_PICKS, myPlaylists, parseSpotify, RELOAD_PLAYER, signInToSpotify, spotifyLinked, spotifySignedIn, unlinkSpotify, type MyPlaylist } from '../lib/spotify';
 
 export type Pane = 'general' | 'categories' | 'routines' | 'account' | 'appearance' | 'music' | 'muse' | 'data' | 'about';
 // Tints are pigments from the paintings: umber, ochre, lapis, verdigris, vermilion, madder, gold.
@@ -63,7 +63,7 @@ export function SettingsSheet({ state, dispatch, close, initial = 'general' }: {
           {pane === 'account' && <Group><div style={{ padding: 16 }}><Account /></div></Group>}
           {pane === 'appearance' && <Appearance state={state} dispatch={dispatch} />}
           {pane === 'music' && <Music state={state} dispatch={dispatch} />}
-          {pane === 'muse' && <Muse />}
+          {pane === 'muse' && <Florin />}
           {pane === 'data' && <Data state={state} dispatch={dispatch} close={close} />}
           {pane === 'about' && <About />}
         </div>
@@ -182,15 +182,15 @@ function Appearance({ state, dispatch }: { state: State; dispatch: (a: Action) =
   );
 }
 
-function Muse() {
+function Florin() {
   const [local, setLocal] = useState(askKeptLocal);
   const [b, setB] = useState(brainStatus);
   useEffect(() => onBrain(() => setB(brainStatus())), []);
   const device = b.device === 'ready' ? 'Ready on this device' : b.device === 'downloading' ? `Downloading, ${Math.round(b.progress * 100)}%` : b.device === 'none' ? 'Not in this browser; Gemini in the cloud stands in' : 'Checked the first time you write';
   return (
     <>
-      <Group note="Muse is Google's Gemini, through Firebase AI Logic. Lines it can't read are read by Gemini Nano on this device first; the cloud sees one only when this browser has no Nano. Ask sends your question and a summary of your book; your entries stay here, and every figure is counted here.">
-        <Row label="Muse" sub={b.configured ? `${cloudModelName} in the cloud, Gemini Nano on this device.` : 'This build has no Muse. The book reads and counts on this device.'}><span className="set-val">{b.configured ? 'On' : 'Off'}</span></Row>
+      <Group note="Florin is Google's Gemini, through Firebase AI Logic. Lines it can't read are read by Gemini Nano on this device first; the cloud sees one only when this browser has no Nano. Ask sends your question and a summary of your book; your entries stay here, and every figure is counted here.">
+        <Row label="Florin" sub={b.configured ? `${cloudModelName} in the cloud, Gemini Nano on this device.` : 'This build has no Florin. The book reads and counts on this device.'}><span className="set-val">{b.configured ? 'On' : 'Off'}</span></Row>
         {b.configured && <Row label="Gemini Nano" sub="Chrome on desktop can run it on the device."><span className="set-val">{device}</span></Row>}
         {b.configured && (
           <Row label="Keep Ask on this device" sub={local ? 'Nothing you ask leaves this device. Gemini Nano answers if your browser has it; the book answers if not.' : 'Ask can talk about anything, with a summary of your book.'}>
@@ -209,6 +209,15 @@ function Music({ state, dispatch }: { state: State; dispatch: (a: Action) => voi
   const [linked, setLinked] = useState(spotifyLinked);
   const [mine, setMine] = useState<MyPlaylist[] | null>(null);
   const [busy, setBusy] = useState(false);
+  const [signed, setSigned] = useState(spotifySignedIn);
+  const [waiting, setWaiting] = useState(false);
+  useEffect(() => { const r = () => setSigned(spotifySignedIn()); window.addEventListener(RELOAD_PLAYER, r); return () => window.removeEventListener(RELOAD_PLAYER, r); }, []);
+  const signIn = async () => {
+    setErr(null); setWaiting(true);
+    const r = await signInToSpotify();
+    setWaiting(false);
+    if (r === 'blocked') setErr('Your browser blocked the Spotify window. Allow pop-ups for this site and try again.');
+  };
   const valid = !!parseSpotify(m.url);
   const set = (patch: Partial<{ url: string; on: boolean }>) => dispatch({ type: 'settings', patch: { music: { ...m, ...patch } } });
   const use = (url: string) => {
@@ -233,7 +242,28 @@ function Music({ state, dispatch }: { state: State; dispatch: (a: Action) => voi
   );
   return (
     <>
-      <Group note="Music plays in Spotify's own player, from the ♪ button in the toolbar. Without signing in to Spotify, it plays 30-second previews; Open in Spotify plays everything in the Spotify app.">
+      <div className="label" style={{ margin: '0 4px 8px' }}>Your Spotify account</div>
+      <Group note="You sign in on Spotify's own page, in its own window. CashGlome never sees your password and keeps nothing from Spotify. Some browsers block Spotify inside other sites; if songs stay short, Open in Spotify plays everything in the Spotify app.">
+        {signed ? (
+          <Row label="Signed in to Spotify" sub="Whole songs play in this browser. Signed in with another account? Sign in again.">
+            <span style={{ display: 'flex', gap: 8 }}>
+              <button className="btn" onClick={signIn} disabled={waiting}>{waiting ? 'Waiting for Spotify…' : 'Sign in again'}</button>
+              <button className="btn" onClick={() => forgetSpotifySignIn()}>Forget</button>
+            </span>
+          </Row>
+        ) : (
+          <Row label="Sign in to Spotify" sub={waiting ? 'Finish signing in in the Spotify window, then close it.' : 'Whole songs instead of 30-second previews. Free and Premium accounts both work.'}>
+            <button className="btn primary" onClick={signIn} disabled={waiting}>{waiting ? 'Waiting for Spotify…' : 'Sign in to Spotify'}</button>
+          </Row>
+        )}
+        {canLinkSpotify() && !linked && (
+          <Row label="Choose from your playlists" sub="Lets CashGlome read your playlist names, nothing else.">
+            <button className="btn" onClick={link} disabled={busy}>{busy ? 'Waiting for Spotify…' : 'Show my playlists'}</button>
+          </Row>
+        )}
+      </Group>
+      <div className="label" style={{ margin: '0 4px 8px' }}>What plays</div>
+      <Group note="Music plays in Spotify's own player, from Music in the sidebar. Paste any playlist, album or song you like.">
         <Row label="Play music while you write" sub={valid ? 'Turn it off any time.' : 'Paste a link or pick one below.'}>
           <Toggle label="Play music" on={!!m.on && valid} set={(v) => (valid ? set({ on: v }) : setErr('Paste a Spotify link or pick one below first.'))} />
         </Row>
@@ -245,15 +275,11 @@ function Music({ state, dispatch }: { state: State; dispatch: (a: Action) => voi
       </Group>
       <div className="label" style={{ margin: '0 4px 8px' }}>Quiet picks</div>
       <Group>{MUSIC_PICKS.map((p) => <Pick key={p.url} url={p.url} name={p.name} sub={p.note} />)}</Group>
-      {canLinkSpotify() && (
+      {canLinkSpotify() && linked && (
         <>
-          <div className="label" style={{ margin: '0 4px 8px' }}>Your Spotify</div>
+          <div className="label" style={{ margin: '0 4px 8px' }}>Your playlists</div>
           <Group note="CashGlome only reads your playlist names. It can't play, change or post anything, and the link stays on this device.">
-            {!linked ? (
-              <Row label="Link your Spotify account" sub="Choose from your own playlists.">
-                <button className="btn primary" onClick={link} disabled={busy}>{busy ? 'Waiting for Spotify…' : 'Link Spotify'}</button>
-              </Row>
-            ) : (
+            {(
               <>
                 {!mine && <Row label={<span className="small">Loading your playlists…</span>} />}
                 {mine?.map((p) => <Pick key={p.id} url={p.url} name={p.name} sub={`${p.tracks} songs`} image={p.image} />)}

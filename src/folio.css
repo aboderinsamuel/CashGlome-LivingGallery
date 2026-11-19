@@ -274,7 +274,7 @@
 .st-wax.cloud { background: var(--lapis) !important; box-shadow: 0 1.5px 0 #1A2E5A !important; }
 .st-wax.rules { background: var(--metal) !important; box-shadow: 0 1.5px 0 rgba(0,0,0,.25) !important; }
 
-/* Muse: where the answer is written, the on-device switch, the live reply and the estimate label. */
+/* Florin: where the answer is written, the on-device switch, the live reply and the estimate label. */
 .ar-kicker { font: 600 11px var(--grot, var(--ui)); letter-spacing: .14em; text-transform: uppercase; color: var(--sanguine); margin-bottom: 4px; }
 .ar-where { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 12px; margin: -8px 0 20px; padding: 10px 12px; border: 1px dashed var(--chip-edge); border-radius: 12px; font: 400 13px/1.4 var(--ui); color: var(--ink-2); }
 .ar-where .st-wax { width: 20px; height: 20px; font-size: 10px; }
@@ -545,3 +545,8 @@
 .pl-room.sealed { border-color: #C9A24A; box-shadow: 0 2px 0 #B8892E, 0 0 0 3px rgba(233,196,106,.22); }
 .pl-wing-seals { margin-left: auto; font: 650 12px var(--grot) !important; color: var(--ink-2) !important; }
 .pl-wing-seals.full { color: #9A7424 !important; letter-spacing: .08em; text-transform: uppercase; }
+
+/* Music: the way to whole songs, offered right in the player. */
+.music-sign { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+.music-sign .small { flex: 1 1 200px; }
+.music-note { margin-top: 8px; }

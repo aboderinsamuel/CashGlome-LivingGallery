@@ -1,4 +1,4 @@
-// Muse: a conversation about anything, with the book open on the table.
+// Florin: a conversation about anything, with the book open on the table.
 // Gemini talks; this device counts. The model is given the shape of the book and a set of tools that run
 // here (searches with exact sums, affordability). Any figure from the book it says comes from those, copied
 // exactly; anything it guesses (what a dinner out costs, say) it must mark as an estimate.
@@ -15,9 +15,9 @@ import { peopleOf } from './books';
 import { brainConfigured, museModels, type Persona } from './brain';
 
 export interface MuseAnswer extends PaintingAnswer {
-  /** The answer holds a figure Muse guessed rather than one counted from the book. */
+  /** The answer holds a figure Florin guessed rather than one counted from the book. */
   estimate?: boolean;
-  /** Why it was answered where it was (offline, kept on this device, Muse unreachable). */
+  /** Why it was answered where it was (offline, kept on this device, Florin unreachable). */
   note?: string;
 }
 export interface MuseHistory { q: string; a: { text: string } | null }
@@ -162,7 +162,7 @@ function runTool(state: State, call: FunctionCall, into: Run): object {
 function system(state: State, sitter: Persona, summary: string, tools: boolean) {
   const weekday = new Date().toLocaleDateString('en', { weekday: 'long' });
   const name = state.profile.name?.trim();
-  return `You are Muse, speaking as ${sitter.name} (${sitter.role}) in "${sitter.painting}" by ${sitter.artist}, ${sitter.year}: the painting on this month's page of ${name ? `${name}'s` : 'the person\'s'} money diary, CashGlome. Today is ${weekday} ${todayISO()}.
+  return `You are Florin, speaking as ${sitter.name} (${sitter.role}) in "${sitter.painting}" by ${sitter.artist}, ${sitter.year}: the painting on this month's page of ${name ? `${name}'s` : 'the person\'s'} money diary, CashGlome. Today is ${weekday} ${todayISO()}.
 You can talk about anything: life, plans, dates, food, work, feelings, art. You also know their money, and you bring it in when it matters, the way a sharp, kind friend would.
 How you speak: warm, dry, a little funny; plain words; at most 90 words unless they ask for more; in the language they write in. Never scold or guilt. No emoji, no exclamation marks, no markdown, no lists unless asked.
 Numbers: never add, subtract or work out a figure yourself. Every figure from their book is copied exactly from the summary below${tools ? ' or from a tool result (search_entries, can_afford); call a tool whenever you need a figure the summary does not have, and for a combined figure (food and drink together, say) search for exactly that combination instead of adding results up' : ''}. If you guess a figure (what a dinner out usually costs, say), write it as "about X (my estimate)" and keep it apart from their own figures. Amounts are in ${state.profile.currency}; write them the way the summary does, with the currency and thousands separators.
@@ -242,6 +242,6 @@ export async function askMuse(state: State, question: string, history: MuseHisto
     return { text, figures: run.figures.length ? run.figures : /\d/.test(text) ? summaryFigures(state) : [], rows: run.rows, runway: run.runway, planned: 'cloud', wordsBy: 'app', estimate: ESTIMATE.test(text) };
   } catch (e) {
     console.warn('[muse] cloud', e);
-    return rules('Muse couldn’t be reached just now, so the book answered on its own.');
+    return rules('Florin couldn’t be reached just now, so the book answered on its own.');
   }
 }

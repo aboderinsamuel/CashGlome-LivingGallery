@@ -1,5 +1,5 @@
 // Reads a photo: is it a receipt (then find the shop, the total and the date) or a thing someone bought?
-// Meta Muse looks at it when connected; otherwise Tesseract reads it on this device, from files bundled
+// Meta Florin looks at it when connected; otherwise Tesseract reads it on this device, from files bundled
 // with the app (nothing is downloaded at run time).
 import { chat, extractJSON, aiEnabled } from './ai';
 import { CATEGORIES } from './categories';
@@ -17,14 +17,14 @@ export interface Reading {
   label?: string;
   box?: Box;
   engine: 'muse' | 'device';
-  note?: string; // why Muse wasn't used, when it failed
+  note?: string; // why Florin wasn't used, when it failed
 }
 type Progress = (p: number, stage: string) => void;
 
 export async function readPicture(s: Settings, file: Blob, currency: string, onProgress: Progress): Promise<Reading> {
   if (aiEnabled(s)) {
     try {
-      onProgress(0.2, 'Muse is looking');
+      onProgress(0.2, 'Florin is looking');
       return await museLook(s, file, currency);
     } catch (e) {
       const r = await deviceRead(file, onProgress);
@@ -34,7 +34,7 @@ export async function readPicture(s: Settings, file: Blob, currency: string, onP
   return deviceRead(file, onProgress);
 }
 
-/* ——— Meta Muse (vision) ——— */
+/* ——— Meta Florin (vision) ——— */
 async function museLook(s: Settings, file: Blob, currency: string): Promise<Reading> {
   const url = await toDataURL(file, 1100, 0.82);
   const cats = CATEGORIES.filter((c) => c.dir === 'out').map((c) => c.id).join(', ');

@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { appURI, embedURL, parseSpotify, webURL } from '../lib/spotify';
+import { useEffect, useState } from 'react';
+import { appURI, embedURL, parseSpotify, RELOAD_PLAYER, signInToSpotify, spotifySignedIn, webURL } from '../lib/spotify';
 import type { State } from '../lib/types';
 import { Icon } from './Icons';
 
@@ -10,6 +10,10 @@ import { Icon } from './Icons';
 export function MusicDock({ state, open, onClose, onChange }: { state: State; open: boolean; onClose: () => void; onChange: () => void }) {
   const m = state.settings.music;
   const ref = m?.on ? parseSpotify(m.url) : null;
+  const [reload, setReload] = useState(0);
+  const [signed, setSigned] = useState(spotifySignedIn);
+  const [blocked, setBlocked] = useState(false);
+  useEffect(() => { const r = () => { setReload((n) => n + 1); setSigned(spotifySignedIn()); }; window.addEventListener(RELOAD_PLAYER, r); return () => window.removeEventListener(RELOAD_PLAYER, r); }, []);
   useEffect(() => {
     if (!open) return;
     const k = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -30,9 +34,17 @@ export function MusicDock({ state, open, onClose, onChange }: { state: State; op
         <button className="music-close" onClick={onClose} aria-label="Close music"><Icon.close size={13} />Close</button>
       </div>
       {ref
-        ? <iframe key={ref.id} title="Spotify player" src={embedURL(ref)} width="100%" height="152" loading="lazy" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" style={{ border: 0, borderRadius: 12, display: 'block' }} />
+        ? <iframe key={`${ref.id}-${reload}`} title="Spotify player" src={embedURL(ref)} width="100%" height="152" loading="lazy" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" style={{ border: 0, borderRadius: 12, display: 'block' }} />
         : <p className="small" style={{ margin: 0 }}>Play a Spotify playlist while you write. Choose one in Settings.</p>}
-      <div className="small" style={{ marginTop: 8 }}>Spotify plays 30-second previews unless you're signed in to Spotify here. Closing this keeps the music playing.</div>
+      {signed ? (
+        <div className="small music-note">Signed in to Spotify in this browser, so whole songs play. Closing this keeps the music playing.</div>
+      ) : (
+        <div className="music-sign">
+          <span className="small">Hearing 30-second previews? Sign in to Spotify for whole songs.</span>
+          <button className="btn" onClick={async () => setBlocked((await signInToSpotify()) === 'blocked')}>Sign in to Spotify</button>
+          {blocked && <span className="small" style={{ color: 'var(--rust)' }}>Your browser blocked the Spotify window. Allow pop-ups for this site and try again.</span>}
+        </div>
+      )}
     </div>
   );
 }

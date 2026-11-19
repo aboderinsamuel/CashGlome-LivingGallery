@@ -56,7 +56,7 @@ export function Account({ compact = false }: { compact?: boolean }) {
             </div>
           </div>
         </div>
-        {!compact && <p className="small acct-note">Your entries, goals, memory and settings are kept in your account and on each device you sign in on. Photos, your Meta key and Spotify stay on this device.</p>}
+        {!compact && <p className="small acct-note">Your entries, goals, memory and settings are kept in your account and on each device you sign in on. Photos and your music choice stay on this device.</p>}
         <div className="acct-actions">
           <button className="btn" disabled={st.phase === 'syncing'} onClick={syncNow}>Sync now</button>
           <button className="btn" onClick={() => act(signOut)}>Sign out</button>

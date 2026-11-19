@@ -7,7 +7,7 @@ import type { Entry, Goal, Memory, Parsed, RoutineMark, Settings, State } from '
 const KEY = 'cashglome.v1';
 
 export const defaultSettings: Settings = {
-  // With a shared Muse built in, Muse is on from the start; otherwise it waits for someone's own key.
+  // With a shared Florin built in, Florin is on from the start; otherwise it waits for someone's own key.
   ai: { provider: SHARED_MUSE ? 'meta' : 'local', key: '', base: DEFAULT_BASE, parseModel: 'muse-spark-1.1', storyModel: 'muse-wonder-1.0' },
   sound: true,
   calm: false,
@@ -141,7 +141,7 @@ export function reducer(s: State, a: Action): State {
     case 'quiet': { const q = new Set(s.quiet ?? []); if (a.on) q.add(a.date); else q.delete(a.date); return { ...s, quiet: [...q].sort() }; }
     case 'cash': return { ...s, cash: [...(s.cash ?? []).filter((p) => p.id !== a.pocket.id), a.pocket].slice(-20) };
     case 'removeCash': return { ...s, cash: (s.cash ?? []).filter((p) => p.id !== a.id) };
-    // Muse's better wording for an entry already saved from the on-device reading.
+    // Florin's better wording for an entry already saved from the on-device reading.
     case 'refine': return { ...s, entries: s.entries.map((e) => (e.id === a.id && e.source !== 'manual' ? { ...e, ...a.patch, source: 'muse', updatedAt: Date.now() } : e)) };
     case 'merge': {
       const r = a.remote;

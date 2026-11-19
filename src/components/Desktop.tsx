@@ -136,7 +136,7 @@ function MenuBar({ menus, aiOn, state, onOpen }: { menus: Menu[]; aiOn: boolean;
         </div>
       ))}
       <span style={{ flex: 1 }} />
-      <span className="mb-item" title={aiOn ? 'Muse connected' : 'Reading on this device'}><span style={{ width: 6, height: 6, borderRadius: 3, background: aiOn ? '#7BE0AE' : 'rgba(255,255,255,.55)' }} />Muse</span>
+      <span className="mb-item" title={aiOn ? 'Florin connected' : 'Reading on this device'}><span style={{ width: 6, height: 6, borderRadius: 3, background: aiOn ? '#7BE0AE' : 'rgba(255,255,255,.55)' }} />Florin</span>
       <span className="mb-item num">{now.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' })}&nbsp;&nbsp;{now.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}</span>
     </div>
   );

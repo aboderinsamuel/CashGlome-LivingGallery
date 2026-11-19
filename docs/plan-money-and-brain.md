@@ -18,7 +18,7 @@ Written Friday, the thirteenth of November 2026. It extends the money plan appro
 - The web app already has optional accounts and sync (Supabase, email and password). It syncs entries readable by the server, and asks for a password. Android has none.
 
 **The AI**
-- `src/lib/ai.ts` is written for one provider (Meta Muse, three model names hard-coded). The server proxy in the site repo allows only those three models.
+- `src/lib/ai.ts` is written for one provider (Meta Florin, three model names hard-coded). The server proxy in the site repo allows only those three models.
 - The good part to keep: `askMuse` already makes the model call tools and forbids it from doing arithmetic. The device counts.
 - Missing: any provider but one, a way to check an answer's numbers, memory beyond four kinds of note, proactive help, tests that score a model, and entry points outside the Ask panel.
 
@@ -49,11 +49,11 @@ Written Friday, the thirteenth of November 2026. It extends the money plan appro
 **Ideas that are ours**
 - **Sign your work.** After the first entry lifts the first patch of varnish, the painting asks for a signature in its corner, the way painters sign. Signing is the account: one tap with Google, Apple or a passkey. Skippable; the canvas stays unsigned and asks again when the first Chapter is finished.
 - **Purses as pigments.** Each purse is a swatch of ground pigment: ochre for cash, lapis for the bank, vermilion for the mobile wallet, verdigris for savings. Drag one swatch onto another to move money between them.
-- **Margin notes.** Muse writes in the margin of the ledger in italic, the way a reader annotates a manuscript: "Food out is above your usual this month." Tap a note to ask about it. No pop-ups, no badges.
+- **Margin notes.** Florin writes in the margin of the ledger in italic, the way a reader annotates a manuscript: "Food out is above your usual this month." Tap a note to ask about it. No pop-ups, no badges.
 - **Wax seals.** What's coming (rent, fees, a circle turn) is a row of seals with the date in words. Paying one breaks the seal. Settling a debt with a person stamps one: press and hold, with a haptic thud.
 - **Miniatures.** Each person is a portrait miniature (an illuminated initial in an oval frame). A debt is one sentence under it: "Sam owes you ₦5,000, since Tuesday, the tenth."
 - **The round.** A savings circle is drawn as a ring of members. The ring gilds as rounds are paid; your turn is the gold bead.
-- **Ask about anything you can see.** Long-press any number, row, person or seal: "Ask Muse about this". The question arrives with that thing attached, so "why?" is enough.
+- **Ask about anything you can see.** Long-press any number, row, person or seal: "Ask Florin about this". The question arrives with that thing attached, so "why?" is enough.
 - **The morning line.** One optional notification a day, written as a sentence: "Tuesday, the tenth. ₦4,200 for today; rent is nine days off." Reply to it from the notification to log or ask.
 - **The unveiling.** The first of the month is a short ceremony: the last varnish lifts, the frame closes, the Chapter gets its title, and a share card is ready.
 
@@ -80,13 +80,13 @@ Backup is encrypted on the device before upload, so the server holds a blob it c
 
 The goal you set: put in a stronger model, get a stronger product, without rewriting anything; and the strength comes from our engineering. The design is eight parts.
 
-**5.1 The gateway (server).** One endpoint. Adapters for the three wire formats that cover nearly every model: OpenAI-style chat (Meta Muse, OpenAI and most others), Anthropic Messages (Claude), and Google Gemini. Configured only by environment variables: provider, key, a fast model and a deep model. Each adapter declares what its model can do (tools, parallel tools, images, strict JSON, streaming) and the engine adapts; a model without tool calling gets a JSON plan protocol instead. Retries, a fallback provider, per-person allowances, and no storing of content.
+**5.1 The gateway (server).** One endpoint. Adapters for the three wire formats that cover nearly every model: OpenAI-style chat (Meta Florin, OpenAI and most others), Anthropic Messages (Claude), and Google Gemini. Configured only by environment variables: provider, key, a fast model and a deep model. Each adapter declares what its model can do (tools, parallel tools, images, strict JSON, streaming) and the engine adapts; a model without tool calling gets a JSON plan protocol instead. Retries, a fallback provider, per-person allowances, and no storing of content.
 
 **5.2 The financial graph (device).** Everything the person has, typed and linked: entries, purses, people, circles, commitments, envelopes, goals, receipts, memories, plus derived facts the device computes (their usual per category, recurring costs, pay cycle, cash gaps). This is the "entire financial ecosystem", and it lives on the phone.
 
 **5.3 Tools (device).** The model never adds. It asks the device, which answers exactly: `query_entries`, `balance_of`, `safe_to_spend`, `upcoming`, `who_owes`, `circle_status`, `compare_periods`, `usual_for`, `forecast`, `what_if`, `find_recurring`. Tools that change things (`add_entry`, `move_money`, `add_commitment`, `remember`, `settle`) only return a proposal; the person confirms with a tap.
 
-**5.4 The context builder (device).** Before each request the device writes a brief, a few hundred words, from the graph: who they are (currency, language, pay cycle), what they've told Muse to remember, the state right now (balances, safe-to-spend, the next fourteen days, this month against their usual), what they were looking at when they asked, and a summary of the conversation. It has a size budget and ranks by relevance to the question. Names of people can be swapped for stand-ins before leaving the phone and swapped back in the answer.
+**5.4 The context builder (device).** Before each request the device writes a brief, a few hundred words, from the graph: who they are (currency, language, pay cycle), what they've told Florin to remember, the state right now (balances, safe-to-spend, the next fourteen days, this month against their usual), what they were looking at when they asked, and a summary of the conversation. It has a size budget and ranks by relevance to the question. Names of people can be swapped for stand-ins before leaving the phone and swapped back in the answer.
 
 **5.5 Memory.** Three layers. Working memory is the conversation. Standing memory is what the person told it (routines, pay day, goals, preferences, who "mum" is), always visible and editable in the commonplace book. Episodic memory is one digest per finished Chapter, so a question about last March doesn't need last March's entries sent.
 
@@ -120,6 +120,6 @@ Every step: empty, loading, error and offline states; real entry strings; tests 
 ## 7. Where I disagree
 
 - **Organisations now.** A club's or co-op's shared book needs roles, approvals and an audit trail. It's a second product on the same engine. Built before the personal one is loved, it will make both worse. I've put it last and behind its own plan.
-- **Chat is everywhere, not only on its own screen.** There is a full conversation with Muse: pull the Quill up, or tap the Muse mark in the top bar, and it opens full screen with back-and-forth, follow-ups, analysis (figures, working and small charts drawn from the person's own data), advice with steps they can accept by a tap, and searchable history. It opens knowing what the person was looking at. It is one gesture from every screen instead of a fifth tab; if testing shows people don't find it, a "Muse" tab is a small change.
+- **Chat is everywhere, not only on its own screen.** There is a full conversation with Florin: pull the Quill up, or tap the Florin mark in the top bar, and it opens full screen with back-and-forth, follow-ups, analysis (figures, working and small charts drawn from the person's own data), advice with steps they can accept by a tap, and searchable history. It opens knowing what the person was looking at. It is one gesture from every screen instead of a fifth tab; if testing shows people don't find it, a "Florin" tab is a small change.
 - **Creativity has a floor.** Google's own research found that novelty which breaks familiar patterns scores worse, most of all in money apps. So navigation, lists and sheets stay conventional; the invention goes into the material, the reward and the brain.
 - **Envelopes stay off by default**, as agreed, and circles track only your own side.

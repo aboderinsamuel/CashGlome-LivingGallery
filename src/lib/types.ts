@@ -31,7 +31,7 @@ export interface Goal {
  *  routine: money that goes out (or comes in) on set days, logged for them or confirmed with one tap.
  *  balance: what they had at a moment; today's figure is that plus everything written since.
  *  income:  pay that arrives on a day of the month; it ends the "until payday" horizon.
- *  note:    anything else Muse should know ("I'm saving for a laptop", "I don't drive"). */
+ *  note:    anything else Florin should know ("I'm saving for a laptop", "I don't drive"). */
 export type MemoryKind = 'routine' | 'balance' | 'income' | 'note';
 export interface Memory {
   id: string;
@@ -72,7 +72,7 @@ export interface Settings {
   theme: 'auto' | 'light' | 'dark';
   wallpaper: string; // painting id, or 'season'
   reminder: { on: boolean; time: string };
-  /** Questions the app can't count itself may go to Muse: undefined until the person decides. */
+  /** Questions the app can't count itself may go to Florin: undefined until the person decides. */
   askMuse?: boolean;
   /** Background music: a Spotify playlist, album or track link, and whether it plays. */
   music?: { url: string; on: boolean };

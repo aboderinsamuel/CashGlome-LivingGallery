@@ -1,4 +1,4 @@
-// Ask: a conversation with Muse, the voice of this month's painting. Ask it anything; it knows the book.
+// Ask: a conversation with Florin, the voice of this month's painting. Ask it anything; it knows the book.
 // Gemini writes the words; this device counts every figure, and each answer shows its working and its seal.
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -89,7 +89,7 @@ export function AskRoom({ state, turns, setTurns, first, onFirstDone }: { state:
 
   const toggleLocal = () => { const v = !local; setLocal(v); setAskKeptLocal(v); };
   const onDevice = local || !online || !brainConfigured;
-  const where = !brainConfigured ? 'This build has no Muse, so the book answers on its own, on this device.'
+  const where = !brainConfigured ? 'This build has no Florin, so the book answers on its own, on this device.'
     : !online ? 'You’re offline. The book still answers, counted on this device.'
       : local ? 'Kept on this device: nothing you ask leaves it.'
         : 'Your question and a summary of your book go to Gemini. Your entries stay here, and every figure is counted here.';
@@ -99,7 +99,7 @@ export function AskRoom({ state, turns, setTurns, first, onFirstDone }: { state:
       <header className="ar-head">
         <img src={artSrc(painting.id, 'sm')} alt="" className="ar-face" />
         <div>
-          <div className="ar-kicker">Muse, the assistant · speaking as {sitter.name}</div>
+          <div className="ar-kicker">Florin, your assistant · speaking as {sitter.name}</div>
           <h1>Ask me <i>anything</i></h1>
           <p>Ask about your money in plain words: “can I afford this?”, “where did it go?”. I read your book; every sum is counted on this device and shown with its working.</p>
         </div>
@@ -139,7 +139,7 @@ export function AskRoom({ state, turns, setTurns, first, onFirstDone }: { state:
       </div>
 
       <form className="ar-box" onSubmit={(e) => { e.preventDefault(); void ask(text); }}>
-        <textarea ref={input} rows={1} value={text} onChange={(e) => setText(e.target.value)} placeholder="Ask Muse anything" aria-label="Ask Muse anything"
+        <textarea ref={input} rows={1} value={text} onChange={(e) => setText(e.target.value)} placeholder="Ask Florin anything" aria-label="Ask Florin anything"
           onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void ask(text); } }} />
         <button type="submit" disabled={!text.trim() || busy} aria-label="Ask"><Icon.up size={17} /></button>
       </form>

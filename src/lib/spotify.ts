@@ -28,7 +28,31 @@ export const MUSIC_PICKS = [
   { name: 'lofi beats', note: 'Steady, for getting things done', url: 'https://open.spotify.com/playlist/37i9dQZF1DWWQRwui0ExPn' },
 ];
 
-/* ——— Linking your account ——— */
+/* ——— Signing in to Spotify itself ———
+   Spotify's player plays whole songs to anyone signed in to Spotify in this browser, and 30-second previews
+   to everyone else. Signing in happens on Spotify's own page, in its own window: CashGlome never sees the
+   password, needs no key, and works for every Spotify account. When the window closes, the player reloads. */
+const WEB_KEY = 'cg-spotify-web';
+export const spotifySignedIn = () => { try { return localStorage.getItem(WEB_KEY) === '1'; } catch { return false; } };
+export const RELOAD_PLAYER = 'cg-music-reload';
+export function signInToSpotify(): Promise<'done' | 'blocked'> {
+  const url = 'https://accounts.spotify.com/login?continue=' + encodeURIComponent('https://open.spotify.com/');
+  const w = 520, h = 720;
+  const win = window.open(url, 'spotify-sign-in', `popup,width=${w},height=${h},left=${Math.max(0, (screen.width - w) / 2)},top=${Math.max(0, (screen.height - h) / 2)}`);
+  if (!win) return Promise.resolve('blocked');
+  return new Promise((done) => {
+    const t = setInterval(() => {
+      if (!win.closed) return;
+      clearInterval(t);
+      try { localStorage.setItem(WEB_KEY, '1'); } catch { /* private mode */ }
+      window.dispatchEvent(new Event(RELOAD_PLAYER));
+      done('done');
+    }, 500);
+  });
+}
+export const forgetSpotifySignIn = () => { try { localStorage.removeItem(WEB_KEY); } catch { /* fine */ } window.dispatchEvent(new Event(RELOAD_PLAYER)); };
+
+/* ——— Linking your account (only when this build has a Spotify app registered) ——— */
 const CLIENT_ID = (import.meta.env.VITE_SPOTIFY_CLIENT_ID as string | undefined)?.trim();
 const DESKTOP_REDIRECT = 'http://127.0.0.1:43821/callback';
 const SCOPES = 'playlist-read-private playlist-read-collaborative';

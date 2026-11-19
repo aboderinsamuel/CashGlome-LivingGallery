@@ -74,7 +74,7 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer({ cu
     if (question) { session.current?.stop(); onAsk(text.trim()); setText(''); return; } session.current?.stop(); onSubmit(text.trim(), over); setText(''); };
   const camera = () => (touch ? fileIn.current?.click() : onCamera());
   const listening = voice !== 'off';
-  const placeholder = busy ? (aiOn ? 'Muse is reading…' : 'Reading…') : voice === 'starting' ? 'Getting ready…' : voice === 'on' ? 'Listening…' : 'What did today cost?';
+  const placeholder = busy ? (aiOn ? 'Florin is reading…' : 'Reading…') : voice === 'starting' ? 'Getting ready…' : voice === 'on' ? 'Listening…' : 'What did today cost?';
   const shown = note ? { text: note } : notice;
 
   return (

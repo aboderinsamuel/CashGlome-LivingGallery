@@ -159,7 +159,7 @@ model is involved. It is drama, never a red or a green.
 
 | Dates | Work |
 | --- | --- |
-| 14–15 Nov | Public repo; Firebase, App Check, `firebase/ai` hybrid behind the Muse slot; wax seal; quill ink. |
+| 14–15 Nov | Public repo; Firebase, App Check, `firebase/ai` hybrid behind the Florin slot; wax seal; quill ink. |
 | 16–19 Nov | The living-painting engine: depth, motion, clock light, mood weather. The Moneylender first, end to end. |
 | 19–22 Nov | Lines painted into the scene: the object library, chalk sketch, cloud repaint, glaze transition (during the quota days). |
 | 22–24 Nov | The sitters talk; Ask the painting; museum labels; other languages and scripts. |

@@ -241,7 +241,7 @@ export async function paintStillLife(thing: string, painting: string, artist: st
 }
 
 /**
- * Muse's own models, for conversation. The cloud model may call the device's tools (searches, sums,
+ * Florin's own models, for conversation. The cloud model may call the device's tools (searches, sums,
  * affordability); the device model gets the device's figures already counted, since it can't call tools.
  */
 export async function museModels() {

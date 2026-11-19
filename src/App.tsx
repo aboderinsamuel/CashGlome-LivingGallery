@@ -120,7 +120,7 @@ export default function App() {
     set.add(monthOf(todayISO()));
     return [...set].sort().reverse();
   }, [state.entries]);
-  // The oldest entry of each month: ties a saved Muse story to the data it was written from.
+  // The oldest entry of each month: ties a saved Florin story to the data it was written from.
   const firstOf = useMemo(() => {
     const f: Record<string, { id: string; at: number; n: number }> = {};
     for (const e of state.entries) {
@@ -142,7 +142,7 @@ export default function App() {
   const monthCount = useMemo(() => state.entries.filter((e) => monthOf(e.date) === state.month).length, [state.entries, state.month]);
   const wall = !state.settings.wallpaper || state.settings.wallpaper === 'season' ? seasonalWallpaper() : state.settings.wallpaper;
 
-  // ——— Muse writes the chapter when connected ———
+  // ——— Florin writes the chapter when connected ———
   useEffect(() => {
     const m = state.month, first = firstOf[m]?.id, model = state.settings.ai.storyModel, today = todayISO();
     if (!ai || monthCount < 4 || !first) return;
@@ -256,7 +256,7 @@ export default function App() {
         {elsewhere && <> in {monthLabel(elsewhere)}</>}
         {opts.hung && <>, painted and hung in the Gallery</>}
         {gained > 0 && <>. {gilded ? 'Gilded, so it cleaned' : 'Cleaned'} {gained === 1 ? 'a patch' : `${gained} patches`} of <i>{painting.title}</i></>}
-        {opts.error && <span style={{ color: 'var(--rust)' }}>. Muse unavailable, read on this device</span>}
+        {opts.error && <span style={{ color: 'var(--rust)' }}>. Florin unavailable, read on this device</span>}
       </>,
       undo: () => { ids.forEach((id) => dispatch({ type: 'remove', id })); setNotice(null); },
     });
@@ -291,7 +291,7 @@ export default function App() {
     }), 3200);
   }, [dispatch]);
 
-  /** Phone: what the chips showed is saved the moment you send. Muse only improves the wording afterwards. */
+  /** Phone: what the chips showed is saved the moment you send. Florin only improves the wording afterwards. */
   const submitNow = useCallback((text: string, overrides: Record<number, Partial<Parsed>>) => {
     const seen = parseStory(text, { home: cur }).map((p, i) => ({ ...recall(p), ...overrides[i] }));
     seen.forEach((p, i) => { if (overrides[i]?.category) learn(p.label, p.category); });
@@ -565,7 +565,7 @@ export default function App() {
       { label: 'About CashGlome', action: () => openSettings('about') },
       'sep',
       { label: 'Settings…', kbd: kbd(','), action: () => openSettings() },
-      { label: 'The AI (Muse)…', action: () => openSettings('muse') },
+      { label: 'The AI (Florin)…', action: () => openSettings('muse') },
       'sep',
       { label: 'Sounds', checked: state.settings.sound, action: () => dispatch({ type: 'settings', patch: { sound: !state.settings.sound } }) },
     ] },

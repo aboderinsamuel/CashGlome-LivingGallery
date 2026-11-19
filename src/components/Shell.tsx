@@ -40,12 +40,12 @@ const ACTS: { act: string; places: PlaceItem[] }[] = [
     { v: 'people', label: 'People', icon: (z) => <Icon.person size={z} /> },
     { v: 'plans', label: 'Plans', icon: (z) => <Icon.flag size={z} /> },
   ] },
+  { act: 'Ask', places: [{ v: 'ask', label: 'Ask Florin', icon: (z) => <Icon.ask size={z} /> }] },
   { act: 'See', places: [
     { v: 'chapter', label: 'Chapter', icon: (z) => <Icon.book size={z} /> },
     { v: 'collection', label: 'Gallery', icon: (z) => <Icon.seal size={z} /> },
     { v: 'play', label: 'Play', icon: (z) => <Icon.games size={z} /> },
   ] },
-  { act: 'Ask', places: [{ v: 'ask', label: 'Ask', icon: (z) => <Icon.ask size={z} /> }] },
 ];
 const TABS: { v: Tab; label: string; icon: (size: number) => ReactNode }[] = [
   { v: 'today', label: 'Today', icon: (z) => <Icon.sun size={z} /> },

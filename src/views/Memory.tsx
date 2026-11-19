@@ -42,7 +42,7 @@ export function MemoryView({ state, dispatch, notify }: { state: State; dispatch
   const groups: { title: JSX.Element; note: string; list: Memory[] }[] = [
     { title: <>Your <em>routines</em></>, note: 'Each one is written down for you, or checked with one tap, on the days it happens.', list: routinesOf(state) },
     { title: <>What's <em>true now</em></>, note: 'Your balance and pay day. Today’s money is the balance plus everything written since.', list: items.filter((m) => m.kind === 'balance' || m.kind === 'income') },
-    { title: <>Notes for <em>Muse</em></>, note: 'Anything else worth knowing when you ask about your money.', list: items.filter((m) => m.kind === 'note' || (m.kind === 'routine' && !routinesOf(state).includes(m))) },
+    { title: <>Notes for <em>Florin</em></>, note: 'Anything else worth knowing when you ask about your money.', list: items.filter((m) => m.kind === 'note' || (m.kind === 'routine' && !routinesOf(state).includes(m))) },
   ];
 
   return (
@@ -202,7 +202,7 @@ function Editor({ m: start, cur, onSave, onCancel, heading }: { m: Memory; cur: 
         {KINDS.map((k) => <button key={k.id} role="radio" aria-checked={m.kind === k.id} className={m.kind === k.id ? 'on' : ''} onClick={() => set({ kind: k.id })}>{k.name}</button>)}
       </div>
       {m.kind === 'note' ? (
-        <textarea className="field mem-text" rows={3} value={m.text} onChange={(e) => set({ text: e.target.value })} placeholder="Anything Muse should know" />
+        <textarea className="field mem-text" rows={3} value={m.text} onChange={(e) => set({ text: e.target.value })} placeholder="Anything Florin should know" />
       ) : (
         <div className="mem-fields">
           <div className="mem-f"><span className="label">{m.kind === 'balance' ? 'Where' : 'Name'}</span><input className="field" value={m.label ?? ''} onChange={(e) => set({ label: e.target.value })} placeholder={m.kind === 'balance' ? 'Bank' : m.kind === 'income' ? 'Salary' : 'Transport to work'} /></div>

@@ -9,7 +9,7 @@ const VOICE = `Write like a thoughtful editor at a design magazine who also unde
 
 export interface MuseChapter { title: Seg[]; lede: string; notes: string[] }
 
-/** Muse Wonder writes the chapter heading and lede; the numbers are computed locally. */
+/** Florin Wonder writes the chapter heading and lede; the numbers are computed locally. */
 export async function museChapter(state: State, month: string): Promise<MuseChapter> {
   const sys = `You title and introduce one month in a person's money story inside the app CashGlome. ${VOICE}
 Return ONLY JSON: {"title": {"before": string, "emphasis": string, "after": string}, "lede": string, "notes": string[]}.
@@ -21,7 +21,7 @@ notes: 3 surprising, specific observations a bank app would never make (max 20 w
     { role: 'user', content: JSON.stringify(statsDigest(state, month)) },
   ], { temperature: 0.7, max_tokens: 700, timeoutMs: 40000 });
   const j = extractJSON<{ title?: { before?: string; emphasis?: string; after?: string }; lede?: string; notes?: string[] }>(out);
-  if (!j.title?.emphasis || !j.lede) throw new Error('Muse returned an incomplete chapter');
+  if (!j.title?.emphasis || !j.lede) throw new Error('Florin returned an incomplete chapter');
   return {
     title: spaceSegs([{ t: j.title.before ?? '' }, { t: j.title.emphasis, em: true }, { t: j.title.after ?? '.' }]),
     lede: j.lede,
@@ -48,10 +48,10 @@ export function localAsk(state: State, q: string): string {
     return `Not yet. You're on track to keep about ${money(spare, cur)} this month. Put aside ${money(monthly, cur)} a month and you'll have ${money(amt, cur)} in about ${Math.ceil(amt / monthly)} months. Add it as a goal and it will be tracked here.`;
   }
   if (/save|saving/i.test(q)) return `You're keeping ${Math.round(Math.max(0, s.savingsRate) * 100)}% of what comes in. A good target is 20%. The fastest way there is your largest flexible category: cut it by a third and see the difference in Plans.`;
-  return `This month: ${money(s.inflow, cur)} in, ${money(s.spend, cur)} spent. Try asking "Can I afford a 300k phone?" or "How do I save more?". Connect Meta Muse in Settings for fuller answers.`;
+  return `This month: ${money(s.inflow, cur)} in, ${money(s.spend, cur)} spent. Try asking "Can I afford a 300k phone?" or "How do I save more?". Turn on Florin in Settings, under The AI, for fuller answers.`;
 }
 
-/* ——— Remembering chapters, so Muse is asked rarely ———
+/* ——— Remembering chapters, so Florin is asked rarely ———
    A month's story is rewritten only when its entry count reaches a new doubling (4, 8, 16, 32…),
    or, for the current month, at most once a day and only if entries changed since, or after a deletion. Stories are kept
    on this device between launches. `first` (the month's oldest entry id) ties a story to the data it
@@ -79,7 +79,7 @@ export function chapterIsStale(saved: SavedChapter | undefined, o: { month: stri
   return o.current && saved.day !== o.today && saved.count !== o.count;
 }
 
-/** The device's own until-payday answer for a question that names a price, so Muse never has to do the sums. */
+/** The device's own until-payday answer for a question that names a price, so Florin never has to do the sums. */
 function affordabilityHint(state: State, q: string) {
   const amount = /\bafford|\bcan i (buy|get|spend)|payday|pay day\b/i.test(q) ? parseOne(q)?.amount ?? 0 : 0;
   return affordability(state, amount)?.text ?? 'no balance remembered';

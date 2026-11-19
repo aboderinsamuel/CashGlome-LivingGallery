@@ -1,5 +1,5 @@
 // The Oracle: an offline natural-language money reader.
-// Works instantly with no network; Meta Muse refines it when connected.
+// Works instantly with no network; Florin (Gemini) refines it when connected.
 //
 // It answers three questions about anything written, said or pasted:
 //   how much   findAmounts: "6k", "₦4,500", "five thousand naira", "R$ 45,90", an alert's "Amt:"
