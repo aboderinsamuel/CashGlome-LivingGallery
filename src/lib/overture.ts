@@ -1,4 +1,4 @@
-// The overture: one piece of music that starts when someone taps Begin and settles into the background.
+// The overture: one piece of music, played only under the house announcement, and only very low.
 // Browsers only allow sound after a tap, so nothing here plays on its own. The file is optional: if
 // public/audio/overture.mp3 isn't there, every call is a quiet no-op and the sound button never shows.
 const SRC = './audio/overture.mp3';
@@ -40,18 +40,21 @@ function fadeTo(target: number, ms: number, then?: () => void) {
   }, 40);
 }
 
-/** On the Begin tap: fade in over two seconds, unless they muted it before. */
-export function playOverture() {
+/** Under the house announcement: a very low fade in. Browsers allow it because a tap (sending the first line) came first. */
+export function playOverture(volume = 0.12) {
   if (soundMuted() || ok === false) return;
   const a = audio();
-  a.play().then(() => fadeTo(0.55, 2200)).catch(() => { /* blocked or missing: stay silent */ });
+  a.play().then(() => fadeTo(volume, 2600)).catch(() => { /* blocked or missing: stay silent */ });
 }
 
-/** Once they're in the app: drop under the room, then let it go after a while. */
-export function settleOverture() {
+/** The announcement is over: let it go. */
+export function endOverture(ms = 2400) {
   if (!el || el.paused) return;
-  fadeTo(0.22, 3000, () => window.setTimeout(() => fadeTo(0, 6000, () => el?.pause()), 25000));
+  fadeTo(0, ms, () => el?.pause());
 }
+
+/** Kept for older callers: the music never stays on in the app. */
+export const settleOverture = () => endOverture();
 
 export function setSound(on: boolean) {
   try { localStorage.setItem(KEY, on ? 'on' : 'off'); } catch { /* private mode */ }

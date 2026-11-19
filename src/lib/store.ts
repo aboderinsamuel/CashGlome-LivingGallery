@@ -58,7 +58,7 @@ export type Action =
   | { type: 'removeGoal'; id: string }
   | { type: 'seenBadges'; ids: string[] }
   | { type: 'seenRestored'; month: string; n: number }
-  | { type: 'quiet'; date: string; on: boolean }
+  | { type: 'house'; calling: import('./houses').Calling } | { type: 'quiet'; date: string; on: boolean }
   | { type: 'cash'; pocket: NonNullable<State['cash']>[number] }
   | { type: 'removeCash'; id: string }
   | { type: 'refine'; id: string; patch: Partial<Pick<Entry, 'label' | 'category'>> }
@@ -81,6 +81,7 @@ export const toEntry = (p: Parsed): Entry => ({ id: uid(), text: p.text, label: 
 
 export function reducer(s: State, a: Action): State {
   switch (a.type) {
+    case 'house': return { ...s, house: a.calling };
     case 'onboard': return { ...s, profile: { ...s.profile, name: a.name || s.profile.name, currency: s.profile.onboarded ? s.profile.currency : a.currency, onboarded: true } };
     case 'addEntries': return { ...s, entries: [...s.entries, ...a.entries] };
     case 'update': return { ...s, entries: s.entries.map((e) => (e.id === a.id ? { ...e, ...a.patch, source: a.patch.category || a.patch.dir ? 'manual' : e.source, updatedAt: Date.now() } : e)) };

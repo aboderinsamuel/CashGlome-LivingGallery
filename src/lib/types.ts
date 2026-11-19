@@ -95,6 +95,8 @@ export interface State {
   seenRestored: Record<string, number>; // patches already shown being cleaned, per month
   /** Days marked "nothing today": a quiet day is kept like a written one. */
   quiet?: string[];
+  /** The house the gallery called them to, held for a year. */
+  house?: import('./houses').Calling;
   memories: Memory[];
   routineLog: Record<string, RoutineMark>; // "<memory id>@<YYYY-MM-DD>"
   /** Entries and goals deleted on this device, so a sync can delete them everywhere. */

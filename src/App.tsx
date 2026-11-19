@@ -37,6 +37,7 @@ import { Edition } from './views/Edition';
 import { ShareSheet } from './components/ShareSheet';
 import { Onboarding } from './views/Onboarding';
 import { settleOverture } from './lib/overture';
+import type { Calling } from './lib/houses';
 import { MemoryView } from './views/Memory';
 import { CheckIns, type CheckIn } from './components/CheckIns';
 import { describeMemory, dueRoutines, pendingRoutines, readMemory, routineEntry } from './lib/memory';
@@ -350,8 +351,9 @@ export default function App() {
     const t = firstLine; setFirstLine(null);
     submit(t, {});
   }, [firstLine, state.profile.onboarded, submit]);
-  const welcomed = useCallback(({ name, currency, line, sample }: { name: string; currency: string; line?: string; sample?: boolean }) => {
+  const welcomed = useCallback(({ name, currency, line, sample, house }: { name: string; currency: string; line?: string; sample?: boolean; house?: Calling }) => {
     dispatch({ type: 'onboard', name, currency });
+    if (house) dispatch({ type: 'house', calling: house });
     if (sample) dispatch({ type: 'addEntries', entries: demoEntries(currency) });
     if (line) setFirstLine(line);
     setView('today');
