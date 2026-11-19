@@ -595,7 +595,7 @@ export default function App() {
       <AnimatePresence>
         {settings && <SettingsSheet key="settings" state={state} dispatch={dispatch} initial={settings} close={() => setSettingsPane(null)} />}
         {capture && <CaptureSheet key="capture" file={capture.file} attachTo={capture.attach?.label} settings={state.settings} currency={cur} onDone={captured} onClose={() => setCapture(null)} />}
-        {living && <motion.div key="living" className="living" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.35 }}><Stage state={state} dispatch={dispatch} onBack={() => setLiving(false)} onAsk={(q) => { setLiving(false); askAbout(q); }} /></motion.div>}
+        {living && <motion.div key="living" className="living-over" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.35 }}><Stage state={state} dispatch={dispatch} onBack={() => setLiving(false)} onAsk={(q) => { setLiving(false); askAbout(q); }} /></motion.div>}
         {edition && <Edition key="edition" state={state} muse={muse[state.month] ?? null} close={() => setEdition(false)} onShare={() => setSharing(true)} />}
         {sharing && <ShareSheet key="share" state={state} title={muse[state.month]?.title} onClose={() => setSharing(false)} />}
       </AnimatePresence>
