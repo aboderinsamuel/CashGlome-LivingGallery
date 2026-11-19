@@ -316,3 +316,8 @@
 .side-plate { margin-top: auto !important; padding-top: 14px; }
 .side-plate figcaption .kick { font: 600 9.5px/1 var(--grot, var(--ui)); letter-spacing: .14em; text-transform: uppercase; color: var(--sanguine); margin-bottom: 2px; }
 .side-scroll > * { flex: none; }
+
+/* The app icon beside the wordmark. */
+.side-brand { display: flex; align-items: center; gap: 10px; }
+.side-brand img { flex: none; box-shadow: 0 2px 0 var(--chip-edge); }
+.side-brand::after { left: 54px !important; }

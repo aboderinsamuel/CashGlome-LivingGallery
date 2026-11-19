@@ -4,6 +4,7 @@ import { ROMAN } from '../lib/analytics';
 import { monthLabel } from '../lib/format';
 import { artSrc, NATIVE_TITLE, PAINTINGS } from '../lib/art';
 import { useWindow } from './Desktop';
+import { AppIcon } from './Logo';
 
 /** The five places, and the pages reached from them. 'accounts' is kept as another name for People. */
 export type View = 'today' | 'ledger' | 'ask' | 'people' | 'chapter' | 'shelf' | 'collection' | 'plans' | 'memory' | 'accounts';
@@ -62,7 +63,7 @@ export function Sidebar(p: SidebarProps) {
     <aside className="sidebar glass drag">
       <div className="lights" onPointerDown={(e) => win?.startDrag(e)} onDoubleClick={() => win?.zoom()}><TrafficLights /></div>
       <div className="side-scroll nodrag">
-        <div className="side-brand">CashGlome</div>
+        <div className="side-brand"><AppIcon size={34} style={{ borderRadius: 8 }} />CashGlome</div>
         {PLACES.map((x) => (
           <div key={x.v}>
             <button className={'side-item place' + (place === x.v ? ' on' : '')} onClick={() => p.setView(x.v)} aria-current={place === x.v ? 'page' : undefined}>
