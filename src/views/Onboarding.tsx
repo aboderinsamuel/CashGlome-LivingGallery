@@ -59,7 +59,7 @@ export function Onboarding({ initialCurrency, calm, onDone }: Props) {
         <span className="ob-brand"><span className="ob-mark" aria-hidden />CashGlome</span>
         <span className="ob-label"><i>{PAINTINGS[art].title}</i><span>{PAINTINGS[art].artist}, {PAINTINGS[art].year}</span></span>
         {snd.available && step !== 'cover' && (
-          <button className="ob-sound" onClick={() => setSound(!snd.playing)} aria-pressed={snd.playing}>
+          <button className="ob-sound" onClick={() => setSound(!snd.playing)} aria-pressed={snd.playing} title="Vivaldi, Winter. John Harrison and the Wichita State University Chamber Players, CC BY-SA 4.0">
             <span className={'ob-bars' + (snd.playing ? ' on' : '')} aria-hidden><i /><i /><i /></span>{snd.playing ? 'Sound on' : 'Sound off'}
           </button>
         )}

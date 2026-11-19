@@ -88,6 +88,8 @@ One WebGL2 fragment shader paints the whole scene from a single public-domain im
 
 Every image comes from Wikimedia Commons and was checked to be public domain before download ([`scripts/fetch-art.mjs`](scripts/fetch-art.mjs)). Works whose files carry a share-alike licence were left out.
 
+The music on the first screens is a shortened edit of Antonio Vivaldi, *The Four Seasons*, Winter, I. *Allegro non molto*, played by John Harrison and the Wichita State University Chamber Players, from Wikimedia Commons under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). The edit ([`public/audio/overture.mp3`](public/audio/overture.mp3)) is shared under the same licence; details in [`public/audio/CREDITS.md`](public/audio/CREDITS.md).
+
 ## Run it locally
 
 ```bash
@@ -120,4 +122,4 @@ The full product story, the money reader's design and the desktop and phone apps
 
 ## Licence
 
-[Apache 2.0](LICENSE). The paintings are in the public domain; their museum labels credit the artist, the work and the collection.
+[Apache 2.0](LICENSE). The paintings are in the public domain; their museum labels credit the artist, the work and the collection. The overture recording is CC BY-SA 4.0 (see above).

@@ -346,6 +346,7 @@ function About() {
           <span className="small" style={{ lineHeight: 1.35 }}>The icon’s flowers: <i style={{ color: 'var(--ink)' }}>Vase of Flowers in a Window</i>, Ambrosius Bosschaert the Elder, c. 1618. Mauritshuis, The Hague.</span>
         </div>
         <p className="small" style={{ marginTop: 10, lineHeight: 1.45 }}>Public-domain reproductions from Wikimedia Commons. Text reading on this device uses Tesseract (Apache 2.0).</p>
+        <p className="small" style={{ marginTop: 6, lineHeight: 1.45 }}>The music on the first screens: Antonio Vivaldi, <i style={{ color: 'var(--ink)' }}>Winter</i>, I. Allegro non molto, played by John Harrison and the Wichita State University Chamber Players. Shortened for CashGlome. <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noreferrer">CC BY-SA 4.0</a>, via Wikimedia Commons.</p>
       </div>
     </div>
   );
