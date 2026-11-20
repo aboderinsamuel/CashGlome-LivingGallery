@@ -13,6 +13,7 @@ import { askKeptLocal, askMuse, setAskKeptLocal, type MuseAnswer } from '../stag
 import { brainConfigured } from '../stage/brain';
 import { peopleOf } from '../stage/books';
 import { castOf } from '../stage/voices';
+import { STATEMENT_QUESTION } from '../components/StatementSheet';
 import './ask-room.css';
 import '../stage/stage.css';
 
@@ -36,6 +37,8 @@ function suggestions(state: State): string[] {
   const today = todayISO();
   const s = computeStats(state.entries, monthOf(today));
   const out: string[] = [];
+  // A statement just brought in: the question it invites comes first.
+  if (state.entries.some((e) => e.statement)) out.push(STATEMENT_QUESTION);
   const safe = safeToSpend(state, today);
   if (s.outflow) out.push('What do you make of my month so far?');
   if (safe) out.push('Can I go on a date this weekend?');

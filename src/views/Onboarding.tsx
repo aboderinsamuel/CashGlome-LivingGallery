@@ -30,7 +30,7 @@ interface Props {
   initialCurrency: string;
   calm?: boolean;
   /** Finished: start the book with this name and currency, the first line, and the house it called. */
-  onDone: (p: { name: string; currency: string; line?: string; sample?: boolean; house?: Call }) => void;
+  onDone: (p: { name: string; currency: string; line?: string; sample?: boolean; house?: Call; statement?: boolean }) => void;
 }
 
 const buzz = (ms: number | number[]) => { try { navigator.vibrate?.(ms); } catch { /* not on this device */ } };
@@ -152,6 +152,7 @@ export function Onboarding({ initialCurrency, calm, onDone }: Props) {
               <motion.div className="ob-cover-foot" initial={calm ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1, duration: 0.6 }}>
                 <div className="ob-acts">
                   <button type="button" className="ob-quiet" onClick={() => onDone({ name: '', currency, sample: true })}>Look around an example month</button>
+                  <span aria-hidden>·</span><button type="button" className="ob-quiet" onClick={() => onDone({ name: '', currency, statement: true })}>Import a bank statement</button>
                   {cloudConfigured && <><span aria-hidden>·</span><button type="button" className="ob-quiet" onClick={() => setAct('return')}>I already have a book</button></>}
                 </div>
               </motion.div>

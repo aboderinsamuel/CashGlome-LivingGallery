@@ -17,6 +17,7 @@ export interface Entry {
   photo?: string; // picture id in IndexedDB (this device only)
   routine?: string; // the memory it was logged from, when a routine logged it
   updatedAt?: number; // last edit, for sync
+  statement?: string; // brought in from a bank statement: the bank's name (or the file's)
 }
 
 export interface Goal {

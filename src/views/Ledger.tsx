@@ -12,12 +12,12 @@ import { Photo } from '../components/Photo';
 import { Pigment } from '../components/Mark';
 import { dateInWords } from '../stage/words';
 
-interface Props { state: State; dispatch: (a: Action) => void; filter: string | null; setFilter: (f: string | null) => void; query: string; onAttach: (e: Entry) => void }
+interface Props { state: State; dispatch: (a: Action) => void; filter: string | null; setFilter: (f: string | null) => void; query: string; onAttach: (e: Entry) => void; /** Opens the statement sheet. */ onImport?: () => void }
 
 /** A day heading in words, as a diarist would write it: "Wednesday, the eighteenth". The month is the page's. */
 const inWords = (iso: string) => { const l = dayLabel(iso); if (l === 'Today' || l === 'Yesterday') return l; const [Y, M, D] = iso.split('-').map(Number); return dateInWords(new Date(Y, M - 1, D)).replace(/ of \S+$/, ''); };
 
-export function Ledger({ state, dispatch, filter, setFilter, query, onAttach }: Props) {
+export function Ledger({ state, dispatch, filter, setFilter, query, onAttach, onImport }: Props) {
   const cur = state.profile.currency;
   const s = useMemo(() => computeStats(state.entries, state.month), [state.entries, state.month]);
   const [sel, setSel] = useState<string | null>(null);
@@ -52,6 +52,7 @@ export function Ledger({ state, dispatch, filter, setFilter, query, onAttach }: 
         </div>
         {filter && <button className="pillbtn" onClick={() => setFilter(null)} style={{ height: 30, borderRadius: 15, padding: '0 12px' }}><span style={{ width: 10, height: 10, borderRadius: 5, background: cat(filter).color }} />{cat(filter).name}<Icon.close size={12} /></button>}
         <span className="small" style={{ marginLeft: 'auto' }}>{list.length} {list.length === 1 ? 'entry' : 'entries'}{q ? ` matching “${query}”` : ''}</span>
+        {onImport && <button className="btn stm-chip" onClick={onImport} style={{ height: 34, padding: '0 14px' }}><Icon.upload size={14} /> Import a statement</button>}
       </div>
       <div className="ledger">
         <div>
@@ -60,6 +61,7 @@ export function Ledger({ state, dispatch, filter, setFilter, query, onAttach }: 
               <Sticker name="box" size={110} rotate={-6} />
               <div className="h3">Nothing here yet</div>
               <div className="body-serif" style={{ fontSize: 16 }}>{document.documentElement.dataset.phone !== undefined ? 'Write on the Chapter page, in your own words. It lands here.' : 'Write below, in your own words. “Lunch 14, Uber 9” works.'}</div>
+              {onImport && <button className="btn stm-chip" onClick={onImport} style={{ height: 38, padding: '0 16px', marginTop: 4 }}><Icon.upload size={14} /> Or import a bank statement</button>}
             </div>
           )}
           {groups.map(([date, items]) => {

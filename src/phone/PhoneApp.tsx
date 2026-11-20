@@ -180,11 +180,11 @@ function PhoneHome({ state, dispatch, museChapter, isNow, onRead, onLedger, onSh
 }
 
 /* ——— One-tap chips, in the row above the box ——— */
-export function Chips({ state, onRepeat, onFill }: { state: State; onRepeat: (e: Entry) => void; onFill: (text: string) => void }) {
+export function Chips({ state, onRepeat, onFill, after }: { state: State; onRepeat: (e: Entry) => void; onFill: (text: string) => void; after?: ReactNode }) {
   const [tick, setTick] = useState(0);
   useEffect(() => { const t = setInterval(() => setTick((x) => x + 1), 5 * 60000); return () => clearInterval(t); }, []);
   const chips = useMemo(() => chipsFor(state), [state, tick]); // eslint-disable-line react-hooks/exhaustive-deps
-  if (!chips.length) return null;
+  if (!chips.length && !after) return null;
   const cur = state.profile.currency;
   const tap = (c: Chip) => { if (c.entry) onRepeat(c.entry); else if (c.fill) { haptic(); onFill(c.fill); } };
   return (
@@ -194,6 +194,7 @@ export function Chips({ state, onRepeat, onFill }: { state: State; onRepeat: (e:
           {c.label}{c.entry && <b className="num">{money(c.entry.amount, cur)}</b>}
         </button>
       ))}
+      {after}
     </div>
   );
 }

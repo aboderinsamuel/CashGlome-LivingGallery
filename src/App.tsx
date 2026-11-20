@@ -16,6 +16,8 @@ import { Composer, type ComposerHandle, type Notice } from './components/Compose
 import { Desktop, useDesktopMode, useWindow, type DockTarget, type Menu } from './components/Desktop';
 import { StickerDefs } from './components/Stickers';
 import { CaptureSheet, type CaptureDone } from './components/CaptureSheet';
+import { StatementSheet, STATEMENT_QUESTION } from './components/StatementSheet';
+import { isStatementFile, type Statement } from './lib/statement';
 import { MusicDock } from './components/Music';
 import { finishSpotifyLink } from './lib/spotify';
 import { learn, recall, usuals } from './lib/learn';
@@ -76,6 +78,8 @@ export default function App() {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<Notice | null>(null);
   const [capture, setCapture] = useState<{ file: Blob | null; attach?: Entry } | null>(null);
+  const [statement, setStatement] = useState<{ file: File | null } | null>(null);
+  const openStatement = useCallback(() => setStatement({ file: null }), []);
   const [saved, setSaved] = useState<Record<string, SavedChapter>>(loadChapters);
   const [music, setMusic] = useState(false);
   const closeMusic = useCallback(() => setMusic(false), []);
@@ -357,13 +361,14 @@ export default function App() {
     submit(firstLine, {});
   }, [firstLine, state.profile.onboarded, submit]);
   const welcomedOnce = useRef(false);
-  const welcomed = useCallback(({ name, currency, line, sample, house }: { name: string; currency: string; line?: string; sample?: boolean; house?: Calling }) => {
+  const welcomed = useCallback(({ name, currency, line, sample, house, statement: fromBank }: { name: string; currency: string; line?: string; sample?: boolean; house?: Calling; statement?: boolean }) => {
     if (welcomedOnce.current) return;
     welcomedOnce.current = true;
     dispatch({ type: 'onboard', name, currency });
     if (house) dispatch({ type: 'house', calling: house });
     if (sample) dispatch({ type: 'addEntries', entries: demoEntries(currency) });
     if (line) setFirstLine(line);
+    if (fromBank) setStatement({ file: null });
     setView('today');
     setWelcoming(false);
     settleOverture();
@@ -432,11 +437,35 @@ export default function App() {
   useEffect(() => {
     const img = (l?: FileList | null) => [...(l ?? [])].find((f) => f.type.startsWith('image/'));
     const over = (e: DragEvent) => { if (e.dataTransfer?.types.includes('Files')) e.preventDefault(); };
-    const drop = (e: DragEvent) => { const f = img(e.dataTransfer?.files); if (f && !capture) { e.preventDefault(); setCapture({ file: f }); } };
+    const drop = (e: DragEvent) => {
+      // A bank statement (PDF or CSV) dropped anywhere opens the statement sheet; a photo, the camera sheet.
+      const doc = [...(e.dataTransfer?.files ?? [])].find(isStatementFile);
+      if (doc) { e.preventDefault(); if (!statement) setStatement({ file: doc }); return; }
+      const f = img(e.dataTransfer?.files); if (f && !capture) { e.preventDefault(); setCapture({ file: f }); }
+    };
     const paste = (e: ClipboardEvent) => { if ((e.target as HTMLElement)?.closest?.('textarea, input')) return; const f = img(e.clipboardData?.files); if (f && !capture) setCapture({ file: f }); };
     window.addEventListener('dragover', over); window.addEventListener('drop', drop); window.addEventListener('paste', paste);
     return () => { window.removeEventListener('dragover', over); window.removeEventListener('drop', drop); window.removeEventListener('paste', paste); };
-  }, [capture]);
+  }, [capture, statement]);
+
+  /** Lines brought in from a statement: written at once, with one Undo and a way to ask Florin about them. */
+  const importStatement = useCallback((entries: Entry[], st: Statement, currency?: string) => {
+    if (!entries.length) return;
+    const c = currency ?? cur;
+    if (!state.profile.onboarded) dispatch({ type: 'onboard', name: state.profile.name || '', currency: c });
+    if (currency) dispatch({ type: 'profile', patch: { currency } });
+    dispatch({ type: 'addEntries', entries });
+    setMonth(monthOf(st.to));
+    if (phone) { sfx.brush(true); haptic('lift'); } else sfx.restore();
+    const inSum = entries.filter((e) => e.dir === 'in').reduce((a, e) => a + e.amount, 0);
+    const outSum = entries.filter((e) => e.dir === 'out').reduce((a, e) => a + e.amount, 0);
+    const ids = entries.map((e) => e.id);
+    setNotice({
+      text: <>Added {entries.length} {entries.length === 1 ? 'entry' : 'entries'} from {entries[0].statement ?? 'your statement'}<span className="num" style={{ color: 'var(--ink-3)' }}> {[inSum ? `+${money(inSum, c)}` : '', outSum ? `−${money(outSum, c)}` : ''].filter(Boolean).join(' ')}</span></>,
+      action: { label: 'Ask Florin', run: () => { setNotice(null); askAbout(STATEMENT_QUESTION); } },
+      undo: () => { ids.forEach((id) => dispatch({ type: 'remove', id })); setNotice(null); },
+    });
+  }, [cur, dispatch, phone, setMonth, state.profile.onboarded, state.profile.name, askAbout]);
 
   // Pictures whose entry was deleted are removed from the device a few minutes later.
   const photoKey = state.entries.map((e) => e.photo).filter(Boolean).join();
@@ -485,7 +514,7 @@ export default function App() {
             {(view === 'chapter' || view === 'shelf') && <ChapterTabs view={view} setView={setView} onEdition={() => setEdition(true)} />}
             {view === 'chapter' && <Chapter state={state} dispatch={dispatch} museChapter={muse[state.month] ?? null} onOpenCategory={(id) => { setFilter(id); setView('ledger'); }} onEdition={() => setEdition(true)} onWrite={(h) => composer.current?.fill(h ?? '')} onPlans={goView('plans')} onGallery={goView('collection')} onSay={() => composer.current?.speak()} onSnap={() => setCapture({ file: null })} onShare={() => setSharing(true)} />}
             {view === 'shelf' && <Shelf state={state} months={months} onOpen={(m) => { setMonth(m); setView('chapter'); }} />}
-            {view === 'ledger' && <><Ledger state={state} dispatch={dispatch} filter={filter} setFilter={setFilter} query={query} onAttach={(e) => setCapture({ file: null, attach: e })} /><LedgerReports state={state} /></>}
+            {view === 'ledger' && <><Ledger state={state} dispatch={dispatch} filter={filter} setFilter={setFilter} query={query} onAttach={(e) => setCapture({ file: null, attach: e })} onImport={openStatement} /><LedgerReports state={state} /></>}
             {view === 'ask' && <AskRoom state={state} turns={askTurns} setTurns={setAskTurns} first={askFirst} onFirstDone={() => setAskFirst(null)} />}
             {view === 'plans' && <Plans state={state} dispatch={dispatch} />}
             {(view === 'people' || view === 'accounts') && <PeoplePage state={state} dispatch={dispatch} onFill={(t) => composer.current?.fill(t)} />}
@@ -520,7 +549,7 @@ export default function App() {
 
       <MusicDock state={state} dispatch={dispatch} open={music} onClose={closeMusic} onChange={() => { setMusic(false); openSettings('music'); }} />
       {view !== 'ask' && <Composer ref={composer} currency={cur} aiOn={ai || brainConfigured} busy={busy} notice={notice} onSubmit={submit} onCamera={(file) => setCapture({ file: file ?? null })} onAsk={askAbout} usuals={usual} onRepeat={repeat} onRemember={remember}
-        idle={state.entries.length === 0 ? <FirstLines cur={cur} onFill={(t) => composer.current?.fill(t)} /> : undefined}
+        idle={state.entries.length === 0 ? <FirstLines cur={cur} onFill={(t) => composer.current?.fill(t)} lead={<ImportChip onClick={openStatement} />} /> : <div className="ph-chips first-lines"><ImportChip onClick={openStatement} /></div>}
         above={<CheckIns list={checkins} cur={cur} onYes={(c, a) => answerCheckIn(c, true, a)} onNo={(c) => answerCheckIn(c, false)} onAllYes={allYes} />} />}
       <TabBar view={view} setView={setView} />
     </div>
@@ -532,7 +561,7 @@ export default function App() {
       onBook={() => openSettings()} onEdition={() => setEdition(true)} onShare={() => setSharing(true)} onLiving={goView('collection')}
       composer={
         <Composer ref={composer} currency={cur} aiOn={ai || brainConfigured} busy={busy} notice={notice} onSubmit={submit} onCamera={(file) => setCapture({ file: file ?? null })} onAsk={askAbout} onRemember={remember}
-          idle={state.entries.length === 0 ? <FirstLines cur={cur} onFill={(t) => composer.current?.fill(t)} /> : <Chips state={state} onRepeat={repeat} onFill={(t) => composer.current?.fill(t)} />}
+          idle={state.entries.length === 0 ? <FirstLines cur={cur} onFill={(t) => composer.current?.fill(t)} lead={<ImportChip onClick={openStatement} />} /> : <Chips state={state} onRepeat={repeat} onFill={(t) => composer.current?.fill(t)} after={<ImportChip onClick={openStatement} />} />}
           above={<>
             <AnimatePresence>{cashDue && <CashCard key={cashDue.id} pocket={cashDue} cur={cur} onAnswer={answerCash} onLater={() => dispatch({ type: 'cash', pocket: { ...cashDue, askedOn: todayISO() } })} />}</AnimatePresence>
             {!cashDue && <CheckIns list={checkins} cur={cur} onYes={(c, a) => answerCheckIn(c, true, a)} onNo={(c) => answerCheckIn(c, false)} onAllYes={allYes} />}
@@ -540,7 +569,7 @@ export default function App() {
       }
       pages={{
         today: <Today state={state} dispatch={dispatch} voice={voice} onVoiceDone={clearVoice} onFill={(t) => composer.current?.fill(t)} onLedger={goView('ledger')} onPeople={goView('people')} onAsk={askAbout} onPainting={goView('chapter')} onEdit={() => setView('ledger')} onPlay={goView('play')} />,
-        ledger: <><Ledger state={state} dispatch={dispatch} filter={filter} setFilter={setFilter} query={query} onAttach={(e) => setCapture({ file: null, attach: e })} /><LedgerReports state={state} /></>,
+        ledger: <><Ledger state={state} dispatch={dispatch} filter={filter} setFilter={setFilter} query={query} onAttach={(e) => setCapture({ file: null, attach: e })} onImport={openStatement} /><LedgerReports state={state} /></>,
         ask: <AskRoom state={state} turns={askTurns} setTurns={setAskTurns} first={askFirst} onFirstDone={() => setAskFirst(null)} />,
         people: <PeoplePage state={state} dispatch={dispatch} onFill={(t) => composer.current?.fill(t)} />,
         play: <Play state={state} />,
@@ -572,6 +601,7 @@ export default function App() {
     { title: 'File', items: [
       { label: 'New entry', kbd: kbd('N'), action: () => setTimeout(() => composer.current?.focus(), 50) },
       { label: 'Ask about your money…', kbd: kbd('K'), action: () => askAbout() },
+      { label: 'Import a statement…', action: openStatement },
       'sep',
       { label: 'Export…', action: () => openSettings('data') },
       { label: 'Import…', action: () => openSettings('data') },
@@ -621,6 +651,10 @@ export default function App() {
 
       <AnimatePresence>
         {settings && <SettingsSheet key="settings" state={state} dispatch={dispatch} initial={settings} close={() => setSettingsPane(null)} />}
+        {statement && <StatementSheet key="statement" file={statement.file} book={state.entries} currency={cur} empty={state.entries.length === 0}
+          onAdd={importStatement} onClose={() => setStatement(null)}
+          onAsk={() => { setStatement(null); setNotice(null); askAbout(STATEMENT_QUESTION); }}
+          onLedger={() => { setStatement(null); setView('ledger'); }} />}
         {capture && <CaptureSheet key="capture" file={capture.file} attachTo={capture.attach?.label} settings={state.settings} currency={cur} onDone={captured} onClose={() => setCapture(null)} />}
         {edition && <Edition key="edition" state={state} muse={muse[state.month] ?? null} close={() => setEdition(false)} onShare={() => setSharing(true)} />}
         {sharing && <ShareSheet key="share" state={state} title={muse[state.month]?.title} onClose={() => setSharing(false)} />}
@@ -641,10 +675,16 @@ function TitleBar({ children }: { children: ReactNode }) {
 }
 
 /** The first three lines, in the person's own money, offered as chips until something is written. */
-function FirstLines({ cur, onFill }: { cur: string; onFill: (t: string) => void }) {
+function FirstLines({ cur, onFill, lead }: { cur: string; onFill: (t: string) => void; lead?: ReactNode }) {
   return (
     <div className="ph-chips first-lines" role="group" aria-label="Try a line">
+      {lead}
       {examplesFor(cur).map((x) => <button key={x} className="ph-chip" onMouseDown={(e) => e.preventDefault()} onClick={() => onFill(x)}>{x}</button>)}
     </div>
   );
+}
+
+/** Where a bank statement comes in, by the writing box: said in words, not a mystery icon. */
+function ImportChip({ onClick }: { onClick: () => void }) {
+  return <button className="ph-chip stm-chip" onMouseDown={(e) => e.preventDefault()} onClick={onClick}><Icon.upload size={14} /> Import a statement</button>;
 }

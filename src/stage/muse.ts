@@ -13,6 +13,7 @@ import type { Entry, State } from '../lib/types';
 import { askPainting, safeToSpend, type PaintingAnswer } from './askPainting';
 import { peopleOf } from './books';
 import { brainConfigured, museModels, type Persona } from './brain';
+import { STATEMENT_Q, statementAnswer, statementDigest, statementFigures } from './statements';
 
 export interface MuseAnswer extends PaintingAnswer {
   /** The answer holds a figure Florin guessed rather than one counted from the book. */
@@ -46,6 +47,7 @@ export function bookSummary(state: State) {
     s.byCat.length ? `Spent by category this month: ${s.byCat.slice(0, 8).map((c) => `${cat(c.id).name} ${f(c.total)} (${c.count})`).join(', ')}.` : 'Nothing spent this month yet.',
     free ? `Free to spend: about ${f(free.free)} in all, ${f(free.perDay)} a day ${free.until ? `until payday on ${free.until}` : 'for the rest of the month'}.` : 'Not enough written yet to say what is free to spend.',
     people.length ? `People: ${people.map((p) => (p.net > 0 ? `${p.name} owes them ${f(p.net)}` : `they owe ${p.name} ${f(-p.net)}`)).join('; ')}.` : '',
+    statementDigest(state),
     memoryDigest(state),
   ];
   return lines.filter(Boolean).join('\n');
@@ -189,6 +191,8 @@ export async function askMuse(state: State, question: string, history: MuseHisto
         : [them.length ? `Owing you: ${list(them)}.` : 'Nobody owes you anything.', me.length ? `You owe ${list(me)}.` : ''].filter(Boolean).join(' ');
       return { text, figures: ps.map((p) => ({ label: p.net > 0 ? `${p.name} owes you` : `You owe ${p.name}`, value: money(Math.abs(p.net), cur) })), rows: [], planned: 'rules', wordsBy: 'app', note };
     }
+    // A bank statement brought in: the device reads it out, every figure counted here.
+    if (STATEMENT_Q.test(question)) return { ...statementAnswer(state), planned: 'rules', wordsBy: 'app', note };
     return { ...(await askPainting(state, question, sitter, !(local || offline))), planned: 'rules', note };
   };
   if (!brainConfigured) return rules();
@@ -201,7 +205,7 @@ export async function askMuse(state: State, question: string, history: MuseHisto
   if (local || offline) {
     if (!models.device) return rules(local ? 'Kept on this device. This browser has no Gemini Nano, so the book answered on its own.' : 'Offline. The book answered on this device.');
     try {
-      const base = await askPainting(state, question, sitter, false);
+      const base = STATEMENT_Q.test(question) ? { ...statementAnswer(state), runway: undefined, wordsBy: 'app' as const, planned: 'rules' as const } : await askPainting(state, question, sitter, false);
       const facts = base.figures.length ? `\nFigures the device counted for this question: ${base.figures.map((f) => `${f.label.trim()}: ${f.value}`).join('; ')}.` : '';
       const convo = past.map((h) => `Them: ${h.q}\nYou: ${h.a!.text}`).join('\n');
       const res = await (models.device as GenerativeModel).generateContentStream(`${system(state, sitter, summary, false)}${facts}\n\n${convo}\nThem: ${question}\nYou:`);
@@ -239,7 +243,7 @@ export async function askMuse(state: State, question: string, history: MuseHisto
     }
     text = tidy(text);
     if (!text) return rules();
-    return { text, figures: run.figures.length ? run.figures : /\d/.test(text) ? summaryFigures(state) : [], rows: run.rows, runway: run.runway, planned: 'cloud', wordsBy: 'app', estimate: ESTIMATE.test(text) };
+    return { text, figures: run.figures.length ? run.figures : STATEMENT_Q.test(question) ? statementFigures(state) : /\d/.test(text) ? summaryFigures(state) : [], rows: run.rows, runway: run.runway, planned: 'cloud', wordsBy: 'app', estimate: ESTIMATE.test(text) };
   } catch (e) {
     console.warn('[muse] cloud', e);
     return rules('Florin couldn’t be reached just now, so the book answered on its own.');

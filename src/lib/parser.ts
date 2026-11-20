@@ -335,6 +335,9 @@ export function parseDate(text: string, now = new Date()): string {
   return todayISO(now);
 }
 
+/** The category a description reads as, for lines that arrive already split (a bank statement's rows). */
+export const readCategory = (text: string, dir: Dir) => scoreCategory(text, dir).id;
+
 function scoreCategory(text: string, dir: Dir) {
   const t = padded(text);
   let best = { id: dir === 'in' ? 'windfall' : 'other', score: 0 };
