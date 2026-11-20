@@ -34,18 +34,14 @@ export function Collection({ state, onOpen, onCamera, onPlay }: { state: State; 
         <div className="kicker"><span style={{ font: 'italic 400 17px var(--serif)', color: 'var(--gold)' }}>The gallery</span></div>
         <h1 className="display" style={{ marginTop: 10 }}>{months.length === 1 ? 'One painting' : `${months.length} paintings`}, <em>yours</em>.</h1>
         <p className="lede" style={{ marginTop: 14 }}>
-          Every month you write gets its own painting, cleaned a little with each line. {done ? `${done} fully restored. ` : ''}{state.entries.length} {state.entries.length === 1 ? 'line' : 'lines'} written over {daysWritten} {daysWritten === 1 ? 'day' : 'days'}. A finished painting hangs here for good.
+          {done ? `${done} restored · ` : ''}{state.entries.length} {state.entries.length === 1 ? 'line' : 'lines'} over {daysWritten} {daysWritten === 1 ? 'day' : 'days'}. One painting a month, cleaned by writing.
         </p>
       </div>
 
       {/* The salon wall */}
       <section className="section">
         <div className="salon">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 20, flexWrap: 'wrap' }}>
-            <h2 className="h2" style={{ color: '#F6EEDC' }}>Your <em>collection</em></h2>
-            <span style={{ font: 'italic 400 15px var(--serif)', color: 'rgba(246,238,220,.7)' }}>One painting a month, restored by writing.</span>
-          </div>
-          <div className="salon-wall">
+          <div className="salon-wall" aria-label="Your collection">
             {months.map(({ m, painting, r }, i) => (
               <motion.button key={m} onClick={() => onOpen(m)} className="salon-item" initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.06, duration: 0.7 }}
                 whileHover={{ y: -4 }} style={{ rotate: i % 3 === 1 ? 0.6 : i % 3 === 2 ? -0.5 : 0 }}>
@@ -65,7 +61,7 @@ export function Collection({ state, onOpen, onCamera, onPlay }: { state: State; 
         <section className="section">
           <button className="pl-door" onClick={onPlay}>
             <Icon.games size={22} />
-            <span><b>Play with your paintings</b><i>Find the details a curator would point out, or put a painting back together.</i></span>
+            <span><b>Play with your paintings</b><i>Find the details, or put a painting back together.</i></span>
             <span className="pl-cta">Open Play<Icon.right size={14} /></span>
           </button>
         </section>
@@ -78,7 +74,7 @@ export function Collection({ state, onOpen, onCamera, onPlay }: { state: State; 
       <section className="section">
         <div className="section-head">
           <h2 className="h2">The sticker <em>book</em></h2>
-          <p className="body-serif">{earned} of {badges.length} collected. Pull an earned sticker off the page and let it go.</p>
+          <p className="body-serif">{earned} of {badges.length} collected. Earned ones peel off.</p>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 14 }}>
           {badges.map((b, i) => (

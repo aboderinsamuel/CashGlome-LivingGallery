@@ -30,6 +30,13 @@ interface Props {
   onShare: () => void;
 }
 
+type Part = 'story' | 'numbers' | 'whatif';
+const PARTS: { id: Part; label: string; sub: string }[] = [
+  { id: 'story', label: 'The story', sub: 'Where it went, how it felt' },
+  { id: 'numbers', label: 'The numbers', sub: 'Day by day, every category' },
+  { id: 'whatif', label: 'What if', sub: 'Small changes, repeat costs' },
+];
+
 const ease = [0.2, 0.8, 0.2, 1] as const;
 const reveal = { initial: { opacity: 0, y: 12 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true, margin: '0px 0px 120px 0px' }, transition: { duration: 0.4, ease } };
 
@@ -49,6 +56,8 @@ export function Chapter({ state, dispatch, museChapter, onOpenCategory, onEditio
   const painting = paintingOf(s);
   const r = useMemo(() => restorationOf(state.entries, state.month, state.quiet), [state.entries, state.quiet, state.month]);
   const stage = useStages(2);
+  // The month in three labelled parts, so the page reads in one sitting instead of one long scroll.
+  const [part, setPart] = useState<Part>('story');
   // Once this page is drawn, quietly prepare last month's painting: the usual next tap.
   useEffect(() => {
     if (stage < 2) return;
@@ -82,7 +91,6 @@ export function Chapter({ state, dispatch, museChapter, onOpenCategory, onEditio
           <motion.p className="lede" style={{ marginTop: 26 }} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.06, duration: 0.4, ease }}>
             {ch.lede}
           </motion.p>
-          <p className="purpose">Each month is a chapter: where the money went, and a painting under old varnish.</p>
           {empty && s.isCurrent && (
             <motion.div className="starts" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12, duration: 0.35 }}>
               <button className="start" onClick={() => onWrite(cur === 'NGN' ? 'Lunch 3,500' : 'Lunch 14')}><Icon.list size={22} /><b>Type</b><span>{cur === 'NGN' ? '“Lunch 3,500”' : '“Lunch 14”'}</span></button>
@@ -104,10 +112,20 @@ export function Chapter({ state, dispatch, museChapter, onOpenCategory, onEditio
         </motion.figure>
       </header>
 
+      {!empty && (
+        <nav className="ch-parts" role="tablist" aria-label="Parts of this chapter">
+          {PARTS.map((x, i) => (
+            <button key={x.id} role="tab" aria-selected={part === x.id} className={part === x.id ? 'on' : ''} onClick={() => setPart(x.id)}>
+              <span className="n">{['I', 'II', 'III'][i]}</span><b>{x.label}</b><small>{x.sub}</small>
+            </button>
+          ))}
+        </nav>
+      )}
+
       {stage >= 1 && <>
       {/* ——— The month in 100 coins: where the money went, at a glance ——— */}
-      {!empty && <Coins s={s} entries={state.entries} cur={cur} calm={calm} onOpen={onOpenCategory} />}
-      {s.entries.some((e) => e.photo) && (
+      {part === 'story' && !empty && <Coins s={s} entries={state.entries} cur={cur} calm={calm} onOpen={onOpenCategory} />}
+      {part === 'story' && s.entries.some((e) => e.photo) && (
         <motion.div {...reveal} className="painted-row">
           <span className="kicker">Painted this month</span>
           <div className="painted-strip">
@@ -119,10 +137,10 @@ export function Chapter({ state, dispatch, museChapter, onOpenCategory, onEditio
       )}
 
       {/* ——— Today ——— */}
-      {s.isCurrent && <Today state={state} r={r} calm={calm} onWrite={onWrite} />}
+      {part === 'story' && s.isCurrent && <Today state={state} r={r} calm={calm} onWrite={onWrite} />}
 
       {/* ——— Figures ——— */}
-      {!empty && (
+      {part === 'numbers' && !empty && (
         <motion.div {...reveal} className="figures">
           <Figure label="Came in" value={money(s.inflow, cur, { compact: s.inflow >= 1e7 })} note={prev.inflow ? delta(s.inflow, prev.inflow * (s.isCurrent ? s.dayOfMonth / s.monthDays : 1), 'on last month so far') : s.inByCat[0] ? `Mostly ${cat(s.inByCat[0].id).name.toLowerCase()}` : 'Nothing written yet'} tone="in" />
           <Figure label="Went out" value={money(s.spend, cur, { compact: s.spend >= 1e7 })} note={`${s.entries.filter((e) => e.dir === 'out').length} entries`} />
@@ -131,17 +149,17 @@ export function Chapter({ state, dispatch, museChapter, onOpenCategory, onEditio
         </motion.div>
       )}
 
-      {!empty && <Strip s={s} state={state} />}
+      {part === 'numbers' && !empty && <Strip s={s} state={state} />}
       </>}
 
       {stage >= 2 && <>
 
       {/* ——— Where it went ——— */}
-      {top.length > 0 && (
+      {part === 'numbers' && top.length > 0 && (
         <section className="section">
           <motion.div className="section-head" {...reveal}>
             <h2 className="h2">Where it <em>went</em></h2>
-            <p className="body-serif">Each block is sized by what it took. Open one to see every entry behind it.</p>
+            <p className="body-serif">Sized by what each took. Open one for its lines.</p>
           </motion.div>
           <div className="tiles">
             {top.slice(0, 7).map((c, i) => <Tile key={c.id} c={c} i={i} cur={cur} spend={s.spend} bounds={pageRef} onClick={() => onOpenCategory(c.id)} />)}
@@ -150,7 +168,7 @@ export function Chapter({ state, dispatch, museChapter, onOpenCategory, onEditio
       )}
 
       {/* ——— Character ——— */}
-      {!empty && (
+      {part === 'story' && !empty && (
         <section className="section two-col" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 56, alignItems: 'center' }}>
           <motion.div {...reveal}>
             <div className="kicker">Who you were this month</div>
@@ -166,20 +184,21 @@ export function Chapter({ state, dispatch, museChapter, onOpenCategory, onEditio
         </section>
       )}
 
-      {!empty && <Moments state={state} s={s} />}
-      {!empty && <Feelings s={s} cur={cur} calm={calm} />}
+      {part === 'numbers' && !empty && <Moments state={state} s={s} />}
+      {part === 'story' && !empty && <Feelings s={s} cur={cur} calm={calm} />}
 
-      {!empty && s.inflow > 0 && (
+      {part === 'whatif' && !empty && s.inflow > 0 && (
         <section className="section">
           <WhatIf state={state} s={s} />
           <div style={{ marginTop: 14, display: 'flex', justifyContent: 'flex-end' }}><button className="pillbtn" onClick={onPlans}>Set a goal in Plans <Icon.arrowUR size={11} /></button></div>
         </section>
       )}
 
-      {!empty && <Recurring state={state} />}
+      {part === 'whatif' && !empty && s.inflow === 0 && <p className="body-serif" style={{ marginTop: 32 }}>Once some money has come in this month, try a what-if here.</p>}
+      {part === 'whatif' && !empty && <Recurring state={state} />}
 
       {/* ——— The Edition, bound like a book ——— */}
-      {!empty && (
+      {part === 'story' && !empty && (
         <motion.section className="section" {...reveal}>
           <button onClick={onEdition} className="edition-cta">
             <LivingArt id="hunters" dust light calm={calm} shade="linear-gradient(90deg, rgba(14,10,6,.86) 0%, rgba(14,10,6,.55) 45%, rgba(14,10,6,.05) 80%)" style={{ position: 'absolute', inset: 0 }} />
@@ -287,7 +306,7 @@ function Strip({ s, state }: { s: Stats; state: State }) {
     <motion.section className="section" style={{ marginTop: 84 }} {...reveal}>
       <div className="section-head">
         <h2 className="h2">The month, <em>day by day</em></h2>
-        <p className="body-serif">Each column is a day, coloured by what the money went on. Green dots are money in. Hover a day to read it.</p>
+        <p className="body-serif">Each column is a day, coloured by what it went on. Gold dots: money in.</p>
       </div>
       <div style={{ position: 'relative' }} onMouseLeave={() => setHover(null)}>
         <div ref={chart} className={'days' + (shown ? ' in' : '') + (state.settings.calm ? ' still' : '')} style={{ display: 'grid', gridTemplateColumns: `repeat(${s.monthDays}, 1fr)`, gap: 4, alignItems: 'end', height: H + 40 }}>

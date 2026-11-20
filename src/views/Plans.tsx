@@ -30,9 +30,8 @@ export function Plans({ state, dispatch }: { state: State; dispatch: (a: Action)
     <div className="page">
       <div className="kicker">Plans</div>
       <h1 className="display" style={{ marginTop: 24, fontSize: 'clamp(48px, 5.6vw, 92px)' }}>The next <em>chapter</em>.</h1>
-      <p className="purpose">The goals you're saving for, and what a small change in your spending would add up to.</p>
       <p className="lede" style={{ marginTop: 24 }}>
-        {s.inflow ? <>At your current pace you'll keep about <b style={{ fontWeight: 500, color: 'var(--ink)' }}>{money(Math.max(0, s.inflow - pj.projectedSpend), cur)}</b> this month. Here's what that could turn into.</> : <>Write down what comes in, and this page will show you what it could turn into.</>}
+        {s.inflow ? <>At this pace you’ll keep about <b style={{ fontWeight: 500, color: 'var(--ink)' }}>{money(Math.max(0, s.inflow - pj.projectedSpend), cur)}</b> this month.</> : <>Write down what comes in, and your goals get dates.</>}
       </p>
 
       {s.inflow > 0 && s.byCat.length > 0 && <div style={{ marginTop: 56 }}><WhatIf state={state} s={s} /></div>}
@@ -41,15 +40,15 @@ export function Plans({ state, dispatch }: { state: State; dispatch: (a: Action)
       <section className="section">
         <div className="section-head">
           <h2 className="h2">Things you're <em>saving for</em></h2>
-          <p className="body-serif">Each goal's date comes from what you've actually been keeping, not from a guess.</p>
+          <p className="body-serif">Dates come from what you’ve actually kept.</p>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: 16 }}>
           <AnimatePresence>
-            {state.goals.map((g, i) => {
+            {state.goals.map((g) => {
               const eta = goalEta(g, monthlySave);
               const when = Number.isFinite(eta) ? new Date(new Date().getFullYear(), new Date().getMonth() + eta, 1).toLocaleDateString(undefined, { month: 'long', year: 'numeric' }) : null;
               return (
-                <motion.div key={g.id} layout initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.96 }} className="card" style={{ padding: 22, position: 'relative', minHeight: 220, display: 'flex', flexDirection: 'column', rotate: i % 2 ? 0.8 : -0.8 }}>
+                <motion.div key={g.id} layout initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.96 }} className="card" style={{ padding: 22, position: 'relative', minHeight: 220, display: 'flex', flexDirection: 'column' }}>
                   <Sticker name={GOAL_STICKERS.includes(g.emoji) ? g.emoji : 'star'} size={74} rotate={10} style={{ position: 'absolute', right: -12, top: -18 }} />
                   <div className="kicker">Goal</div>
                   <div className="h3" style={{ marginTop: 12, maxWidth: '78%' }}>{g.name}</div>
@@ -57,7 +56,7 @@ export function Plans({ state, dispatch }: { state: State; dispatch: (a: Action)
                   <div className="body-serif" style={{ fontSize: 15, marginTop: 'auto', paddingTop: 14 }}>
                     {when ? <>About <b style={{ fontWeight: 500, color: 'var(--ink)' }}>{eta} {eta === 1 ? 'month' : 'months'}</b> away, around {when}, at {money(monthlySave, cur, { compact: monthlySave >= 1e6 })} a month.</> : 'Write down some income to see when.'}
                   </div>
-                  <button className="tbtn" style={{ position: 'absolute', right: 10, bottom: 10 }} onClick={() => dispatch({ type: 'removeGoal', id: g.id })} aria-label="Remove goal"><Icon.trash size={14} /></button>
+                  <button className="plan-remove" onClick={() => dispatch({ type: 'removeGoal', id: g.id })} aria-label={`Remove the goal ${g.name}`}><Icon.trash size={13} />Remove</button>
                 </motion.div>
               );
             })}

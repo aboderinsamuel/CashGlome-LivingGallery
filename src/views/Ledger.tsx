@@ -10,8 +10,12 @@ import { Icon } from '../components/Icons';
 import { Sticker } from '../components/Stickers';
 import { Photo } from '../components/Photo';
 import { Pigment } from '../components/Mark';
+import { dateInWords } from '../stage/words';
 
 interface Props { state: State; dispatch: (a: Action) => void; filter: string | null; setFilter: (f: string | null) => void; query: string; onAttach: (e: Entry) => void }
+
+/** A day heading in words, as a diarist would write it: "Wednesday, the eighteenth". The month is the page's. */
+const inWords = (iso: string) => { const l = dayLabel(iso); if (l === 'Today' || l === 'Yesterday') return l; const [Y, M, D] = iso.split('-').map(Number); return dateInWords(new Date(Y, M - 1, D)).replace(/ of \S+$/, ''); };
 
 export function Ledger({ state, dispatch, filter, setFilter, query, onAttach }: Props) {
   const cur = state.profile.currency;
@@ -41,7 +45,7 @@ export function Ledger({ state, dispatch, filter, setFilter, query, onAttach }: 
           <div><div className="small">Out</div><div className="stat-num num" style={{ fontSize: 24 }}>{money(sumOut, cur)}</div></div>
         </div>
       </div>
-      <p className="purpose">Everything you wrote this month, day by day, with what came in and went out. Tap any line to correct it.</p>
+      <p className="purpose">Tap any line to correct it.</p>
       <div style={{ display: 'flex', gap: 10, alignItems: 'center', margin: '34px 0 18px', flexWrap: 'wrap' }}>
         <div className="seg">
           {(['all', 'out', 'in'] as const).map((d) => <button key={d} className={dir === d ? 'on' : ''} onClick={() => setDir(d)}>{d === 'all' ? 'All' : d === 'in' ? 'Money in' : 'Money out'}</button>)}
@@ -63,7 +67,7 @@ export function Ledger({ state, dispatch, filter, setFilter, query, onAttach }: 
             return (
               <section key={date} className="day-group" style={{ marginBottom: 22 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '0 10px 8px', borderBottom: '1px solid var(--ink)' }}>
-                  <span style={{ font: '400 20px var(--serif)', letterSpacing: '-0.015em' }}>{dayLabel(date)}</span>
+                  <span style={{ font: '400 20px var(--serif)', letterSpacing: '-0.015em' }}>{inWords(date)}</span>
                   <span className="small num">{dayOut ? `−${money(dayOut, cur)}` : ''}</span>
                 </div>
                 <div style={{ paddingTop: 4 }}>
@@ -73,12 +77,12 @@ export function Ledger({ state, dispatch, filter, setFilter, query, onAttach }: 
                       <button key={e.id} className={'row' + (sel === e.id ? ' on' : '')} onClick={() => setSel(sel === e.id ? null : e.id)}>
                         {e.photo
                           ? <Photo id={e.photo} className="row-photo" />
-                          : <Pigment category={e.category} size={38} />}
+                          : <span className="lg-dot" style={{ background: c.color }} aria-hidden />}
                         <span style={{ flex: 1, minWidth: 0 }}>
-                          <span style={{ display: 'block', fontSize: 14, fontWeight: 550, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{e.label}</span>
-                          <span className="small" style={{ display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.name}{e.feeling === 'joy' ? ' · worth it' : e.feeling === 'regret' ? ' · regret' : ''}{e.text && e.text.toLowerCase() !== e.label.toLowerCase() ? ` · “${e.text}”` : ''}</span>
+                          <span style={{ display: 'block', font: '400 16.5px/1.25 var(--serif)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{e.label}</span>
+                          <span className="small" style={{ display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.name}{e.feeling === 'joy' ? ' · worth it' : e.feeling === 'regret' ? ' · regret' : ''}</span>
                         </span>
-                        <span className="num" style={{ fontWeight: 600, fontSize: 14, color: e.dir === 'in' ? 'var(--green)' : undefined }}>{e.dir === 'in' ? '+' : '−'}{money(e.amount, cur)}</span>
+                        <span className="num" style={{ font: '400 16px var(--serif)', fontVariantNumeric: 'tabular-nums', color: e.dir === 'in' ? 'var(--green)' : undefined }}>{e.dir === 'in' ? '+' : '−'}{money(e.amount, cur)}</span>
                       </button>
                     );
                   })}

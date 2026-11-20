@@ -582,3 +582,31 @@
 .pz-wait span { font: italic 400 16px var(--serif); color: rgba(243,235,219,.55); }
 @keyframes pz-sheen { from { background-position: 100% 0; } to { background-position: 0 0; } }
 @media (prefers-reduced-motion: reduce) { .pz-wait { animation: none; } }
+
+/* Chapter in three parts: a row of labelled tabs, like the section marks of a printed book. */
+.ch-parts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 44px 0 8px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.ch-parts button { display: grid; grid-template-columns: auto 1fr; column-gap: 12px; align-items: baseline; text-align: left; padding: 16px 18px 15px; position: relative; color: var(--ink-3); transition: color .2s, background .2s; }
+.ch-parts button + button { border-left: 1px solid var(--line); }
+.ch-parts button:hover { color: var(--ink); background: color-mix(in srgb, var(--ink) 3%, transparent); }
+.ch-parts .n { grid-row: span 2; font: italic 400 15px var(--serif); color: var(--gold); }
+.ch-parts b { font: 400 21px/1.15 var(--serif); color: inherit; }
+.ch-parts small { font: 400 12.5px/1.35 var(--ui); color: var(--ink-3); }
+.ch-parts button.on { color: var(--ink); }
+.ch-parts button.on::after { content: ''; position: absolute; left: 18px; right: 18px; bottom: -1px; height: 2px; background: var(--sanguine, var(--gold)); }
+@media (max-width: 640px) {
+  .ch-parts { margin-top: 28px; }
+  .ch-parts button { grid-template-columns: 1fr; padding: 12px 10px; }
+  .ch-parts .n { grid-row: auto; font-size: 13px; }
+  .ch-parts b { font-size: 15px; white-space: nowrap; }
+  .ch-parts small { display: none; }
+  .ch-parts button.on::after { left: 10px; right: 10px; }
+}
+
+.plan-remove { align-self: flex-start; display: inline-flex; align-items: center; gap: 5px; margin-top: 12px; font: 500 12.5px var(--ui); color: var(--ink-3); }
+.plan-remove:hover { color: var(--sanguine); }
+
+/* Ledger rows: a pigment pan beside each line, set in the book's serif. */
+.lg-dot { width: 9px; height: 9px; margin: 0 6px 0 4px; border-radius: 50%; flex: none; box-shadow: inset 0 -1px 1px rgba(0,0,0,.25); }
+
+/* The salon wall needs no heading of its own: the page title names it. */
+.salon > .salon-wall:first-child { margin-top: 0; }
