@@ -1,6 +1,6 @@
 import { useMemo, useState, type Dispatch } from 'react';
 import { artSrc, PAINTINGS } from '../lib/art';
-import { money, monthLabel, todayISO } from '../lib/format';
+import { ex, money, monthLabel, todayISO } from '../lib/format';
 import { relDay } from '../lib/memory';
 import type { Action } from '../lib/store';
 import type { State } from '../lib/types';
@@ -20,7 +20,9 @@ function Vignette({ id, focus = '50% 40%' }: { id: string; focus?: string }) {
   );
 }
 
-const DEBT_EXAMPLES = ['lent Ada 5k', 'borrowed 10k from Tunde', 'split dinner 12k with Mei', 'Ada paid back 2k'];
+// Names from several continents; sums in the person's own currency.
+const debtExamples = (cur: string) => [`lent Sam ${ex(50, cur)}`, `borrowed ${ex(100, cur)} from Ana`, `split dinner ${ex(60, cur)} with Mei`, `Sam paid back ${ex(20, cur)}`];
+const circleExample = (cur: string) => `Savings circle of 10 people, ${ex(100, cur)} monthly, my turn is 4th`;
 
 /** A line you can tap: it goes into the writing bar, ready to change and send. */
 function Example({ text, onFill }: { text: string; onFill: (t: string) => void }) {
@@ -41,7 +43,7 @@ export function PeoplePage({ state, dispatch, onFill }: { state: State; dispatch
 
   const addCircle = () => {
     const c = readCircle(circleLine, today);
-    if (!c) { setCircleErr('I need the name, how many people, and what each pays. For example: “Ajo of 10 people, 20k monthly, my turn is 4th”.'); return; }
+    if (!c) { setCircleErr('I need the name, how many people, and what each pays. For example: “' + circleExample(cur) + '”.'); return; }
     dispatch({ type: 'circle', circle: c }); setCircleLine(''); setCircleErr('');
   };
   const owedToYou = people.reduce((a, p) => a + p.owesYou, 0), youOwe = people.reduce((a, p) => a + p.youOwe, 0);
@@ -93,12 +95,12 @@ export function PeoplePage({ state, dispatch, onFill }: { state: State; dispatch
                   );
                 })}
               </ul>
-              <p className="acc-hint">Someone new? Write it in the bar below, for example {DEBT_EXAMPLES.slice(0, 2).map((x, i) => <span key={x}>{i ? ' or ' : ''}<Example text={x} onFill={onFill} /></span>)}.</p>
+              <p className="acc-hint">Someone new? Write it in the bar below, for example {debtExamples(cur).slice(0, 2).map((x, i) => <span key={x}>{i ? ' or ' : ''}<Example text={x} onFill={onFill} /></span>)}.</p>
             </>
           ) : (
             <>
               <p className="acc-empty">Nobody owes anybody yet. Write a loan in the bar below, or tap one:</p>
-              <div className="acc-exs">{DEBT_EXAMPLES.map((x) => <Example key={x} text={x} onFill={onFill} />)}</div>
+              <div className="acc-exs">{debtExamples(cur).map((x) => <Example key={x} text={x} onFill={onFill} />)}</div>
             </>
           )}
         </div>
@@ -128,7 +130,7 @@ export function PeoplePage({ state, dispatch, onFill }: { state: State; dispatch
           ))}
           {!circles.length && <p className="acc-hint">Describe your circle once. Then tap Paid this round each time you pay in.</p>}
           <form className="acc-add" onSubmit={(e) => { e.preventDefault(); addCircle(); }}>
-            <input value={circleLine} onChange={(e) => setCircleLine(e.target.value)} placeholder="Ajo of 10 people, 20k monthly, my turn is 4th" aria-label="Describe a savings circle" />
+            <input value={circleLine} onChange={(e) => setCircleLine(e.target.value)} placeholder={circleExample(cur)} aria-label="Describe a savings circle" />
             <button type="submit" disabled={!circleLine.trim()}>Keep</button>
           </form>
           {circleErr && <p className="acc-err">{circleErr}</p>}

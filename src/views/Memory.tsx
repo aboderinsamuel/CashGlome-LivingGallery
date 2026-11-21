@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { Icon } from '../components/Icons';
 import { Runway } from '../components/Runway';
 import { CATEGORIES, cat } from '../lib/categories';
-import { money } from '../lib/format';
+import { ex, money } from '../lib/format';
 import {
   DAY_LETTERS, affordability, balanceNow, daysLeftToRestore, describeMemory, forgotten, live, nextIncome, ordinal, readMemory,
   relDay, rhythmOf, routineRecord, routinesOf,
@@ -15,9 +15,7 @@ import type { Memory, MemoryKind, State } from '../lib/types';
 const KINDS: { id: MemoryKind; name: string }[] = [
   { id: 'routine', name: 'Routine' }, { id: 'balance', name: 'Balance' }, { id: 'income', name: 'Pay day' }, { id: 'note', name: 'Note' },
 ];
-const EXAMPLES = (cur: string) => cur === 'NGN'
-  ? ['I spend 4k on transport every weekday', 'I have 40k in my bank', 'I get paid 350k on the 25th', 'Rent 150k on the 1st', 'I\'m saving for a laptop']
-  : ['I spend 12 on the train every weekday', 'I have 1,800 in my account', 'I get paid 3,200 on the 28th', 'Rent 1,400 on the 1st', 'I\'m saving for a laptop'];
+const EXAMPLES = (cur: string) => [`I spend ${ex(12, cur)} on the train every weekday`, `I have ${ex(1800, cur)} in my account`, `I get paid ${ex(3200, cur)} on the 28th`, `Rent ${ex(1400, cur)} on the 1st`, 'I’m saving for a laptop'];
 
 /** The commonplace book: what CashGlome knows about your days, so it can write the usual things for you
  *  and tell you what you can really afford. Everything can be changed, forgotten, and brought back. */
@@ -80,7 +78,7 @@ export function MemoryView({ state, dispatch, notify }: { state: State; dispatch
           <div className="card mem-purse">
             <Runway a={plan} cur={cur} />
             <div className="mem-think">
-              <input className="field" value={think} onChange={(e) => setThink(e.target.value)} placeholder={cur === 'NGN' ? 'Thinking of buying… e.g. comic book 5k' : 'Thinking of buying… e.g. headphones 80'} aria-label="Something you're thinking of buying" />
+              <input className="field" value={think} onChange={(e) => setThink(e.target.value)} placeholder={`Thinking of buying… e.g. headphones ${ex(80, cur)}`} aria-label="Something you're thinking of buying" />
               <p className={'mem-verdict ' + (amount ? plan.verdict : '')}>{plan.text}</p>
             </div>
           </div>
@@ -105,7 +103,7 @@ export function MemoryView({ state, dispatch, notify }: { state: State; dispatch
                 ))}
               </AnimatePresence>
             </div>
-          ) : <p className="body-serif mem-empty">{gi === 0 ? 'Nothing yet. Try “I spend 4k on transport every weekday”.' : gi === 1 ? 'Try “I have 40k in my bank” and “I get paid on the 25th”.' : 'Nothing yet.'}</p>}
+          ) : <p className="body-serif mem-empty">{gi === 0 ? `Nothing yet. Try “I spend ${ex(12, cur)} on the train every weekday”.` : gi === 1 ? `Try “I have ${ex(1800, cur)} in my account” and “I get paid on the 28th”.` : 'Nothing yet.'}</p>}
         </section>
       ))}
 
@@ -206,7 +204,7 @@ function Editor({ m: start, cur, onSave, onCancel, heading }: { m: Memory; cur: 
       ) : (
         <div className="mem-fields">
           <div className="mem-f"><span className="label">{m.kind === 'balance' ? 'Where' : 'Name'}</span><input className="field" value={m.label ?? ''} onChange={(e) => set({ label: e.target.value })} placeholder={m.kind === 'balance' ? 'Bank' : m.kind === 'income' ? 'Salary' : 'Transport to work'} /></div>
-          <div className="mem-f"><span className="label">Amount</span><input className="field num" value={amt} onChange={(e) => setAmt(e.target.value)} placeholder={cur === 'NGN' ? '4k' : '12'} /></div>
+          <div className="mem-f"><span className="label">Amount</span><input className="field num" value={amt} onChange={(e) => setAmt(e.target.value)} placeholder={ex(12, cur)} /></div>
           {m.kind === 'routine' && <>
             <div className="mem-f"><span className="label">Money</span>
               <div className="seg"><button className={m.dir !== 'in' ? 'on' : ''} onClick={() => set({ dir: 'out', category: 'other' })}>Goes out</button><button className={m.dir === 'in' ? 'on' : ''} onClick={() => set({ dir: 'in', category: 'windfall' })}>Comes in</button></div>

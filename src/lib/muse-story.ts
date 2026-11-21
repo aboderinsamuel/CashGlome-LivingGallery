@@ -2,7 +2,7 @@ import { chat, extractJSON } from './ai';
 import { computeStats, projection, spaceSegs, statsDigest, type Seg } from './analytics';
 import { affordability, memoryDigest } from './memory';
 import { findAmounts, parseOne } from './parser';
-import { money } from './format';
+import { ex, money } from './format';
 import type { State } from './types';
 
 const VOICE = `Write like a thoughtful editor at a design magazine who also understands money: warm, specific, observant, never preachy. Short sentences. Use the person's real numbers and currency. No emojis, no exclamation marks, no clichés like "journey" or "unlock". No markdown. Refer to the person by name or as "you"; if a pronoun is needed, use they/them, never one guessed from their name.`;
@@ -48,7 +48,7 @@ export function localAsk(state: State, q: string): string {
     return `Not yet. You're on track to keep about ${money(spare, cur)} this month. Put aside ${money(monthly, cur)} a month and you'll have ${money(amt, cur)} in about ${Math.ceil(amt / monthly)} months. Add it as a goal and it will be tracked here.`;
   }
   if (/save|saving/i.test(q)) return `You're keeping ${Math.round(Math.max(0, s.savingsRate) * 100)}% of what comes in. A good target is 20%. The fastest way there is your largest flexible category: cut it by a third and see the difference in Plans.`;
-  return `This month: ${money(s.inflow, cur)} in, ${money(s.spend, cur)} spent. Try asking "Can I afford a 300k phone?" or "How do I save more?". Turn on Florin in Settings, under The AI, for fuller answers.`;
+  return `This month: ${money(s.inflow, cur)} in, ${money(s.spend, cur)} spent. Try asking "Can I afford a ${ex(300, cur)} phone?" or "How do I save more?". Turn on Florin in Settings, under The AI, for fuller answers.`;
 }
 
 /* ——— Remembering chapters, so Florin is asked rarely ———

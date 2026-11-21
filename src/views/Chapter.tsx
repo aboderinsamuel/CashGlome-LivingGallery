@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { cat } from '../lib/categories';
 import { chapterOf, computeStats, momentsOf, projection, recurringOf, spaceSegs, type Chapter as Ch, type Stats } from '../lib/analytics';
 import { dayCardOf, paintingOf, restorationOf, PATCHES, type Restoration } from '../lib/art';
-import { money, monthLabel, shiftMonth, todayISO } from '../lib/format';
+import { ex, money, monthLabel, shiftMonth, todayISO } from '../lib/format';
 import { useInView, useStages } from '../lib/inview';
 import type { State } from '../lib/types';
 import type { Action } from '../lib/store';
@@ -93,8 +93,8 @@ export function Chapter({ state, dispatch, museChapter, onOpenCategory, onEditio
           </motion.p>
           {empty && s.isCurrent && (
             <motion.div className="starts" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12, duration: 0.35 }}>
-              <button className="start" onClick={() => onWrite(cur === 'NGN' ? 'Lunch 3,500' : 'Lunch 14')}><Icon.list size={22} /><b>Type</b><span>{cur === 'NGN' ? '“Lunch 3,500”' : '“Lunch 14”'}</span></button>
-              {canSay && <button className="start" onClick={onSay}><Icon.mic size={22} /><b>Say</b><span>“Got paid {cur === 'NGN' ? '350k' : '3,200'}”</span></button>}
+              <button className="start" onClick={() => onWrite(`Lunch ${ex(14, cur)}`)}><Icon.list size={22} /><b>Type</b><span>“Lunch {ex(14, cur)}”</span></button>
+              {canSay && <button className="start" onClick={onSay}><Icon.mic size={22} /><b>Say</b><span>“Got paid {ex(3200, cur)}”</span></button>}
               <button className="start" onClick={onSnap}><Icon.camera size={22} /><b>Snap</b><span>A receipt or a thing</span></button>
             </motion.div>
           )}

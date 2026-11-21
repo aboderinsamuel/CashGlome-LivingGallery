@@ -7,7 +7,7 @@ import type { Content, FunctionCall, FunctionDeclarationsTool, GenerativeModel, 
 import { cleanQuery, runQuery, type Figure } from '../lib/ask';
 import { computeStats, projection } from '../lib/analytics';
 import { cat, CATEGORIES } from '../lib/categories';
-import { money, monthOf, todayISO } from '../lib/format';
+import { ex, money, monthOf, todayISO } from '../lib/format';
 import { affordability, memoryDigest, relDay } from '../lib/memory';
 import type { Entry, State } from '../lib/types';
 import { askPainting, safeToSpend, type PaintingAnswer } from './askPainting';
@@ -201,7 +201,7 @@ export async function askMuse(state: State, question: string, history: MuseHisto
       const ps = peopleOf(state.entries).filter((p) => p.net !== 0);
       const them = ps.filter((p) => p.net > 0), me = ps.filter((p) => p.net < 0);
       const list = (xs: typeof ps) => xs.map((p) => `${p.name} (${money(Math.abs(p.net), cur)})`).join(', ');
-      const text = !ps.length ? 'Nobody owes anybody in your book. Write it like “lent Ada 5k” or “owe Sam 2k” and I’ll keep count.'
+      const text = !ps.length ? `Nobody owes anybody in your book. Write it like “lent Sam ${ex(50, cur)}” or “owe Mei ${ex(20, cur)}” and I’ll keep count.`
         : [them.length ? `Owing you: ${list(them)}.` : 'Nobody owes you anything.', me.length ? `You owe ${list(me)}.` : ''].filter(Boolean).join(' ');
       return { text, figures: ps.map((p) => ({ label: p.net > 0 ? `${p.name} owes you` : `You owe ${p.name}`, value: money(Math.abs(p.net), cur) })), rows: [], planned: 'rules', wordsBy: 'app', note };
     }

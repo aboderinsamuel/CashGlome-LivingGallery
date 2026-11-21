@@ -3,7 +3,7 @@
 import { answerLocally, cleanQuery, runQuery, type Answer, type Figure } from '../lib/ask';
 import { affordability } from '../lib/memory';
 import { computeStats, projection } from '../lib/analytics';
-import { money, monthOf, todayISO } from '../lib/format';
+import { ex, money, monthOf, todayISO } from '../lib/format';
 import type { Entry, State } from '../lib/types';
 import { brainConfigured, phraseOnDevice, planQuestion, type Persona, type Where } from './brain';
 
@@ -55,7 +55,7 @@ export async function askPainting(state: State, question: string, sitter: Person
     return {
       text: planned?.plan.kind === 'other' && !MONEY_Q.test(question)
         ? 'I only keep accounts here. Ask me about what came in, what went out, or what you can afford.'
-        : 'I can’t count that from what is written yet. Try “Where did my money go this month?” or “Can I afford 50k?”',
+        : `I can’t count that from what is written yet. Try “Where did my money go this month?” or “Can I afford ${ex(50, cur)}?”`,
       figures: [], rows: [], planned: planned?.where ?? 'rules', wordsBy: 'app',
     };
   }

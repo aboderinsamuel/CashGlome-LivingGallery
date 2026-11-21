@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState, type Dispatch } from 'react';
 import { computeStats } from '../lib/analytics';
 import { paintingOf, PATCHES, restorationOf } from '../lib/art';
 import { cat } from '../lib/categories';
-import { money, monthOf, todayISO } from '../lib/format';
+import { ex, money, monthOf, todayISO } from '../lib/format';
 import { addDays, nextIncome, occursOn, relDay, routineKey, routinesOf } from '../lib/memory';
 import type { Action } from '../lib/store';
 import type { Entry, State } from '../lib/types';
@@ -259,7 +259,7 @@ function FirstWeek({ state }: { state: State }) {
     <section className="fw" aria-label="How CashGlome works">
       <div className="fw-head"><b>How this works</b><button className="td-link" onClick={done}>Got it</button></div>
       <ol className="fw-cards">
-        <li><b>Write it as you’d say it.</b><span>“lunch 4k, taxi 3k, got paid 200k” in the bar below.</span></li>
+        <li><b>Write it as you’d say it.</b><span>“lunch {ex(14, state.profile.currency)}, taxi {ex(12, state.profile.currency)}, got paid {ex(2400, state.profile.currency)}” in the bar below.</span></li>
         <li><b>The big number.</b><span>What you can spend each day and still cover what’s due.</span></li>
         <li><b>The painting.</b><span>Each line cleans a patch. Finished months hang in your Gallery.</span></li>
       </ol>
