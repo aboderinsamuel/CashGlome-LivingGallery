@@ -83,7 +83,7 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer({ cu
       <AnimatePresence mode="popLayout">
         {shown && !text && !listening && (
           <motion.div key={note ? 'note' : 'n'} className="notice glass" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 6 }} transition={{ type: 'spring', stiffness: 420, damping: 32 }}>
-            {'art' in shown && shown.art && <img src={shown.art} alt="" className="notice-art" />}
+            {'art' in shown && shown.art && <img src={shown.art} alt="" className="notice-art" onError={(e) => { e.currentTarget.style.display = 'none'; }} />}
             <span>{shown.text}</span>
             {'action' in shown && shown.action && <button className="notice-undo notice-do" onClick={shown.action.run}>{shown.action.label}</button>}
             {'undo' in shown && shown.undo && <button className="notice-undo" onClick={shown.undo}>Undo</button>}

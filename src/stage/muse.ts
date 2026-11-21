@@ -173,6 +173,20 @@ Their book:
 ${summary}`;
 }
 
+/** Gemini Nano is small: a short brief, the device's figures, and no room to wander. */
+function deviceSystem(state: State, sitter: Persona, summary: string, facts: string) {
+  const name = state.profile.name?.trim();
+  return `You are ${sitter.name} (${sitter.role}) in "${sitter.painting}" by ${sitter.artist}.${name ? ` You are talking to ${name}.` : ''} Today is ${new Date().toLocaleDateString('en', { weekday: 'long' })}.
+Answer their question in at most three short sentences, warm and a little dry, in the language they write in.
+Use only the figures given here, copied exactly as written. Never add, total, change or work out a number. Never invent a purchase, a habit or a memory that is not in their book. Don't ask them a question back. No emoji, no exclamation marks, no markdown.${facts ? `
+Counted on the device for this question (answer from these first, each with its own label): ${facts}` : ''}
+The rest of their book, for background:
+${summary}`;
+}
+
+const numbersIn = (t: string) => new Set((t.match(/\d[\d,]*(?:\.\d+)?/g) ?? []).map((n) => +n.replace(/,/g, '')));
+/** Keeps only sentences whose figures were all counted on the device (small numbers such as days pass). */
+const onlyCounted = (t: string, counted: Set<number>) => t.split(/(?<=[.?;])\s+/).filter((sentence) => [...numbersIn(sentence)].every((n) => n <= 31 || counted.has(n))).join(' ').trim();
 const tidy = (t: string) => t.replace(/!/g, '.').replace(/\*\*?/g, '').trim();
 const ESTIMATE = /\bestimate\b/i;
 
@@ -206,12 +220,17 @@ export async function askMuse(state: State, question: string, history: MuseHisto
     if (!models.device) return rules(local ? 'Kept on this device. This browser has no Gemini Nano, so the book answered on its own.' : 'Offline. The book answered on this device.');
     try {
       const base = STATEMENT_Q.test(question) ? { ...statementAnswer(state), runway: undefined, wordsBy: 'app' as const, planned: 'rules' as const } : await askPainting(state, question, sitter, false);
-      const facts = base.figures.length ? `\nFigures the device counted for this question: ${base.figures.map((f) => `${f.label.trim()}: ${f.value}`).join('; ')}.` : '';
+      const facts = base.figures.map((f) => `${f.label.trim()}: ${f.value}`).join('; ');
       const convo = past.map((h) => `Them: ${h.q}\nYou: ${h.a!.text}`).join('\n');
-      const res = await (models.device as GenerativeModel).generateContentStream(`${system(state, sitter, summary, false)}${facts}\n\n${convo}\nThem: ${question}\nYou:`);
+      const res = await (models.device as GenerativeModel).generateContentStream(`${deviceSystem(state, sitter, summary, facts)}\n\n${convo}\nThem: ${question}\nYou:`);
       let text = '';
-      for await (const chunk of res.stream) { text += chunk.text(); onText(tidy(text)); }
-      text = tidy(text);
+      // Nano may still try a sum of its own; any sentence with a figure the device didn't count is dropped.
+      const counted = numbersIn(`${facts}
+${summary}
+${question}`);
+      const keep = (t: string) => onlyCounted(tidy(t), counted);
+      for await (const chunk of res.stream) { text += chunk.text(); onText(keep(text)); }
+      text = keep(text);
       if (!text) return { ...base, planned: 'rules' };
       return { text, figures: base.figures, rows: base.rows, runway: base.runway, planned: 'device', wordsBy: 'device', estimate: ESTIMATE.test(text), note: offline ? 'Offline. Gemini Nano answered on this device.' : undefined };
     } catch (e) {

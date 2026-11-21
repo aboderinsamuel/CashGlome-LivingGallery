@@ -136,7 +136,7 @@ const deviceUsable = () => deviceState === 'ready';
 export async function readLine(text: string, currency: string): Promise<{ read: Parsed[]; where: Where } | null> {
   const m = await load();
   if (!m) return null;
-  const prompt = `Read this money diary line into entries. Currency: ${currency}. Each sum stays as written, expanded (4.5k = 4500). Money received is "in"; money spent, sent or paid is "out". Write each label in the same language and script as the line.\n\nLine: ${text}`;
+  const prompt = `Read this money diary line into entries. Currency: ${currency}. Each sum stays as written, expanded (4.5k = 4500). Every item is "out" (spent, sent, paid for) unless the line says the money came to the writer: paid, salary, wages, received, refund, a gift to them, in any language. A thing with a price, like lunch or a taxi, is always "out". Write each label in the same language and script as the line.\n\nLine: ${text}`;
   const tryModel = async (model: GenerativeModel) => {
     const r = await model.generateContent(prompt);
     const rows = JSON.parse(r.response.text()) as { label: string; amount: number; dir: 'in' | 'out'; category: string }[];

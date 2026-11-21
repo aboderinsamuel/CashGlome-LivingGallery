@@ -115,7 +115,7 @@ export function AskRoom({ state, turns, setTurns, first, onFirstDone }: { state:
   return (
     <div className="page ask-room">
       <header className="ar-head">
-        <img src={artSrc(painting.id, 'sm')} alt="" className="ar-face" />
+        <img src={artSrc(painting.id, 'sm')} alt="" className="ar-face" onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }} />
         <div>
           <div className="ar-kicker">Florin, your assistant · speaking as {sitter.name}</div>
           <h1>Ask me <i>anything</i></h1>

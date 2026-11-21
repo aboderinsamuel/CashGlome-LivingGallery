@@ -29,7 +29,7 @@ import { Plans } from './views/Plans';
 import { LedgerReports, PeoplePage } from './stage/Accounts';
 import { Today, type Voice } from './views/Today';
 import { AskRoom, loadTurns, type AskTurn } from './views/AskRoom';
-import { brainConfigured, readLine, sitterSays } from './stage/brain';
+import { brainConfigured, readLine, sitterSays, warmUp } from './stage/brain';
 import { castOf, sitterLine } from './stage/voices';
 import { mentionsCircle, readCircle } from './stage/books';
 import { PAINTINGS } from './lib/art';
@@ -88,6 +88,14 @@ export default function App() {
   const cur = state.profile.currency;
   const ai = aiEnabled(state.settings);
   const desk = useDesktopMode();
+  // Gemini Nano starts on the first tap or keypress (Chrome only lets a page start it after a gesture).
+  useEffect(() => {
+    if (!brainConfigured) return;
+    const go = () => { void warmUp(); off(); };
+    const off = () => { window.removeEventListener('pointerdown', go, true); window.removeEventListener('keydown', go, true); };
+    window.addEventListener('pointerdown', go, true); window.addEventListener('keydown', go, true);
+    return off;
+  }, []);
   const phone = usePhone();
   useKeyboardViewport(phone);
   const online = useOnline();
