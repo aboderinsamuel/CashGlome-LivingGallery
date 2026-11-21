@@ -13,7 +13,7 @@ import type { Entry, Parsed } from './lib/types';
 import { prunePictures, savePicture, pictureURL } from './lib/images';
 import { ChapterTabs, Sidebar, TabBar, type View } from './components/Shell';
 import { Composer, type ComposerHandle, type Notice } from './components/Composer';
-import { Desktop, useDesktopMode, useWindow, type DockTarget, type Menu } from './components/Desktop';
+import { Desktop, GalleryWall, deskOS, useDesktopMode, useWindow, type DockTarget, type Menu } from './components/Desktop';
 import { StickerDefs } from './components/Stickers';
 import { CaptureSheet, type CaptureDone } from './components/CaptureSheet';
 import { StatementSheet, STATEMENT_QUESTION } from './components/StatementSheet';
@@ -655,7 +655,7 @@ export default function App() {
   return (
     <MotionConfig reducedMotion={state.settings.calm ? 'always' : 'user'}>
       <StickerDefs />
-      {phoneWindow || (desk ? <Desktop state={state} menus={menus} aiOn={ai} onDock={onDock} active={active}>{appWindow}</Desktop> : appWindow)}
+      {phoneWindow || (desk ? (deskOS() ? <Desktop state={state} menus={menus} aiOn={ai} onDock={onDock} active={active}>{appWindow}</Desktop> : <GalleryWall state={state} onOpen={onDock}>{appWindow}</GalleryWall>) : appWindow)}
 
       <AnimatePresence>
         {settings && <SettingsSheet key="settings" state={state} dispatch={dispatch} initial={settings} close={() => setSettingsPane(null)} />}

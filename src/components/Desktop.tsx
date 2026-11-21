@@ -1,6 +1,6 @@
 import { AnimatePresence, motion, useDragControls, useMotionValue, useSpring, useTransform, type MotionValue } from 'framer-motion';
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode, type PointerEvent as RPointerEvent } from 'react';
-import { dayCardOf, paintingOf, restorationOf, seasonalWallpaper, artSrc } from '../lib/art';
+import { dayCardOf, paintingOf, restorationOf, seasonalWallpaper, artSrc, PAINTINGS } from '../lib/art';
 import { computeStats } from '../lib/analytics';
 import { money, monthOf, todayISO } from '../lib/format';
 import type { State } from '../lib/types';
@@ -16,12 +16,41 @@ export const useWindow = () => useContext(WinCtx);
 
 /** Wide screens in a browser get a whole desktop: wallpaper, menu bar, widgets, a window and a dock. */
 export function useDesktopMode() {
-  // The painted desktop (menu bar, widgets, dock) is off on the web: a browser gets the app filling its window.
-  // ?desk still shows it during development.
-  const test = () => import.meta.env.DEV && location.search.includes('desk') && window.innerWidth >= 1100 && window.innerHeight >= 680;
+  // A wide browser hangs the app on a painted wall (see GalleryWall). ?desk shows the old painted desktop in development.
+  const test = () => (import.meta.env.DEV && location.search.includes('desk')) || !window.glome?.isDesktop && window.innerWidth >= 1100 && window.innerHeight >= 680 && !window.matchMedia?.('(pointer: coarse)').matches;
   const [on, setOn] = useState(test);
   useEffect(() => { const r = () => setOn(test()); window.addEventListener('resize', r); return () => window.removeEventListener('resize', r); }, []);
   return on;
+}
+
+/** The old painted desktop (menu bar, dock), kept for development with ?desk. */
+export const deskOS = () => import.meta.env.DEV && location.search.includes('desk');
+
+/**
+ * On a wide browser the app hangs on a wall: the season's painting behind it, the app in a gilt-edged
+ * frame, the widgets beside it on very wide screens, and a museum label for the wall. No pretend computer.
+ */
+export function GalleryWall({ state, onOpen, children }: { state: State; onOpen: (t: DockTarget) => void; children: ReactNode }) {
+  const wall = !state.settings.wallpaper || state.settings.wallpaper === 'season' ? seasonalWallpaper() : state.settings.wallpaper;
+  const art = PAINTINGS[wall];
+  const [vw, setVw] = useState(window.innerWidth);
+  const [vh, setVh] = useState(window.innerHeight);
+  useEffect(() => { const r = () => { setVw(window.innerWidth); setVh(window.innerHeight); }; window.addEventListener('resize', r); return () => window.removeEventListener('resize', r); }, []);
+  const widgets = vw >= 1500;
+  const w = Math.min(1240, vw - 200 - (widgets ? 264 : 0));
+  const h = Math.min(900, vh - 84);
+  const left = widgets ? Math.max(40, (vw - 264 - w) / 2) : (vw - w) / 2;
+  const top = Math.max(28, (vh - h - 28) / 2);
+  return (
+    <div className="desk wall">
+      <LivingArt id={wall} sizes="100vw" drift={false} dust={false} light={false} calm={state.settings.calm} className="desk-wall" style={{ position: 'absolute', inset: 0 }} shade="linear-gradient(rgba(14,10,6,.18), transparent 22%, transparent 70%, rgba(14,10,6,.42))" />
+      {widgets && <Widgets state={state} calm={state.settings.calm} onOpen={onOpen} top={top} />}
+      <motion.div className="win wall-win" style={{ left, top, width: w, height: h }} initial={{ opacity: 0, y: 24, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ type: 'spring', stiffness: 220, damping: 30 }}>
+        {children}
+      </motion.div>
+      {art && <div className="wall-label" style={{ left, top: top + h + 8 }}><i>{art.title}</i> · {art.artist}, {art.year}</div>}
+    </div>
+  );
 }
 
 export type MenuItem = { label: string; kbd?: string; action?: () => void; disabled?: boolean; checked?: boolean } | 'sep';
@@ -220,7 +249,7 @@ function DockIcon({ id, painting }: { id: DockTarget; painting: string }) {
 }
 
 /* ——— Desktop widgets ——— */
-function Widgets({ state, calm, onOpen }: { state: State; calm: boolean; onOpen: (t: DockTarget) => void }) {
+function Widgets({ state, calm, onOpen, top = 48 }: { state: State; calm: boolean; onOpen: (t: DockTarget) => void; top?: number }) {
   const month = monthOf(todayISO());
   const s = useMemo(() => computeStats(state.entries, month), [state.entries, month]);
   const r = useMemo(() => restorationOf(state.entries, month, state.quiet), [state.entries, state.quiet, month]);
@@ -235,7 +264,7 @@ function Widgets({ state, calm, onOpen }: { state: State; calm: boolean; onOpen:
     </motion.button>
   );
   return (
-    <div style={{ position: 'absolute', right: 24, top: 48, width: 224, display: 'grid', gap: 14, zIndex: 2 }}>
+    <div style={{ position: 'absolute', right: 24, top, width: 224, display: 'grid', gap: 14, zIndex: 2 }}>
       <W d={1} go="Open the painting" onClick={() => onOpen('app')} style={{ padding: 12 }}>
         <div style={{ ['--card' as string]: 'rgba(0,0,0,0)' }}><RestorationPlate painting={painting} r={r} seen={r.restored} drift={false} ratio={16 / 11} calm /></div>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10, gap: 8, alignItems: 'baseline' }}>
