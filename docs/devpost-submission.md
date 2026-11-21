@@ -16,18 +16,18 @@ We wanted the opposite: a diary that takes one line a day, keeps it on the phone
 
 ## What it does
 
-**Write.** You type the way you'd say it: "bus 2.5k, lunch 6k, got paid 360k". That becomes three entries in any of 20 currencies, with k and m, slang and shorthand. Lines in other languages and scripts are read by Gemini Nano on the device.
+**Write.** You type the way you'd say it: "bus 2.5k, lunch 6k, got paid 360k". That becomes three entries in any of 20 currencies, with k and m, slang and shorthand. Lines in other languages and scripts are read by Gemini Nano on the device. You can also snap a receipt (read in the browser, never uploaded), say it out loud, or drop in a bank statement PDF or CSV: every line is read on the device and shown for review before anything is written.
 
 **See.** Each month is a Chapter with a title and a public-domain masterpiece (57 of them, from every continent) that starts as a red-chalk underdrawing. Every entry is a brush stroke of glaze that restores a patch. The week's money sets the light: calm is Vermeer's window, a rushed week brings Caravaggio's dark in from the edges. Finished paintings hang in your gallery for good.
 
-**Ask.** Florin is the voice of a figure in the painting, and you can ask it anything: "Should I go on a date this weekend?" "Where did my money go?" "Tell me about this painting." It's a real Gemini conversation that knows your book, but it never does arithmetic. Every figure comes from tools that run on the device, and the answer shows its working.
+**Ask.** Florin is the voice of a figure in the painting, and you can ask it anything: "Should I go on a date this weekend?" "Where did my money go?" "What does my statement say about me?" "Tell me about this painting." It's a real Gemini conversation that knows your book, but it never does arithmetic. Every figure comes from tools that run on the device, and the answer shows its working.
 
 **One small act a day.** Nobody types every expense forever:
 - In the evening, the painting asks one question by candlelight: *what did today cost?*
 - "Nothing today" is one tap and cleans a patch too. A missed day costs nothing: no streaks, no guilt.
 - As the painting is cleaned, a curator's lens unlocks Discoveries, details people walk past, like the convex mirror in *The Moneylender and His Wife*.
 
-**The first ten seconds.** There's no sign-up. Teniers's painted gallery appears as a chalk underdrawing, and a line writes itself and colours the canvases. Then you write your own line, give a first name (or skip), and a wax seal reads *Chapter one begins*.
+**The first ten seconds.** There's no sign-up. Teniers's painted gallery appears as a chalk underdrawing, and the line you write colours its canvases as you type. Then the Calling: six house paintings flicker in a frame until one holds, and your first line calls you to your house for the year (the House of the Scales: *Weigh every coin*). You sign its book with a first name, or skip, and the book opens on Today.
 
 ## How we built it
 
@@ -38,7 +38,7 @@ We wanted the opposite: a diary that takes one line a day, keeps it on the phone
   - Gemini in the cloud reads a line only when the device has no model.
   - The sitters' one-liners send the cloud categories only, never sums or the line.
   - Today's museum label uses `PREFER_ON_DEVICE`.
-  - Every result reports `inferenceSource`, so a wax seal says where it was written.
+  - Every result reports `inferenceSource`, so each answer is labelled with where it ran: on this device, or in the cloud.
 - **Florin**, in [`src/stage/muse.ts`](https://github.com/aboderinsamuel/CashGlome-LivingGallery/blob/main/src/stage/muse.ts): a Gemini chat with function calling.
   - The model gets a summary of the book and two tools that run on the device: `search_entries` (exact totals, counts and a category split) and `can_afford` (balance, routines and pay day).
   - Replies stream word by word. Guessed figures are labelled as estimates.
@@ -75,7 +75,6 @@ We wanted the opposite: a diary that takes one line a day, keeps it on the phone
 - **Passive capture**, so logging takes less than one action a day:
   - bank alert notifications parsed on the device;
   - share-to-CashGlome from any bank app's receipt;
-  - statement import;
   - "cash by balance", where the gap since a withdrawal is filed as cash spending.
 - Recurring entries that post themselves after one confirmation.
 - A home-screen widget and a Quick Settings tile for logging by voice.

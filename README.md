@@ -33,7 +33,7 @@
 |---|---|
 | **Category** | Web |
 | **What it is** | A money diary you write in one line ("bolt 6k, lunch 4.5k, got paid 350k"), set inside a living Old Master. Every entry glazes a patch of the painting into colour; the sitters speak; the month's painting is yours to keep. |
-| **Hybrid AI** | **Gemini Nano on the device** reads lines in any language and voices the sitters, and the person's own words never leave the browser. **Gemini in the cloud** takes over only when the device has no model, and then sees categories, never the line or the sums. **Florin**, the painting's voice, is a Gemini conversation about anything ("should I go on a date this weekend?") that calls tools running on the device for every figure. Every result carries a wax seal that says where it was written. |
+| **Hybrid AI** | **Gemini Nano on the device** reads lines in any language and voices the sitters, and the person's own words never leave the browser. **Gemini in the cloud** takes over only when the device has no model, and then sees categories, never the line or the sums. **Florin**, the painting's voice, is a Gemini conversation about anything ("should I go on a date this weekend?") that calls tools running on the device for every figure. Every result is labelled with where it ran: *Read by Gemini Nano, on this device* or *Read with Gemini, in the cloud*. |
 | **Not a prompt wrapper** | No model ever does arithmetic. The model reads words into entries and talks; the device adds everything up exactly and shows its working. A rules engine reads English and pidgin offline with no model at all. |
 | **Provenance** | CashGlome existed before the hackathon; its history is kept unchanged in the first 11 commits. Everything from the tag `contest-start` on was built during the submission period. See [Before and during the hackathon](#before-and-during-the-hackathon). |
 
@@ -75,16 +75,29 @@ CashGlome answers these from one line a day, privately, on the device, with no b
 
 ## What happens in the first ten seconds
 
-1. Teniers's painted gallery fills the screen as a **red-chalk underdrawing**, the way a Renaissance workshop started a panel. A line writes itself (`bus 2.5k, lunch 6k, got paid 360k`), and each entry lands as a stroke of colour on a canvas in the room.
-2. **Your turn.** "Now *you*. What did today cost?" You write your own line, in your own words and currency; it becomes entries as you type, and each one glazes a patch back into colour.
-3. **Who keeps this book?** Your first name, or skip it. No account, no email.
-4. A **wax seal** presses down: *Chapter one begins.* The book opens on Today, already holding your first line.
+1. Teniers's painted gallery fills the screen as a **red-chalk underdrawing**, the way a Renaissance workshop started a panel. You write a line the way you'd say it (`taxi 6k, lunch 4.5k, got paid 350k`); it becomes entries as you type, and each one lands as a stroke of colour on a canvas in the room.
+2. **The Calling.** The room goes dark, a frame draws itself, and six house paintings flicker inside it until one holds. Your first line calls you to your house for the year: the House of the Scales (*Weigh every coin*), the Feast, the Hunters, Athens, the Wave or the River.
+3. **Sign the house book** with your first name, or skip it. No account, no email. *Enter my book*, and it opens on Today, already holding your line.
+
+On a wide screen the book opens as a desk, with a menu bar, a window, widgets and a dock; on a phone it is a phone app with tabs along the bottom.
 
 <p align="center">
-  <img src="docs/shots/folio-1-cover.jpg" alt="The cover: a line types itself and colours the painted gallery" width="24%" />
-  <img src="docs/shots/folio-2-first-line.jpg" alt="Your first line over the red-chalk underdrawing" width="24%" />
-  <img src="docs/shots/folio-3-today.jpg" alt="Today: safe to spend, circled in red chalk" width="24%" />
-  <img src="docs/shots/folio-4-muse.jpg" alt="Florin answering whether to go on a date, with its working" width="24%" />
+  <img src="docs/shots/live-1-cover.jpg" alt="The cover: Teniers's gallery as a red-chalk underdrawing while the first line is written" width="32%" />
+  <img src="docs/shots/live-2-calling.jpg" alt="The Calling: your first line calls you to the House of the Scales" width="32%" />
+  <img src="docs/shots/live-3-today.jpg" alt="Today: safe to spend, the month's painting and the writing box" width="32%" />
+</p>
+
+## Bring in what you already have
+
+Typing is only one way in, and all of these are read on the device:
+
+- **Snap a receipt.** The photo is read in the browser (Tesseract), the total and a category are filled in, and the photo is never uploaded.
+- **Say it.** The microphone button takes "coffee three thousand, bus fare fifteen hundred" and writes the entries as you speak.
+- **Drop in a bank statement.** A PDF or CSV is read on the device (pdf.js): every line is shown for review, duplicates are unticked, and nothing is written until you say so. Then ask Florin *"What does my statement say about me?"* Three fictional sample statements are built in to try.
+
+<p align="center">
+  <img src="docs/shots/live-5-statement.jpg" alt="A bank statement read on the device: 33 lines for review before anything is written" width="48%" />
+  <img src="docs/shots/live-4-florin.jpg" alt="Florin's answer with its working: every figure counted on the device" width="48%" />
 </p>
 
 As the month goes on, the whole canvas moves through **sinopia → grisaille → glaze → varnish**. The week's money sets the light: calm is Vermeer's window, a rush brings Caravaggio's dark in from the edges, plenty gilds the highlights, and after dark the room goes to candlelight.
@@ -117,7 +130,7 @@ Florin speaks as a figure in the month's painting. It's a real Gemini conversati
 | Florin, a conversation about anything | When "Keep Ask on this device" is on, or offline; given the device's figures | Gemini with function calling: the question, a summary of the book, and tool results | Talk needs a big model; every figure still comes from the device |
 | Sums, totals, safe to spend | Always, in plain code | Never | Arithmetic is never left to a model |
 
-The brain is [`src/stage/brain.ts`](src/stage/brain.ts). It decides what may leave the device before any call is made, rather than leaving that to the SDK, and every result returns `inferenceSource` so the wax seal can say "Read on this device" or "Read in the cloud". App Check with reCAPTCHA Enterprise keeps the Gemini API for this app only.
+The brain is [`src/stage/brain.ts`](src/stage/brain.ts). It decides what may leave the device before any call is made, rather than leaving that to the SDK, and every result returns `inferenceSource` so each answer can say "Read by Gemini Nano, on this device" or "Read with Gemini, in the cloud". App Check with reCAPTCHA Enterprise keeps the Gemini API for this app only.
 
 Gemini Nano runs in desktop Chrome where the browser provides it. Everywhere else the cloud carries on, and with no Firebase config at all the rules engine and the sitters' own written lines carry on alone. The diary never breaks.
 

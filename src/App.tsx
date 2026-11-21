@@ -549,7 +549,7 @@ export default function App() {
 
       <MusicDock state={state} dispatch={dispatch} open={music} onClose={closeMusic} onChange={() => { setMusic(false); openSettings('music'); }} />
       {view !== 'ask' && <Composer ref={composer} currency={cur} aiOn={ai || brainConfigured} busy={busy} notice={notice} onSubmit={submit} onCamera={(file) => setCapture({ file: file ?? null })} onAsk={askAbout} usuals={usual} onRepeat={repeat} onRemember={remember}
-        idle={state.entries.length === 0 ? <FirstLines cur={cur} onFill={(t) => composer.current?.fill(t)} lead={<ImportChip onClick={openStatement} />} /> : <div className="ph-chips first-lines"><ImportChip onClick={openStatement} /></div>}
+        idle={state.entries.length === 0 ? <FirstLines cur={cur} onFill={(t) => composer.current?.fill(t)} lead={<ImportChip onClick={openStatement} />} /> : undefined /* once the book has lines, statements come in from the Ledger, the File menu or a dropped file: a chip here floated over every page */}
         above={<CheckIns list={checkins} cur={cur} onYes={(c, a) => answerCheckIn(c, true, a)} onNo={(c) => answerCheckIn(c, false)} onAllYes={allYes} />} />}
       <TabBar view={view} setView={setView} />
     </div>

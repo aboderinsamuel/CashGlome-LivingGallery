@@ -34,10 +34,11 @@ export function Edition({ state, muse, close, onShare }: { state: State; muse: M
   const slides: { name: string; art: string; render: () => ReactNode }[] = [
     { name: 'Cover', art: 'hunters', render: () => (
       <div className="ed-cover">
-        <div>
+        <div style={{ containerType: 'inline-size', minWidth: 0 }}>
           <K>{state.profile.name ? `${state.profile.name}'s` : 'Your'} money, Chapter {ch.numeral}</K>
-          <div style={{ font: '330 clamp(56px, 7.4vw, 118px)/0.88 var(--serif)', letterSpacing: '-0.05em', marginTop: 22 }}>The {mon}<br /><em>Edition</em></div>
-          <p style={{ font: '400 22px/1.4 var(--serif)', color: 'rgba(246,238,220,.78)', maxWidth: 520, marginTop: 28 }}>{title.map((x) => x.t).join('')} {s.entries.length} entries, {s.daysLogged} days written.</p>
+          {/* sized to its own column, so the longest month ("The September") never runs under the book */}
+          <div style={{ font: '330 clamp(40px, 16cqi, 118px)/0.88 var(--serif)', letterSpacing: '-0.05em', marginTop: 22, whiteSpace: 'nowrap' }}>The {mon}<br /><em>Edition</em></div>
+          <p style={{ font: '400 22px/1.4 var(--serif)', color: 'rgba(246,238,220,.78)', maxWidth: 520, marginTop: 28 }}>{title.map((x) => x.t).join('')} {s.entries.length} {s.entries.length === 1 ? 'entry' : 'entries'}, {s.daysLogged} {s.daysLogged === 1 ? 'day' : 'days'} written.</p>
         </div>
         <Book painting={painting.id} title={`The ${mon} Edition`} calm={calm} />
       </div>
