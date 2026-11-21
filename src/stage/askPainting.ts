@@ -95,6 +95,6 @@ export async function askPainting(state: State, question: string, sitter: Person
     text = parts.join(' ') || 'Nothing written down matches that yet.';
   }
   // The device model may put the device's figures into the sitter's words. The cloud never sees them.
-  const said = figures.length ? await Promise.race([phraseOnDevice(sitter, question, figures.map((f) => `${f.label.trim()}: ${f.value}`).join('; ')), new Promise<null>((r) => setTimeout(() => r(null), 6000))]) : null;
+  const said = figures.length ? await Promise.race([phraseOnDevice(sitter, question, figures.map((f) => `${f.label.trim()}: ${f.value}`).join('; '), !allowCloud), new Promise<null>((r) => setTimeout(() => r(null), 6000))]) : null;
   return { text: said ?? text, figures, rows, planned: where, wordsBy: said ? 'device' : 'app', runway };
 }

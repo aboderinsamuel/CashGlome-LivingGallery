@@ -37,7 +37,7 @@ let progress = 0;
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((f) => f());
 export const onBrain = (f: () => void) => { listeners.add(f); return () => { listeners.delete(f); }; };
-export const brainStatus = () => ({ configured: brainConfigured, device: deviceState, progress });
+export const brainStatus = () => ({ configured: brainConfigured, device: deviceState, progress, fast });
 
 /** Is there a model on this device at all? Chrome on desktop exposes LanguageModel when it can run Gemini Nano. */
 async function deviceAvailability(): Promise<string> {
@@ -122,12 +122,28 @@ export async function warmUp() {
   if (a === 'unavailable') { deviceState = 'none'; emit(); return; }
   deviceState = a === 'available' ? 'ready' : 'downloading'; emit();
   m.prefer.initializeDeviceModel((p) => { progress = p; emit(); })
-    .then(() => { deviceState = 'ready'; progress = 1; emit(); })
+    .then(() => { deviceState = 'ready'; progress = 1; emit(); void timeNano(m); })
     .catch(() => { deviceState = 'none'; emit(); });
 }
 
 const whereOf = (src?: string): Where => (src === 'on_device' ? 'device' : 'cloud');
 const deviceUsable = () => deviceState === 'ready';
+// Is Nano quick here? Timed once with a tiny prompt and remembered. Where it is slow (a small GPU), the cloud
+// answers while online, so nothing waits on it; Nano still answers offline and when Ask is kept on the device.
+const SPEED_KEY = 'cg-nano-fast';
+let fast: boolean | null = (() => { try { const v = localStorage.getItem(SPEED_KEY); return v === null ? null : v === '1'; } catch { return null; } })();
+const offline = () => typeof navigator !== 'undefined' && navigator.onLine === false;
+/** Nano goes first: when it is quick here, when offline, or when the caller must stay on the device. */
+const deviceFirst = (onlyHere = false) => deviceUsable() && (onlyHere || fast === true || offline());
+async function timeNano(m: Models) {
+  if (fast !== null) return;
+  // Counted as slow until it proves quick, so a test that never finishes isn't run again on the next visit.
+  try { localStorage.setItem(SPEED_KEY, '0'); } catch { /* private mode */ }
+  const t = performance.now();
+  try { await m.device.generateContent('Reply with the single word: ok'); fast = performance.now() - t < 3500; } catch { fast = false; }
+  try { localStorage.setItem(SPEED_KEY, fast ? '1' : '0'); } catch { /* private mode: timed again next visit */ }
+  emit();
+}
 
 /**
  * Reads a line the rules couldn't: another language or script, unusual wording. The device model gets the
@@ -147,7 +163,7 @@ export async function readLine(text: string, currency: string): Promise<{ read: 
     return { read, where: whereOf(r.response.inferenceSource) };
   };
   try {
-    if (deviceUsable()) return await tryModel(m.json.device);
+    if (deviceFirst()) return await tryModel(m.json.device);
   } catch (e) { console.warn('[brain] device read', e); }
   try { return await tryModel(m.json.cloud); } catch (e) { console.warn('[brain] cloud read', e); return null; }
 }
@@ -164,7 +180,7 @@ export async function sitterSays(p: Persona, line: string, kinds: string[], hint
   const voice = `You are ${p.name}, ${p.role}, a figure in "${p.painting}" by ${p.artist} (${p.year}). The person in front of your painting keeps a money diary and just wrote a line. Answer with ONE short line, at most 18 words, in character: dry, warm and a little funny, the way a friend teases. Never scold, never give financial advice, never mention prices or sums, no emoji, no exclamation marks. Answer in the language the person wrote in. Mood of their week: ${hint}.`;
   const clean = (s: string) => s.replace(/^["“'\s]+|["”'\s]+$/g, '').replace(/!/g, '.').split('\n')[0].slice(0, 160);
   try {
-    if (deviceUsable()) {
+    if (deviceFirst()) {
       const r = await m.device.generateContent(`${voice}\n\nThey wrote: "${line}"\nYour line:`);
       const t = clean(r.response.text());
       if (t) return { text: t, where: 'device' };
@@ -206,14 +222,14 @@ Question: ${question}`;
     const r = await model.generateContent(prompt);
     return { plan: JSON.parse(r.response.text()) as Plan, where: whereOf(r.response.inferenceSource) };
   };
-  try { if (deviceUsable()) return await run(m.plan.device); } catch (e) { console.warn('[brain] device plan', e); }
+  try { if (deviceFirst(!allowCloud)) return await run(m.plan.device); } catch (e) { console.warn('[brain] device plan', e); }
   if (!allowCloud) return null;
   try { return await run(m.plan.cloud); } catch (e) { console.warn('[brain] cloud plan', e); return null; }
 }
 
 /** On the device only: a sitter puts the device's exact figures into words. The cloud is never asked this. */
-export async function phraseOnDevice(p: Persona, question: string, facts: string): Promise<string | null> {
-  if (!deviceUsable()) return null;
+export async function phraseOnDevice(p: Persona, question: string, facts: string, onlyHere = false): Promise<string | null> {
+  if (!deviceFirst(onlyHere)) return null;
   const m = await load();
   if (!m) return null;
   try {

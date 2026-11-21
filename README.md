@@ -33,7 +33,7 @@
 |---|---|
 | **Category** | Web |
 | **What it is** | A money diary you write in one line ("bolt 6k, lunch 4.5k, got paid 350k"), set inside a living Old Master. Every entry glazes a patch of the painting into colour; the sitters speak; the month's painting is yours to keep. |
-| **Hybrid AI** | **Gemini Nano on the device** reads lines in any language and voices the sitters, and the person's own words never leave the browser. **Gemini in the cloud** takes over only when the device has no model, and then sees categories, never the line or the sums. **Florin**, the painting's voice, is a Gemini conversation about anything ("should I go on a date this weekend?") that calls tools running on the device for every figure. Every result is labelled with where it ran: *Read by Gemini Nano, on this device* or *Read with Gemini, in the cloud*. |
+| **Hybrid AI** | **Gemini Nano on the device** reads lines in any language and voices the sitters, and the person's own words never leave the browser. **Gemini in the cloud** takes over when the device has no model, or while online on a device where Nano is too slow (timed once, remembered), and for the sitters it sees categories, never the line or the sums. **Florin**, the painting's voice, is a Gemini conversation about anything ("should I go on a date this weekend?") that calls tools running on the device for every figure. Every result is labelled with where it ran: *Read by Gemini Nano, on this device* or *Read with Gemini, in the cloud*. |
 | **Not a prompt wrapper** | No model ever does arithmetic. The model reads words into entries and talks; the device adds everything up exactly and shows its working. A rules engine reads English and pidgin offline with no model at all. |
 | **Provenance** | CashGlome existed before the hackathon; its history is kept unchanged in the first 11 commits. Everything from the tag `contest-start` on was built during the submission period. See [Before and during the hackathon](#before-and-during-the-hackathon). |
 
@@ -132,7 +132,7 @@ Florin speaks as a figure in the month's painting. It's a real Gemini conversati
 
 The brain is [`src/stage/brain.ts`](src/stage/brain.ts). It decides what may leave the device before any call is made, rather than leaving that to the SDK, and every result returns `inferenceSource` so each answer can say "Read by Gemini Nano, on this device" or "Read with Gemini, in the cloud". App Check with reCAPTCHA Enterprise keeps the Gemini API for this app only.
 
-Gemini Nano runs in desktop Chrome where the browser provides it. Everywhere else the cloud carries on, and with no Firebase config at all the rules engine and the sitters' own written lines carry on alone. The diary never breaks.
+Gemini Nano runs in desktop Chrome where the browser provides it. The first time it loads, the app times one tiny prompt: where Nano is quick it goes first; where it is slow (a small integrated GPU), the cloud answers while online so nothing waits, and Nano still answers offline and when Ask is kept on the device. Everywhere else the cloud carries on, and with no Firebase config at all the rules engine and the sitters' own written lines carry on alone. The diary never breaks.
 
 ## The living canvas
 

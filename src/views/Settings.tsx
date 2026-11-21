@@ -187,10 +187,10 @@ function Florin() {
   const [local, setLocal] = useState(askKeptLocal);
   const [b, setB] = useState(brainStatus);
   useEffect(() => onBrain(() => setB(brainStatus())), []);
-  const device = b.device === 'ready' ? 'Ready on this device' : b.device === 'downloading' ? `Downloading, ${Math.round(b.progress * 100)}%` : b.device === 'none' ? 'Not in this browser; Gemini in the cloud stands in' : 'Checked the first time you write';
+  const device = b.device === 'ready' ? (b.fast === false ? 'Slow here, so it answers offline; Gemini in the cloud when online' : 'Ready on this device') : b.device === 'downloading' ? `Downloading, ${Math.round(b.progress * 100)}%` : b.device === 'none' ? 'Not in this browser; Gemini in the cloud stands in' : 'Checked the first time you write';
   return (
     <>
-      <Group note="Florin is Google's Gemini, through Firebase AI Logic. Lines it can't read are read by Gemini Nano on this device first; the cloud sees one only when this browser has no Nano. Ask sends your question and a summary of your book; your entries stay here, and every figure is counted here.">
+      <Group note="Florin is Google's Gemini, through Firebase AI Logic. Lines it can't read are read by Gemini Nano on this device first, where Nano runs quickly; on a device where it is slow, Gemini in the cloud reads them while you're online, and Nano still does offline. Ask sends your question and a summary of your book; your entries stay here, and every figure is counted here.">
         <Row label="Florin" sub={b.configured ? `${cloudModelName} in the cloud, Gemini Nano on this device.` : 'This build has no Florin. The book reads and counts on this device.'}><span className="set-val">{b.configured ? 'On' : 'Off'}</span></Row>
         {b.configured && <Row label="Gemini Nano" sub="Chrome on desktop can run it on the device."><span className="set-val">{device}</span></Row>}
         {b.configured && (

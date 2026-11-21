@@ -35,7 +35,7 @@ We wanted the opposite: a diary that takes one line a day, keeps it on the phone
 - **One WebGL2 fragment shader** paints every stage from a single image: a Sobel edge pass as red chalk, grisaille, glaze, varnish, brush strokes with bristles, mood light, and candlelight at night.
 - **Firebase AI Logic, hybrid**, in [`src/stage/brain.ts`](https://github.com/aboderinsamuel/CashGlome-LivingGallery/blob/main/src/stage/brain.ts):
   - Gemini Nano (`ONLY_ON_DEVICE`) reads lines it's given first, and the line never leaves the browser.
-  - Gemini in the cloud reads a line only when the device has no model.
+  - Gemini in the cloud reads a line when the device has no model, or while online where Nano is too slow to wait for (timed once on the device and remembered). Offline, Nano still reads it.
   - The sitters' one-liners send the cloud categories only, never sums or the line.
   - Today's museum label uses `PREFER_ON_DEVICE`.
   - Every result reports `inferenceSource`, so each answer is labelled with where it ran: on this device, or in the cloud.
