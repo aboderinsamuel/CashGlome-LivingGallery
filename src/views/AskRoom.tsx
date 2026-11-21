@@ -9,7 +9,7 @@ import type { State } from '../lib/types';
 import { Icon } from '../components/Icons';
 import { Runway } from '../components/Runway';
 import { safeToSpend } from '../stage/askPainting';
-import { askKeptLocal, askMuse, setAskKeptLocal, type MuseAnswer } from '../stage/muse';
+import { askMuse, type MuseAnswer } from '../stage/muse';
 import { brainConfigured } from '../stage/brain';
 import { peopleOf } from '../stage/books';
 import { castOf } from '../stage/voices';
@@ -65,7 +65,6 @@ export function AskRoom({ state, turns, setTurns, first, onFirstDone }: { state:
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
   const [live, setLive] = useState('');
-  const [local, setLocal] = useState(askKeptLocal);
   const online = useOnline();
   const input = useRef<HTMLTextAreaElement>(null);
   const end = useRef<HTMLDivElement>(null);
@@ -105,12 +104,10 @@ export function AskRoom({ state, turns, setTurns, first, onFirstDone }: { state:
   useEffect(() => { end.current?.scrollIntoView({ block: 'end', behavior: 'smooth' }); }, [turns, live.length > 0]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { const el = input.current; if (!el) return; el.style.height = 'auto'; el.style.height = Math.min(120, el.scrollHeight) + 'px'; }, [text]);
 
-  const toggleLocal = () => { const v = !local; setLocal(v); setAskKeptLocal(v); };
-  const onDevice = local || !online || !brainConfigured;
+  const onDevice = !online || !brainConfigured;
   const where = !brainConfigured ? 'This build has no Florin, so the book answers on its own, on this device.'
     : !online ? 'You’re offline. The book still answers, counted on this device.'
-      : local ? 'Kept on this device: nothing you ask leaves it.'
-        : 'Your question and a summary of your book go to Gemini. Your entries stay here, and every figure is counted here.';
+      : 'Your question and a summary of your book go to Gemini. Your entries stay here, and every figure is counted here.';
 
   return (
     <div className="page ask-room">
@@ -126,11 +123,6 @@ export function AskRoom({ state, turns, setTurns, first, onFirstDone }: { state:
       <div className={'ar-where' + (!online ? ' off' : '')}>
         <span className={'st-wax ' + (onDevice ? 'device' : 'cloud')} aria-hidden>{onDevice ? 'N' : 'G'}</span>
         <span className="ar-where-t">{where}</span>
-        {brainConfigured && online && (
-          <button role="switch" aria-checked={local} className={'ar-switch' + (local ? ' on' : '')} onClick={toggleLocal}>
-            <i aria-hidden />Keep Ask on this device
-          </button>
-        )}
       </div>
 
       <div className="ar-thread" aria-live="polite">

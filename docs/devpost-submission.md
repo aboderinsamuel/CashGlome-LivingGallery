@@ -42,7 +42,7 @@ We wanted the opposite: a diary that takes one line a day, keeps it on the phone
 - **Florin**, in [`src/stage/muse.ts`](https://github.com/aboderinsamuel/CashGlome-LivingGallery/blob/main/src/stage/muse.ts): a Gemini chat with function calling.
   - The model gets a summary of the book and two tools that run on the device: `search_entries` (exact totals, counts and a category split) and `can_afford` (balance, routines and pay day).
   - Replies stream word by word. Guessed figures are labelled as estimates.
-  - "Keep Ask on this device" and offline both route to Gemini Nano or the book's own rules, so nothing is sent.
+  - Offline, Ask goes to Gemini Nano or the book's own rules, so nothing is sent.
 - **App Check with reCAPTCHA Enterprise** keeps the Gemini API for this app only.
 - **A rules engine** reads English and pidgin money lines offline with no model at all, tested against a JSON contract of real entry strings.
 - **Design.** "Folio" is parchment by day and candlelight by night, with ink stamp buttons, a sealing-wax send button, currency coins struck as medallions, pigment pans for categories, and red-chalk marks drawn by hand.

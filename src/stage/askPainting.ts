@@ -38,7 +38,7 @@ export function safeToSpend(state: State, today = todayISO()) {
   return { perDay: Math.max(0, Math.floor((left - ahead) / daysLeft)), until: null, basis: 'month' as const, free: Math.max(0, left - ahead) };
 }
 
-/** With allowCloud false (Ask kept on this device, or offline), the question never leaves the device. */
+/** With allowCloud false (offline), the question never leaves the device. */
 export async function askPainting(state: State, question: string, sitter: Persona, allowCloud = true): Promise<PaintingAnswer> {
   const cur = state.profile.currency;
   const m = (n: number) => money(n, cur);

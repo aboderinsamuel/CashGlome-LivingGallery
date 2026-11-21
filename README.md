@@ -33,7 +33,7 @@
 |---|---|
 | **Category** | Web |
 | **What it is** | A money diary you write in one line ("bolt 6k, lunch 4.5k, got paid 350k"), set inside a living Old Master. Every entry glazes a patch of the painting into colour; the sitters speak; the month's painting is yours to keep. |
-| **Hybrid AI** | **Gemini in the cloud** is the default, so a modest laptop, an older phone or a cheap PC gets an answer as fast as a new machine, with nobody waiting on hardware that can't run a model quickly: it reads lines in any language, and for the sitters it sees categories, never the line or the sums. **Gemini Nano on the device** is the offline fallback: with no connection, or with "Keep Ask on this device" on, it reads lines, voices the sitters and answers Ask, and nothing leaves the browser. **Florin**, the painting's voice, is a Gemini conversation about anything ("should I go on a date this weekend?") that calls tools running on the device for every figure. Every result is labelled with where it ran: *Read by Gemini Nano, on this device* or *Read with Gemini, in the cloud*. |
+| **Hybrid AI** | **Gemini in the cloud** is the default, so a modest laptop, an older phone or a cheap PC gets an answer as fast as a new machine, with nobody waiting on hardware that can't run a model quickly: it reads lines in any language, and for the sitters it sees categories, never the line or the sums. **Gemini Nano on the device** is the offline fallback: with no connection, it reads lines, voices the sitters and answers Ask, and nothing leaves the browser. **Florin**, the painting's voice, is a Gemini conversation about anything ("should I go on a date this weekend?") that calls tools running on the device for every figure. Every result is labelled with where it ran: *Read by Gemini Nano, on this device* or *Read with Gemini, in the cloud*. |
 | **Not a prompt wrapper** | No model ever does arithmetic. The model reads words into entries and talks; the device adds everything up exactly and shows its working. A rules engine reads English and pidgin offline with no model at all. |
 | **Provenance** | CashGlome existed before the hackathon; its history is kept unchanged in the first 11 commits. Everything from the tag `contest-start` on was built during the submission period. See [Before and during the hackathon](#before-and-during-the-hackathon). |
 
@@ -117,7 +117,7 @@ Florin speaks as a figure in the month's painting. It's a real Gemini conversati
 
 - It gets a **summary of the book** (this month's totals by category, what's free to spend, who owes whom) and **tools that run on the device**: `search_entries` (exact totals, counts and a category split) and `can_afford` (balance, routines and pay day). Any figure from your book comes from those, copied exactly, and the answer shows the same figures as its working.
 - When it **guesses** (what a dinner for two usually costs), it says so, and the answer is labelled *holds an estimate*.
-- **Keep Ask on this device** sends nothing: Gemini Nano answers if the browser has it, the book's own rules if not. **Offline** works the same way.
+- **Offline**, Ask sends nothing: Gemini Nano answers if the browser has it, the book's own rules if not.
 - Code: [`src/stage/muse.ts`](src/stage/muse.ts).
 
 ## Hybrid AI: what runs where
@@ -127,12 +127,12 @@ Florin speaks as a figure in the month's painting. It's a real Gemini conversati
 | Read a line in another language or script | Offline; sees the line | First choice while online | Fast on any device, strong or not; the line stays on the device offline |
 | A sitter's reply | Offline; sees your line | First choice; sees only the kinds of things bought | The cloud never gets the line or the sums |
 | Today's museum label | Offline (`PREFER_ON_DEVICE`) | First choice | Only categories go in, so either is safe |
-| Florin, a conversation about anything | When "Keep Ask on this device" is on, or offline; given the device's figures | Gemini with function calling: the question, a summary of the book, and tool results | Talk needs a big model; every figure still comes from the device |
+| Florin, a conversation about anything | Offline; given the device's figures | Gemini with function calling: the question, a summary of the book, and tool results | Talk needs a big model; every figure still comes from the device |
 | Sums, totals, safe to spend | Always, in plain code | Never | Arithmetic is never left to a model |
 
 The brain is [`src/stage/brain.ts`](src/stage/brain.ts). It decides what may leave the device before any call is made, rather than leaving that to the SDK, and every result returns `inferenceSource` so each answer can say "Read by Gemini Nano, on this device" or "Read with Gemini, in the cloud". App Check with reCAPTCHA Enterprise keeps the Gemini API for this app only.
 
-Gemini Nano runs in desktop Chrome where the browser provides it. Online, the cloud answers first so people on everyday hardware never wait: on a small integrated GPU a single Nano reply can take minutes and loading the model stalls the page, so it is not even loaded while online. When the connection drops, Nano loads and takes over, and it answers Ask when Ask is kept on the device. Everywhere else the cloud carries on, and with no Firebase config at all the rules engine and the sitters' own written lines carry on alone. The diary never breaks.
+Gemini Nano runs in desktop Chrome where the browser provides it. Online, the cloud answers first so people on everyday hardware never wait: on a small integrated GPU a single Nano reply can take minutes and loading the model stalls the page, so it is not even loaded while online. When the connection drops, Nano loads and takes over,. Everywhere else the cloud carries on, and with no Firebase config at all the rules engine and the sitters' own written lines carry on alone. The diary never breaks.
 
 ## The living canvas
 

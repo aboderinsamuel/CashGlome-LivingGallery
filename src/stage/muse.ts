@@ -2,7 +2,7 @@
 // Gemini talks; this device counts. The model is given the shape of the book and a set of tools that run
 // here (searches with exact sums, affordability). Any figure from the book it says comes from those, copied
 // exactly; anything it guesses (what a dinner out costs, say) it must mark as an estimate.
-// "Keep Ask on this device" sends nothing: Gemini Nano answers if the browser has it, the app's rules if not.
+// Offline, Ask sends nothing: Gemini Nano answers if the browser has it, the app's rules if not.
 import type { Content, FunctionCall, FunctionDeclarationsTool, GenerativeModel, Part } from 'firebase/ai';
 import { cleanQuery, runQuery, type Figure } from '../lib/ask';
 import { computeStats, projection } from '../lib/analytics';
@@ -23,9 +23,9 @@ export interface MuseAnswer extends PaintingAnswer {
 }
 export interface MuseHistory { q: string; a: { text: string } | null }
 
-const LOCAL_KEY = 'cg-ask-local';
-export const askKeptLocal = () => { try { return localStorage.getItem(LOCAL_KEY) === '1'; } catch { return false; } };
-export const setAskKeptLocal = (on: boolean) => { try { localStorage.setItem(LOCAL_KEY, on ? '1' : '0'); } catch { /* kept for this visit */ } };
+// Ask goes to Gemini in the cloud while online, so it is quick on any device; Gemini Nano answers offline.
+// The old "Keep Ask on this device" switch is gone; its saved setting is cleared.
+try { localStorage.removeItem('cg-ask-local'); } catch { /* private mode */ }
 
 // Whole units for sums of a hundred or more: the model copies what it sees, and "34,251.51 shillings" reads like a till.
 const r2 = (n: number) => (Math.abs(n) >= 100 ? Math.round(n) : Math.round(n * 100) / 100);
@@ -192,7 +192,6 @@ const ESTIMATE = /\bestimate\b/i;
 
 /** One turn of the conversation. onText receives the reply as it is written. */
 export async function askMuse(state: State, question: string, history: MuseHistory[], sitter: Persona, onText: (t: string) => void): Promise<MuseAnswer> {
-  const local = askKeptLocal();
   const offline = typeof navigator !== 'undefined' && navigator.onLine === false;
   const rules = async (note?: string): Promise<MuseAnswer> => {
     // Who owes whom is the people ledger, counted here; the rules' search doesn't read it.
@@ -207,7 +206,7 @@ export async function askMuse(state: State, question: string, history: MuseHisto
     }
     // A bank statement brought in: the device reads it out, every figure counted here.
     if (STATEMENT_Q.test(question)) return { ...statementAnswer(state), planned: 'rules', wordsBy: 'app', note };
-    return { ...(await askPainting(state, question, sitter, !(local || offline))), planned: 'rules', note };
+    return { ...(await askPainting(state, question, sitter, !offline)), planned: 'rules', note };
   };
   if (!brainConfigured) return rules();
   const models = await museModels().catch(() => null);
@@ -216,8 +215,8 @@ export async function askMuse(state: State, question: string, history: MuseHisto
   const past = history.filter((h) => h.a?.text).slice(-6);
 
   // On this device: Gemini Nano, with the device's figures already counted. Nothing leaves.
-  if (local || offline) {
-    if (!models.device) return rules(local ? 'Kept on this device. This browser has no Gemini Nano, so the book answered on its own.' : 'Offline. The book answered on this device.');
+  if (offline) {
+    if (!models.device) return rules('Offline. The book answered on this device.');
     try {
       const base = STATEMENT_Q.test(question) ? { ...statementAnswer(state), runway: undefined, wordsBy: 'app' as const, planned: 'rules' as const } : await askPainting(state, question, sitter, false);
       const facts = base.figures.map((f) => `${f.label.trim()}: ${f.value}`).join('; ');

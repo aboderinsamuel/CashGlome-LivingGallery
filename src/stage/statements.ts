@@ -1,5 +1,5 @@
 // What a bank statement says, counted on this device. Florin gets these lines in the book's summary and copies
-// the figures; without Florin (offline, kept on the device, or no AI in this build) the device says it itself.
+// the figures; without Florin (offline, or no AI in this build) the device says it itself.
 import type { Figure } from '../lib/ask';
 import { cat } from '../lib/categories';
 import { money } from '../lib/format';
