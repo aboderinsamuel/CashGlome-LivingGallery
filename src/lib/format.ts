@@ -104,12 +104,17 @@ export function daysInMonth(month: string) {
 export const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
 /** An example sum the way people write it, in their own currency: ex(15, 'USD') is "15", ex(15, 'NGN') is "22k". */
-export function ex(usd: number, cur: string): string {
+/** An example price in this currency, from a US-dollar figure: two significant figures, scaled to local prices. */
+export function exAmount(usd: number, cur: string): number {
   // Where prices are lower, so are the examples (as in the example month).
   const ppp = /^(NGN|KES|GHS|XOF|TZS|INR|EGP|ZAR|BRL|MXN)$/.test(cur) ? 0.3 : 1;
   const v = usd * ppp * (CURRENCIES.find((c) => c.code === cur)?.scale ?? 1);
   const p = 10 ** Math.max(0, Math.floor(Math.log10(Math.max(1, v))) - 1);
-  const n = Math.round(v / p) * p;
+  return Math.round(v / p) * p;
+}
+
+export function ex(usd: number, cur: string): string {
+  const n = exAmount(usd, cur);
   if (n >= 1e6) return `${+(n / 1e6).toFixed(1)}m`;
   if (n >= 1000) return `${+(n / 1000).toFixed(1)}k`;
   return String(n);

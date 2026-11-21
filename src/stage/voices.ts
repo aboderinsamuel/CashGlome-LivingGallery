@@ -16,6 +16,9 @@ export const CASTS: Record<string, Sitter[]> = {
   arnolfini: [{ name: 'Giovanni Arnolfini', role: 'raising a hand' }],
   syndics: [{ name: 'The syndics', role: 'checking the accounts' }],
   teniers: [{ name: 'The Archduke', role: 'showing off his collection' }],
+  qingming: [{ name: 'The tea-house keeper', role: 'by the Rainbow Bridge' }, { name: 'The boatman', role: 'shouting over the river' }],
+  gayumars: [{ name: 'King Gayumars', role: 'on his mountain throne' }],
+  mitsui: [{ name: 'The shop clerk', role: 'up on the roof' }],
 };
 export const castOf = (id: string): Sitter => (CASTS[id] ?? [{ name: 'The gallery guard', role: 'keeping an eye on things' }])[0];
 const second = (id: string): Sitter => (CASTS[id]?.[1] ?? castOf(id));

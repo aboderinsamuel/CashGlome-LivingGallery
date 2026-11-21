@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { PAINTINGS, paintingOf, artSrc } from '../lib/art';
 import { computeStats } from '../lib/analytics';
-import { money, monthOf, todayISO } from '../lib/format';
+import { exAmount, money, monthOf, todayISO } from '../lib/format';
 import type { State } from '../lib/types';
 import { Icon } from '../components/Icons';
 import { Runway } from '../components/Runway';
@@ -32,6 +32,12 @@ export function loadTurns(): AskTurn[] {
 let asking = false;
 const saveTurns = (t: AskTurn[]) => { try { localStorage.setItem(KEY, JSON.stringify(t.filter((x) => x.a).slice(-30))); } catch { /* the conversation still works */ } };
 
+/** Everyday things people weigh up before buying; one is offered each day, priced in the person's own currency. */
+const WANTS: [string, number][] = [
+  ['these shoes', 120], ['a new bag', 180], ['a new phone', 600], ['concert tickets', 90],
+  ['a weekend away', 400], ['a new jacket', 150], ['a gym membership', 45], ['new headphones', 200],
+];
+
 /** Questions worth asking, from what is actually written, and one that isn't about money at all. */
 function suggestions(state: State): string[] {
   const today = todayISO();
@@ -40,13 +46,16 @@ function suggestions(state: State): string[] {
   // A statement just brought in: the question it invites comes first.
   if (state.entries.some((e) => e.statement)) out.push(STATEMENT_QUESTION);
   const safe = safeToSpend(state, today);
+  const cur = state.profile.currency;
+  const [want, usd] = WANTS[Math.floor(Date.now() / 864e5) % WANTS.length];
+  if (safe) out.push(`Can I afford ${want} for ${money(exAmount(usd, cur), cur)}?`);
   if (s.outflow) out.push('What do you make of my month so far?');
   if (safe) out.push('Can I go on a date this weekend?');
   if (s.outflow) out.push('Where did my money go this month?');
   if (peopleOf(state.entries).some((p) => p.net !== 0)) out.push('Who owes me money?');
   if (s.entries.length > 5) out.push('What did I spend most on this week?');
   out.push('Tell me about this painting');
-  if (out.length < 3) out.push(`Can I afford ${money(50, state.profile.currency)} on dinner?`);
+  if (out.length < 3) out.push(`Can I afford ${money(exAmount(50, cur), cur)} on dinner?`);
   return out.slice(0, 4);
 }
 
