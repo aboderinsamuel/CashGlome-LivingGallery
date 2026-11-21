@@ -44,10 +44,10 @@
 .cl-pre { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; position: relative; }
 .cl-band { width: 34px; height: 10px; background: var(--house); transform-origin: left; flex: none; box-shadow: 0 0 0 1px rgba(243,235,219,.25); }
 .cl-pre-t { font: italic 400 clamp(17px, 4.6vw, 24px)/1.15 var(--serif); color: var(--bone); letter-spacing: -.01em; }
-.cl-word { margin: 0; line-height: .84; font-weight: 800; letter-spacing: -.065em; color: #FFF8EC; text-shadow: 0 2px 40px rgba(0,0,0,.35); }
-.cl-house { display: block; font: 600 clamp(15px, 3.6vw, 20px)/1 var(--grot); letter-spacing: .18em; text-transform: uppercase; margin: 0 0 .25em .12em; color: rgba(243,235,219,.85); }
+.cl-word { margin: 0; font: italic 330 1em/.9 var(--serif); letter-spacing: -.035em; color: #FFF8EC; text-shadow: 0 2px 40px rgba(0,0,0,.35); }
+.cl-house { display: block; font: 400 clamp(22px, 5.4vw, 34px)/1 var(--serif); font-style: normal; letter-spacing: -.01em; margin: 0 0 .05em .06em; color: rgba(243,235,219,.85); }
 .cl-letters { display: block; white-space: nowrap; }
-.cl-l { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: .04em; }
+.cl-l { display: inline-block; overflow: hidden; vertical-align: top; padding: 0 .06em .12em; margin: 0 -.06em; }
 .cl-l > span { display: inline-block; }
 .cl-motto { margin: 14px 0 0; font: italic 400 clamp(22px, 6vw, 34px)/1.1 var(--serif); letter-spacing: -.015em; color: var(--bone); }
 .cl-motto b { font: italic 400 1.9em/0 var(--serif); vertical-align: -.18em; margin-right: .02em; color: #FFF8EC; }

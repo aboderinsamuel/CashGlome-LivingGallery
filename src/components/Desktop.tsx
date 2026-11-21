@@ -16,8 +16,9 @@ export const useWindow = () => useContext(WinCtx);
 
 /** Wide screens in a browser get a whole desktop: wallpaper, menu bar, widgets, a window and a dock. */
 export function useDesktopMode() {
-  // ?desk forces it during development, so the browser desktop can be checked from Electron screenshots too.
-  const test = () => (import.meta.env.DEV && location.search.includes('desk')) || !window.glome?.isDesktop && window.innerWidth >= 1100 && window.innerHeight >= 680 && !window.matchMedia?.('(pointer: coarse)').matches;
+  // The painted desktop (menu bar, widgets, dock) is off on the web: a browser gets the app filling its window.
+  // ?desk still shows it during development.
+  const test = () => import.meta.env.DEV && location.search.includes('desk') && window.innerWidth >= 1100 && window.innerHeight >= 680;
   const [on, setOn] = useState(test);
   useEffect(() => { const r = () => setOn(test()); window.addEventListener('resize', r); return () => window.removeEventListener('resize', r); }, []);
   return on;

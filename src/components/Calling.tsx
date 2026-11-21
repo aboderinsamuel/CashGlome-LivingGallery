@@ -91,8 +91,8 @@ export function Calling({ calling, askName, name: given = '', replay, calm, by, 
     buzz(10); endOverture(1600); onDone(name.trim());
   };
 
-  const letters = useMemo(() => house.word.toUpperCase().split(''), [house.word]);
-  const fs = `min(calc((100vw - 40px) / ${Math.max(4, letters.length) * 0.66}), 210px)`;
+  const letters = useMemo(() => house.word.split(''), [house.word]);
+  const fs = `min(calc((100vw - 40px) / ${Math.max(4, letters.length) * 0.5}), 200px)`;
   const crest = (z = house.crest[2]) => ({ backgroundImage: `url(${artSrc(house.painting, 'md')})`, backgroundSize: `${z * 100}% auto`, backgroundPosition: `${aim(house.crest[0], z)}% ${aim(house.crest[1], z)}%` });
   const ring = `${houseName(house).toUpperCase()} · CALLED ${year} · ${house.motto.toUpperCase()} · `;
 
