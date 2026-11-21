@@ -16,7 +16,7 @@ We wanted the opposite: a diary that takes one line a day, keeps it on the phone
 
 ## What it does
 
-**Write.** You type the way you'd say it: "bus 2.5k, lunch 6k, got paid 360k". That becomes three entries in any of 20 currencies, with k and m, slang and shorthand. Lines in other languages and scripts are read by Gemini Nano on the device. You can also snap a receipt (read in the browser, never uploaded), say it out loud, or drop in a bank statement PDF or CSV: every line is read on the device and shown for review before anything is written.
+**Write.** You type the way you'd say it: "bus 2.5k, lunch 6k, got paid 360k". That becomes three entries in any of 20 currencies, with k and m, slang and shorthand. Lines in other languages and scripts are read by Gemini, in the cloud when online and by Gemini Nano on the device when offline. You can also snap a receipt (read in the browser, never uploaded), say it out loud, or drop in a bank statement PDF or CSV: every line is read on the device and shown for review before anything is written.
 
 **See.** Each month is a Chapter with a title and a public-domain masterpiece (57 of them, from every continent) that starts as a red-chalk underdrawing. Every entry is a brush stroke of glaze that restores a patch. The week's money sets the light: calm is Vermeer's window, a rushed week brings Caravaggio's dark in from the edges. Finished paintings hang in your gallery for good.
 
@@ -34,10 +34,10 @@ We wanted the opposite: a diary that takes one line a day, keeps it on the phone
 - **React, TypeScript and Vite**, a single web app that works at 360px on a phone and as a desktop window. Entries live in the browser and work offline.
 - **One WebGL2 fragment shader** paints every stage from a single image: a Sobel edge pass as red chalk, grisaille, glaze, varnish, brush strokes with bristles, mood light, and candlelight at night.
 - **Firebase AI Logic, hybrid**, in [`src/stage/brain.ts`](https://github.com/aboderinsamuel/CashGlome-LivingGallery/blob/main/src/stage/brain.ts):
-  - Gemini Nano (`ONLY_ON_DEVICE`) reads lines it's given first, and the line never leaves the browser.
-  - Gemini in the cloud reads a line when the device has no model, or while online where Nano is too slow to wait for (timed once on the device and remembered). Offline, Nano still reads it.
+  - Gemini in the cloud answers first while online, so people whose laptops, phones or PCs aren't strong enough to run a model quickly get answers just as fast as anyone. On a small integrated GPU a single Nano reply can take minutes.
+  - Gemini Nano (`ONLY_ON_DEVICE`) is the offline fallback: with no connection it loads and reads lines, voices the sitters and answers Ask, and nothing leaves the browser.
   - The sitters' one-liners send the cloud categories only, never sums or the line.
-  - Today's museum label uses `PREFER_ON_DEVICE`.
+  - Today's museum label goes to the cloud online and `PREFER_ON_DEVICE` offline.
   - Every result reports `inferenceSource`, so each answer is labelled with where it ran: on this device, or in the cloud.
 - **Florin**, in [`src/stage/muse.ts`](https://github.com/aboderinsamuel/CashGlome-LivingGallery/blob/main/src/stage/muse.ts): a Gemini chat with function calling.
   - The model gets a summary of the book and two tools that run on the device: `search_entries` (exact totals, counts and a category split) and `can_afford` (balance, routines and pay day).
@@ -101,7 +101,7 @@ firebase-ai-logic, gemini, gemini-nano, firebase-app-check, recaptcha-enterprise
 **The core value it brings.** People in cash and bank-transfer economies need a money reader that understands how they actually write, works offline and keeps entries on the device. That reader and ledger are the foundation everything below is built on.
 
 **Built during the submission period** (from 11 November 2026, 1:30 PM PT; the first commit in the window is [`07860fc`](https://github.com/aboderinsamuel/CashGlome-LivingGallery/commit/07860fc), tagged [`contest-start`](https://github.com/aboderinsamuel/CashGlome-LivingGallery/releases/tag/contest-start); every change is in [this comparison](https://github.com/aboderinsamuel/CashGlome-LivingGallery/compare/27382dc...main)):
-- **The Firebase hybrid brain** ([`src/stage/brain.ts`](https://github.com/aboderinsamuel/CashGlome-LivingGallery/blob/main/src/stage/brain.ts)). Firebase AI Logic with Gemini Nano on the device and Gemini in the cloud, chosen per task by how private the input is, with App Check and reCAPTCHA Enterprise. None of it existed before.
+- **The Firebase hybrid brain** ([`src/stage/brain.ts`](https://github.com/aboderinsamuel/CashGlome-LivingGallery/blob/main/src/stage/brain.ts)). Firebase AI Logic with Gemini Nano on the device and Gemini in the cloud, with the cloud first so any device is fast and Nano as the offline fallback, with App Check and reCAPTCHA Enterprise. None of it existed before.
 - **Florin** ([`src/stage/muse.ts`](https://github.com/aboderinsamuel/CashGlome-LivingGallery/blob/main/src/stage/muse.ts)). A Gemini chat with function calling, in which tools on the device do every sum and the answer shows its working. It replaces the old Ask panel, which has been deleted.
 - **The money reader, rewritten.** Nine more languages read on the device, five more currencies, and a JSON contract of real entry strings with its tests.
 - **The living canvas.** One WebGL2 shader takes each painting from a red-chalk underdrawing through grisaille and glaze to varnish, with brush strokes, mood light and candlelight. It replaces the flat varnish wipe.

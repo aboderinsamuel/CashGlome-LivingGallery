@@ -37,7 +37,7 @@ let progress = 0;
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((f) => f());
 export const onBrain = (f: () => void) => { listeners.add(f); return () => { listeners.delete(f); }; };
-export const brainStatus = () => ({ configured: brainConfigured, device: deviceState, progress, fast });
+export const brainStatus = () => ({ configured: brainConfigured, device: deviceState, progress });
 
 /** Is there a model on this device at all? Chrome on desktop exposes LanguageModel when it can run Gemini Nano. */
 async function deviceAvailability(): Promise<string> {
@@ -115,64 +115,34 @@ function load(): Promise<Models | null> {
  * gesture). Starts the on-device model if this browser has one; otherwise the cloud carries on.
  */
 export async function warmUp() {
-  if (!brainConfigured || deviceState === 'downloading' || deviceState === 'ready') return;
+  if (!brainConfigured || deviceState === 'downloading') return;
   const m = await load();
-  if (!m) return;
+  if (!m || deviceState === 'ready') return;
   const a = await deviceAvailability();
   if (a === 'unavailable') { deviceState = 'none'; emit(); return; }
-  // Known slow here and online: the cloud answers, so don't spend the GPU loading Nano (it stalls the page).
-  // It still loads when the person goes offline (see the 'offline' listener below).
-  if (fast === false && !offline()) { if (a === 'available') { deviceState = 'ready'; emit(); } return; }
+  // The cloud is the default; Nano is the offline fallback. Online, it is never loaded (on a small GPU loading
+  // it stalls the whole page). It loads when the person goes offline (see the 'offline' listener below).
+  if (!offline()) { if (a === 'available') { deviceState = 'ready'; emit(); } return; }
   deviceState = a === 'available' ? 'ready' : 'downloading'; emit();
-  const started = performance.now();
-  if (fast === null) {
-    try { localStorage.setItem(SPEED_KEY, '0'); } catch { /* private mode */ }
-    // If loading alone outlasts the budget, call it slow now rather than waiting minutes for the test.
-    setTimeout(() => { if (fast === null) { fast = false; emit(); } }, NANO_BUDGET * 3);
-  }
   m.prefer.initializeDeviceModel((p) => { progress = p; emit(); })
-    .then(() => { deviceState = 'ready'; progress = 1; emit(); void timeNano(m, started); })
+    .then(() => { deviceState = 'ready'; progress = 1; emit(); })
     .catch(() => { deviceState = 'none'; emit(); });
 }
 if (typeof window !== 'undefined') window.addEventListener('offline', () => { void warmUp(); });
 
 const whereOf = (src?: string): Where => (src === 'on_device' ? 'device' : 'cloud');
 const deviceUsable = () => deviceState === 'ready';
-// Is Nano quick here? Timed once with a tiny prompt and remembered. Where it is slow (a small GPU), the cloud
-// answers while online, so nothing waits on it; Nano still answers offline and when Ask is kept on the device.
-const SPEED_KEY = 'cg-nano-fast';
-let fast: boolean | null = (() => { try { const v = localStorage.getItem(SPEED_KEY); return v === null ? null : v === '1'; } catch { return null; } })();
 const offline = () => typeof navigator !== 'undefined' && navigator.onLine === false;
-/** Nano goes first: when it is quick here, when offline, or when the caller must stay on the device. */
-const deviceFirst = (onlyHere = false) => deviceUsable() && (onlyHere || fast === true || offline());
-/** How long the cloud waits on Nano before it answers instead (while online). */
+/** Gemini in the cloud answers by default. Nano goes first only offline, or when the caller must stay on the device. */
+const deviceFirst = (onlyHere = false) => deviceUsable() && (onlyHere || offline());
+/** If a Nano call is under way when the connection comes back, the cloud waits this long before answering instead. */
 const NANO_BUDGET = 2500;
-async function timeNano(m: Models, started: number) {
-  if (fast === true || fast === false && performance.now() - started > NANO_BUDGET * 3) return;
-  // Counted as slow until it proves quick, so a test that never finishes isn't run again on the next visit.
-  try { localStorage.setItem(SPEED_KEY, '0'); } catch { /* private mode */ }
-  const t = performance.now();
-  let quick = false;
-  try {
-    await onDevice(m.device.generateContent('Reply with the single word: ok'));
-    quick = performance.now() - t < NANO_BUDGET && performance.now() - started < NANO_BUDGET * 4;
-  } catch { quick = false; }
-  if (fast === false) quick = false; // the load timer already called it slow
-  fast = quick;
-  try { localStorage.setItem(SPEED_KEY, fast ? '1' : '0'); } catch { /* private mode: timed again next visit */ }
-  emit();
-}
-/** Gives Nano NANO_BUDGET ms while online; past that it is marked slow (remembered) and the caller falls to the cloud. */
+/** Gives Nano NANO_BUDGET ms while online; past that the caller falls to the cloud. */
 function onDevice<T>(work: Promise<T>, onlyHere = false): Promise<T> {
   if (onlyHere || offline()) return work;
   let timer: ReturnType<typeof setTimeout> | undefined;
   const late = new Promise<T>((_, no) => {
-    timer = setTimeout(() => {
-      fast = false;
-      try { localStorage.setItem(SPEED_KEY, '0'); } catch { /* private mode */ }
-      emit();
-      no(new Error('Nano took too long; the cloud answers'));
-    }, NANO_BUDGET);
+    timer = setTimeout(() => no(new Error('Nano took too long; the cloud answers')), NANO_BUDGET);
   });
   work.catch(() => {}); // a late failure after the cloud took over shouldn't surface
   return Promise.race([work, late]).finally(() => clearTimeout(timer));
@@ -232,7 +202,7 @@ export async function museumLabel(kinds: string[], weekday: string, paintingTitl
   if (!m) return null;
   try {
     const ask = `Write a museum wall label, one sentence of at most 16 words, for an imaginary still life painted in the manner of "${paintingTitle}", showing a day that included: ${kinds.join(', ')}. Format: Title. Medium. Workshop of You, ${weekday}. Dry wit, no sums, no emoji, no exclamation marks.`;
-    // Nano first only where it is quick (or offline); past the budget the cloud writes it.
+    // The cloud first, so any device is quick; Nano only offline. Past the budget the cloud writes it.
     const r = deviceFirst()
       ? await onDevice(m.device.generateContent(ask)).catch(() => m.cloud.generateContent(ask))
       : await (offline() ? m.prefer : m.cloud).generateContent(ask);
