@@ -120,11 +120,21 @@ export async function warmUp() {
   if (!m) return;
   const a = await deviceAvailability();
   if (a === 'unavailable') { deviceState = 'none'; emit(); return; }
+  // Known slow here and online: the cloud answers, so don't spend the GPU loading Nano (it stalls the page).
+  // It still loads when the person goes offline (see the 'offline' listener below).
+  if (fast === false && !offline()) { if (a === 'available') { deviceState = 'ready'; emit(); } return; }
   deviceState = a === 'available' ? 'ready' : 'downloading'; emit();
+  const started = performance.now();
+  if (fast === null) {
+    try { localStorage.setItem(SPEED_KEY, '0'); } catch { /* private mode */ }
+    // If loading alone outlasts the budget, call it slow now rather than waiting minutes for the test.
+    setTimeout(() => { if (fast === null) { fast = false; emit(); } }, NANO_BUDGET * 3);
+  }
   m.prefer.initializeDeviceModel((p) => { progress = p; emit(); })
-    .then(() => { deviceState = 'ready'; progress = 1; emit(); void timeNano(m); })
+    .then(() => { deviceState = 'ready'; progress = 1; emit(); void timeNano(m, started); })
     .catch(() => { deviceState = 'none'; emit(); });
 }
+if (typeof window !== 'undefined') window.addEventListener('offline', () => { void warmUp(); });
 
 const whereOf = (src?: string): Where => (src === 'on_device' ? 'device' : 'cloud');
 const deviceUsable = () => deviceState === 'ready';
@@ -135,14 +145,37 @@ let fast: boolean | null = (() => { try { const v = localStorage.getItem(SPEED_K
 const offline = () => typeof navigator !== 'undefined' && navigator.onLine === false;
 /** Nano goes first: when it is quick here, when offline, or when the caller must stay on the device. */
 const deviceFirst = (onlyHere = false) => deviceUsable() && (onlyHere || fast === true || offline());
-async function timeNano(m: Models) {
-  if (fast !== null) return;
+/** How long the cloud waits on Nano before it answers instead (while online). */
+const NANO_BUDGET = 2500;
+async function timeNano(m: Models, started: number) {
+  if (fast === true || fast === false && performance.now() - started > NANO_BUDGET * 3) return;
   // Counted as slow until it proves quick, so a test that never finishes isn't run again on the next visit.
   try { localStorage.setItem(SPEED_KEY, '0'); } catch { /* private mode */ }
   const t = performance.now();
-  try { await m.device.generateContent('Reply with the single word: ok'); fast = performance.now() - t < 3500; } catch { fast = false; }
+  let quick = false;
+  try {
+    await onDevice(m.device.generateContent('Reply with the single word: ok'));
+    quick = performance.now() - t < NANO_BUDGET && performance.now() - started < NANO_BUDGET * 4;
+  } catch { quick = false; }
+  if (fast === false) quick = false; // the load timer already called it slow
+  fast = quick;
   try { localStorage.setItem(SPEED_KEY, fast ? '1' : '0'); } catch { /* private mode: timed again next visit */ }
   emit();
+}
+/** Gives Nano NANO_BUDGET ms while online; past that it is marked slow (remembered) and the caller falls to the cloud. */
+function onDevice<T>(work: Promise<T>, onlyHere = false): Promise<T> {
+  if (onlyHere || offline()) return work;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const late = new Promise<T>((_, no) => {
+    timer = setTimeout(() => {
+      fast = false;
+      try { localStorage.setItem(SPEED_KEY, '0'); } catch { /* private mode */ }
+      emit();
+      no(new Error('Nano took too long; the cloud answers'));
+    }, NANO_BUDGET);
+  });
+  work.catch(() => {}); // a late failure after the cloud took over shouldn't surface
+  return Promise.race([work, late]).finally(() => clearTimeout(timer));
 }
 
 /**
@@ -163,7 +196,7 @@ export async function readLine(text: string, currency: string): Promise<{ read: 
     return { read, where: whereOf(r.response.inferenceSource) };
   };
   try {
-    if (deviceFirst()) return await tryModel(m.json.device);
+    if (deviceFirst()) return await onDevice(tryModel(m.json.device));
   } catch (e) { console.warn('[brain] device read', e); }
   try { return await tryModel(m.json.cloud); } catch (e) { console.warn('[brain] cloud read', e); return null; }
 }
@@ -181,7 +214,7 @@ export async function sitterSays(p: Persona, line: string, kinds: string[], hint
   const clean = (s: string) => s.replace(/^["“'\s]+|["”'\s]+$/g, '').replace(/!/g, '.').split('\n')[0].slice(0, 160);
   try {
     if (deviceFirst()) {
-      const r = await m.device.generateContent(`${voice}\n\nThey wrote: "${line}"\nYour line:`);
+      const r = await onDevice(m.device.generateContent(`${voice}\n\nThey wrote: "${line}"\nYour line:`));
       const t = clean(r.response.text());
       if (t) return { text: t, where: 'device' };
     }
@@ -198,7 +231,11 @@ export async function museumLabel(kinds: string[], weekday: string, paintingTitl
   const m = await load();
   if (!m) return null;
   try {
-    const r = await m.prefer.generateContent(`Write a museum wall label, one sentence of at most 16 words, for an imaginary still life painted in the manner of "${paintingTitle}", showing a day that included: ${kinds.join(', ')}. Format: Title. Medium. Workshop of You, ${weekday}. Dry wit, no sums, no emoji, no exclamation marks.`);
+    const ask = `Write a museum wall label, one sentence of at most 16 words, for an imaginary still life painted in the manner of "${paintingTitle}", showing a day that included: ${kinds.join(', ')}. Format: Title. Medium. Workshop of You, ${weekday}. Dry wit, no sums, no emoji, no exclamation marks.`;
+    // Nano first only where it is quick (or offline); past the budget the cloud writes it.
+    const r = deviceFirst()
+      ? await onDevice(m.device.generateContent(ask)).catch(() => m.cloud.generateContent(ask))
+      : await (offline() ? m.prefer : m.cloud).generateContent(ask);
     const t = r.response.text().trim().split('\n')[0].replace(/^["“]|["”]$/g, '');
     return t ? { text: t, where: whereOf(r.response.inferenceSource) } : null;
   } catch (e) { console.warn('[brain] label', e); return null; }
@@ -222,7 +259,7 @@ Question: ${question}`;
     const r = await model.generateContent(prompt);
     return { plan: JSON.parse(r.response.text()) as Plan, where: whereOf(r.response.inferenceSource) };
   };
-  try { if (deviceFirst(!allowCloud)) return await run(m.plan.device); } catch (e) { console.warn('[brain] device plan', e); }
+  try { if (deviceFirst(!allowCloud)) return await onDevice(run(m.plan.device), !allowCloud); } catch (e) { console.warn('[brain] device plan', e); }
   if (!allowCloud) return null;
   try { return await run(m.plan.cloud); } catch (e) { console.warn('[brain] cloud plan', e); return null; }
 }
@@ -233,7 +270,7 @@ export async function phraseOnDevice(p: Persona, question: string, facts: string
   const m = await load();
   if (!m) return null;
   try {
-    const r = await m.device.generateContent(`You are ${p.name}, ${p.role}, in "${p.painting}" by ${p.artist}. Answer the person's question in two short sentences, warmly and a little dry, in their language. Use ONLY these exact figures, copied as written; never add or change a number. No advice, no emoji.\nQuestion: ${question}\nFigures: ${facts}\nAnswer:`);
+    const r = await onDevice(m.device.generateContent(`You are ${p.name}, ${p.role}, in "${p.painting}" by ${p.artist}. Answer the person's question in two short sentences, warmly and a little dry, in their language. Use ONLY these exact figures, copied as written; never add or change a number. No advice, no emoji.\nQuestion: ${question}\nFigures: ${facts}\nAnswer:`), onlyHere);
     const t = r.response.text().trim();
     return t || null;
   } catch (e) { console.warn('[brain] phrase', e); return null; }
