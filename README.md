@@ -43,7 +43,8 @@
 - the offline money reader (English and pidgin, k/m, 20 currencies) and the ledger;
 - monthly Chapters, each with a painting cleaned by a flat varnish wipe, and a gallery of past months;
 - an Ask panel that sent questions to another provider's cloud chat model (now switched off, with no Google or Firebase anywhere);
-- Spotify's embedded player, optional accounts, a share card and Plans.
+- Spotify's embedded player, a share card and Plans;
+- optional accounts with sync (Supabase; the schema is in `supabase/`), now switched off: they stored entries the server could read, and they stay off until the backup is end-to-end encrypted.
 
 **The core value it brings.** People in cash and bank-transfer economies need a money reader that understands how they actually write, works offline and keeps entries on the device. That reader and ledger are the foundation everything below is built on.
 
