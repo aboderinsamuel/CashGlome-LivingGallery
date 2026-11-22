@@ -30,7 +30,7 @@ import { LedgerReports, PeoplePage } from './stage/Accounts';
 import { Today, type Voice } from './views/Today';
 import { AskRoom, loadTurns, type AskTurn } from './views/AskRoom';
 import { brainConfigured, readLine, sitterSays, warmUp } from './stage/brain';
-import { castOf, sitterLine } from './stage/voices';
+import { sitterLine } from './stage/voices';
 import { mentionsCircle, readCircle } from './stage/books';
 import { PAINTINGS } from './lib/art';
 import { Collection } from './views/Collection';

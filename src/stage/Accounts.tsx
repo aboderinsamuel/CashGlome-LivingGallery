@@ -5,7 +5,6 @@ import { relDay } from '../lib/memory';
 import type { Action } from '../lib/store';
 import type { State } from '../lib/types';
 import { circleStatus, incomeRecord, peopleOf, pricesOf, readCircle } from './books';
-import { safeToSpend } from './askPainting';
 import { dateInWords } from './words';
 import './accounts.css';
 

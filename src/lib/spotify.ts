@@ -49,9 +49,6 @@ const get = (k: string) => { try { return localStorage.getItem(k); } catch { ret
 const put = (k: string, v: string | null) => { try { if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch { /* private mode */ } };
 const reload = () => window.dispatchEvent(new Event(RELOAD_PLAYER));
 
-/** Playlists can be offered only when this build has a Spotify app (Client ID) registered. */
-export const canLinkSpotify = () => !!CLIENT_ID;
-
 export interface SpotifyMe { name: string; image?: string; playlists: 'yes' | 'refused' }
 /** What the panel shows: not connected, whole songs only, or connected with playlists. */
 export type SpotifyStatus = { kind: 'off' } | { kind: 'songs'; refused: boolean } | { kind: 'linked'; me: SpotifyMe };
@@ -62,8 +59,6 @@ export function spotifyStatus(): SpotifyStatus {
   if (get(WEB_KEY) === '1') return { kind: 'songs', refused: me?.playlists === 'refused' };
   return { kind: 'off' };
 }
-export const spotifySignedIn = () => spotifyStatus().kind !== 'off';
-export const spotifyLinked = () => spotifyStatus().kind === 'linked';
 
 /** Forget the connection on this device. Spotify itself stays signed in; that's spotify.com's to change. */
 export function disconnectSpotify() { put(TOKEN_KEY, null); put(ME_KEY, null); put(WEB_KEY, null); reload(); }

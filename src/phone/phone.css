@@ -111,7 +111,6 @@
 .ph-sums svg { margin-left: auto; }
 
 .ph-prompt-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; min-height: 30px; }
-.ph-prompt { margin: 0; font: italic 400 19px/1.25 var(--serif); letter-spacing: -0.01em; animation: ph-in 0.5s var(--ease) both; }
 .ph-link { min-height: 32px; font: 600 13px/1.2 var(--grot); color: var(--gold); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: color-mix(in srgb, var(--gold) 40%, transparent); white-space: nowrap; }
 .ph-past { display: flex; gap: 8px; flex-wrap: wrap; }
 .ph-card-ready { display: flex; align-items: center; gap: 8px; min-height: var(--tap); padding: 8px 14px; border-radius: 14px; border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent); background: var(--green-soft); font: 500 13px/1.3 var(--grot); color: var(--ink); text-align: left; }
@@ -167,51 +166,7 @@
 .ph-cash-quick button { min-height: 40px; padding: 0 8px; font: 600 13px/1 var(--grot); color: var(--ink-2); }
 
 /* ——— Sheets ——— */
-.ph-scrim { position: fixed; inset: 0; z-index: 70; display: flex; align-items: flex-end; background: rgba(20, 14, 6, 0.44); }
-.ph-sheet { width: 100%; max-height: 88%; overflow-y: auto; padding: 8px 8px calc(14px + env(safe-area-inset-bottom)); border-radius: 22px 22px 0 0; background: var(--paper); color: var(--ink); box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.28); }
 .ph-grab { width: 36px; height: 4px; margin: 4px auto 8px; border-radius: 2px; background: var(--ink-4); }
-.ph-sheet-title { padding: 4px 12px 8px; font: italic 400 20px/1.2 var(--serif); }
-.ph-row { width: 100%; display: flex; align-items: center; gap: 14px; min-height: 56px; padding: 8px 12px; border-radius: 14px; text-align: left; }
-.ph-row:not(:disabled):active { opacity: 1; background: var(--fill); }
-.ph-row-icon { width: 36px; height: 36px; border-radius: 18px; display: grid; place-items: center; flex: none; background: var(--fill); color: var(--ink-2); font: 500 15px/1 var(--serif); }
-.ph-row-text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-.ph-row-text b { font: 400 18px/1.2 var(--serif); letter-spacing: -0.01em; }
-.ph-row-text small { margin-top: 2px; font: 400 12.5px/1.3 var(--grot); color: var(--ink-3); }
-.ph-row > svg { flex: none; color: var(--ink-3); }
-.ph-row.on b, .ph-row.on > svg { color: var(--gold); }
-.ph-rule { height: 1px; margin: 6px 12px; background: var(--line); }
-
-/* ——— First run: always candle-lit, whatever the theme ——— */
-.ph-welcome { --w-ink: #F3EAD6; --gold: #D4AE5E; --line: rgba(243, 234, 214, 0.2); --ink-2: rgba(243, 234, 214, 0.8); --ink-3: rgba(243, 234, 214, 0.58); --ink-4: rgba(243, 234, 214, 0.3); --card: rgba(243, 234, 214, 0.1); --fill-2: rgba(243, 234, 214, 0.14); --vermilion: #E0705A;
-  background: #120D07; background-image: none; color: var(--w-ink); }
-.ph-welcome-art { flex: 1 1 0; min-height: 120px; position: relative; }
-.ph-welcome-art .plate { position: absolute; inset: 0; width: auto; height: auto; aspect-ratio: auto !important; border-radius: 0; box-shadow: none; }
-.ph-welcome-art::after { content: ''; position: absolute; inset: 40% 0 0; background: linear-gradient(transparent, #120D07); pointer-events: none; }
-.ph-welcome-caption { position: absolute; left: 16px; right: 16px; bottom: 6px; z-index: 1; font: 400 12px/1.35 var(--grot); color: var(--ink-3); }
-.ph-welcome-caption i { display: block; font: italic 400 15px/1.2 var(--serif); color: var(--w-ink); }
-.ph-welcome-body { flex: none; display: flex; flex-direction: column; gap: 12px; padding: 10px 16px calc(12px + env(safe-area-inset-bottom)); }
-.ph-welcome .ph-title { margin: 0; }
-.ph-welcome .ph-title em { color: #E9CC88; }
-.ph-welcome-lede { margin: 0; font: 400 17px/1.4 var(--serif); color: var(--ink-2); }
-.ph-welcome .ph-chips { margin: 0 -16px; padding: 0 16px; }
-.ph-welcome .ph-chips.parsed { min-height: 34px; }
-.ph-read { flex: none; display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 13px 0 9px; border-radius: 17px; background: var(--fill-2); font: 650 14px/1 var(--grot); white-space: nowrap; }
-.ph-read i { width: 14px; height: 14px; border-radius: 7px; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25); }
-.ph-read small { font: 500 13px/1 var(--grot); opacity: 0.7; }
-.ph-read.in { color: #E9CC88; }
-.ph-first { display: flex; align-items: center; gap: 2px; height: 56px; padding: 0 6px 0 18px; border-radius: 28px; background: var(--card); border: 1px solid var(--line); }
-.ph-first:focus-within { border-color: rgba(233, 204, 136, 0.7); }
-.ph-first.listening { border-color: var(--vermilion); }
-.ph-first input { flex: 1; min-width: 0; height: 100%; border: 0; outline: 0; background: none; color: inherit; font: 400 17px/1 var(--ui); caret-color: #E9CC88; }
-.ph-first input::placeholder { color: var(--ink-3); }
-.ph-send { width: 44px; height: 44px; border-radius: 22px; display: grid; place-items: center; flex: none; background: linear-gradient(180deg, #E8CC86, #BF9541); color: #2A1E0C; }
-.ph-send:disabled { background: var(--fill-2); color: var(--ink-3); }
-.ph-welcome-note { margin: -4px 2px 0; min-height: 32px; display: flex; align-items: center; gap: 5px; flex-wrap: wrap; font: 400 13px/1.3 var(--grot); color: var(--ink-3); }
-.ph-welcome-note b { color: var(--w-ink); font-weight: 600; }
-.ph-welcome-foot { display: flex; flex-direction: column; align-items: flex-start; font: 400 12.5px/1.4 var(--grot); color: var(--ink-3); }
-.ph-welcome .ph-sheet { --paper: #1B140C; --ink: #F3EAD6; --fill: rgba(243, 234, 214, 0.08); }
-.ph-money-list { max-height: 60vh; overflow-y: auto; }
-:root[data-kb] .ph-welcome-lede, :root[data-kb] .ph-welcome-foot, :root[data-kb] .ph-welcome .ph-title { display: none; }
 
 /* ——— The older pages, set for a phone ——— */
 .ph-page { flex: none; }
@@ -223,8 +178,6 @@
 /* The chapter page keeps its reading; the painting and the first-entry buttons already live on Home. */
 .ph-page .hero-art, .ph-page .starts, .ph-page section.today { display: none; }
 
-@media (prefers-reduced-motion: reduce) { .ph-prompt { animation: none; } }
-
 /* A brush working back and forth: the only "busy" sign in the app. Never a spinner. */
 .brushing { display: inline-flex; align-items: flex-end; gap: 3px; height: 16px; }
 .brushing i { width: 3.5px; height: 14px; border-radius: 2px; background: currentColor; transform-origin: 50% 100%; animation: brushing 0.9s ease-in-out infinite; }
@@ -234,7 +187,7 @@
 @media (prefers-reduced-motion: reduce) { .brushing i { animation-duration: 2.4s; } }
 
 /* Amounts in chips: proportional figures, so two chips fit on one line at 360px. */
-:root[data-phone] .pchip b, .ph-chip b, .ph-read { font-variant-numeric: proportional-nums lining-nums; letter-spacing: -0.01em; }
+:root[data-phone] .pchip b, .ph-chip b{ font-variant-numeric: proportional-nums lining-nums; letter-spacing: -0.01em; }
 :root[data-phone] .pchip { padding: 0 11px 0 8px; gap: 6px; }
 
 /* Ledger: one column that cannot grow wider than the screen. */
@@ -251,12 +204,8 @@
 :root[data-phone] .sheet { width: 100%; height: min(92%, calc(var(--vvh, 100dvh) - 24px)); border-radius: 22px 22px 0 0; border-width: 1px 0 0; background: var(--paper); grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
 /* Phone: "Your book" and Done on one line, the pages as a scrolling row of pills beneath. */
 :root[data-phone] .sheet-nav { flex-direction: row !important; flex-wrap: wrap; align-items: center; gap: 10px 6px !important; padding: 14px 0 10px !important; border-right: 0 !important; border-bottom: 1px solid var(--line); background: none !important; }
-:root[data-phone] .sheet-lights { display: none !important; }
 :root[data-phone] .sheet-nav .book-title { order: 0; flex: 1; padding: 0 0 0 18px; font-size: 26px; white-space: nowrap; }
 :root[data-phone] .sheet-done { display: inline-flex; align-items: center; flex: none; order: 1; height: 36px; padding: 0 16px; margin-right: 14px; border-radius: 18px; background: var(--leaf); color: var(--leaf-ink); font: 600 14px/1 var(--grot); }
-:root[data-phone] .sheet-panes { order: 2; flex: 0 0 100%; display: flex; align-items: center; gap: 6px; overflow-x: auto; padding: 0 14px 2px; scrollbar-width: none; scroll-padding: 0 14px; }
-:root[data-phone] .sheet-panes::-webkit-scrollbar { display: none; }
-:root[data-phone] .sheet-panes .side-label { flex: none; margin: 0 2px 0 8px; padding: 0; font-size: 11px; }
 :root[data-phone] .sheet .side-item { flex: none; width: auto; height: 36px; padding: 0 12px; border-radius: 18px; font: 500 14px/1 var(--grot); white-space: nowrap; }
 :root[data-phone] .sheet .side-item svg { display: none; }
 :root[data-phone] .sheet .side-item.on { background: var(--ink); color: var(--paper); }
@@ -274,7 +223,6 @@
 /* ——— Capture, Ask and Share: the same paper sheet rising from the bottom ——— */
 :root[data-phone] .panel { width: 100%; max-height: min(94%, calc(var(--vvh, 100dvh) - 16px)); overflow-y: auto; border-radius: 22px 22px 0 0; border-width: 1px 0 0; background: var(--paper); backdrop-filter: none; -webkit-backdrop-filter: none; box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.28); padding-bottom: env(safe-area-inset-bottom); }
 :root[data-phone] .panel-x { width: 40px; height: 40px; border-radius: 20px; top: 8px; left: 8px; }
-:root[data-phone] .ask-scrim { padding: 0; place-items: end stretch; background: rgba(20, 14, 6, 0.44); }
 :root[data-phone] .panel.ask { max-height: min(90%, calc(var(--vvh, 100dvh) - 16px)); }
 :root[data-phone] .panel .btn { height: 44px; border-radius: 22px; font-size: 14px; }
 :root[data-phone] .panel .btn.primary, :root[data-phone] .sheet .btn.primary, :root[data-phone] .checkin .btn.primary { background: var(--leaf); color: var(--leaf-ink); border-color: transparent; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45); }
@@ -336,7 +284,6 @@
 .ph-page .ar-box button { width: 42px; height: 42px; }
 
 /* Your book: the row of pages fades at its edge, so it reads as one you can swipe. */
-:root[data-phone] .sheet-panes { -webkit-mask-image: linear-gradient(90deg, #000 82%, transparent); mask-image: linear-gradient(90deg, #000 82%, transparent); padding-right: 40px; }
 :root[data-phone] .sheet .field { width: 100% !important; max-width: 100%; }
 .ph-app .ph-tabs button.on::after { display: none !important; }
 .ph-app .ph-tabs button.on svg { background: color-mix(in srgb, var(--gold) 20%, transparent); }

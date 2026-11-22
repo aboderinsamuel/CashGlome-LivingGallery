@@ -23,26 +23,9 @@ const CLOSED_KEY = 'cg-day-closed';
 export const dayClosed = (today = todayISO()) => { try { return localStorage.getItem(CLOSED_KEY) === today; } catch { return false; } };
 export const closeDay = (today = todayISO()) => { try { localStorage.setItem(CLOSED_KEY, today); } catch { /* private mode */ } };
 
-/** One line above the box. In the evening it becomes the day's one question: "What did today cost?" */
-export function promptFor(part: Part, writtenToday: number, closed: boolean): string {
-  if (closed) return 'The day is written. Rest well.';
-  if (part === 'evening' || part === 'night') return writtenToday ? 'Anything else, or is that the day?' : 'What did today cost?';
-  if (writtenToday) return part === 'midday' ? 'Anything since this morning?' : 'Anything else so far?';
-  if (part === 'morning') return 'What has this morning cost?';
-  if (part === 'midday') return 'Lunch yet? Write it while it’s fresh.';
-  return 'What has today cost so far?';
-}
-
 /* ——— One-tap chips ——— */
 export interface Chip { key: string; label: string; entry?: Entry; fill?: string }
 
-const STARTERS_NG: Record<Part, string[]> = {
-  night: ['Data', 'Bolt', 'Suya'],
-  morning: ['Bolt', 'Danfo', 'Breakfast', 'Data'],
-  midday: ['Lunch', 'Data', 'Bolt', 'Airtime'],
-  afternoon: ['Snacks', 'Transport', 'Data', 'Fuel'],
-  evening: ['Dinner', 'Bolt', 'Suya', 'Got paid'],
-};
 const STARTERS: Record<Part, string[]> = {
   night: ['Taxi', 'Snack', 'Delivery'],
   morning: ['Coffee', 'Transport', 'Breakfast', 'Groceries'],

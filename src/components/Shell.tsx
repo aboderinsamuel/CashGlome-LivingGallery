@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 import { Icon } from './Icons';
-import { ROMAN } from '../lib/analytics';
 import { monthLabel } from '../lib/format';
 import { artSrc, NATIVE_TITLE, PAINTINGS } from '../lib/art';
 import { useWindow } from './Desktop';

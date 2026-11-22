@@ -97,4 +97,3 @@ export const DISCOVERIES: Record<string, Discovery[]> = {
 export const AT = [Math.round(PATCHES / 3), Math.round((PATCHES * 2) / 3), PATCHES];
 
 export function discoveriesOf(painting: string): Discovery[] { return DISCOVERIES[painting] ?? []; }
-export function openedOf(painting: string, restored: number): number { return discoveriesOf(painting).filter((_, i) => restored >= AT[i]).length; }

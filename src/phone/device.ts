@@ -47,7 +47,6 @@ export function useKeyboardViewport(on: boolean) {
 }
 
 let hapticsOn = true;
-export const setHaptics = (on: boolean) => { hapticsOn = on; };
 /** A touch you can feel. Android browsers vibrate; iPhone Safari has no vibration and stays silent. */
 export function haptic(kind: 'tap' | 'lift' | 'done' = 'tap') {
   if (!hapticsOn || typeof navigator === 'undefined' || !navigator.vibrate) return;

@@ -1,5 +1,5 @@
 // Choosing the money you count in: a coin, a name, and a search, instead of the browser's grey list.
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { CURRENCIES, currencySymbol, guessCurrency } from '../lib/format';
@@ -17,29 +17,6 @@ const ALSO: Record<string, string> = {
 
 export function Coin({ code, size = 30 }: { code: string; size?: number }) {
   return <Medallion code={code} size={size} />;
-}
-
-export function CurrencyPicker({ value, onChange, dark = false }: { value: string; onChange: (code: string) => void; dark?: boolean }) {
-  const [open, setOpen] = useState(false);
-  const [up, setUp] = useState(false);
-  const btn = useRef<HTMLButtonElement>(null);
-  const toggle = () => {
-    // Open upward when the list wouldn't fit below the button.
-    const r = btn.current?.getBoundingClientRect();
-    if (r) setUp(window.innerHeight - r.bottom < 380 && r.top > window.innerHeight - r.bottom);
-    setOpen((o) => !o);
-  };
-  const cur = CURRENCIES.find((c) => c.code === value) ?? CURRENCIES[0];
-  return (
-    <div className={'cpick' + (dark ? ' dark' : '') + (up ? ' up' : '')}>
-      <button ref={btn} type="button" className="cpick-btn" aria-haspopup="listbox" aria-expanded={open} onClick={toggle}>
-        <Coin code={cur.code} />
-        <span className="cpick-name">{cur.name}<small>{cur.code} · change</small></span>
-        <Icon.chevronDown size={12} />
-      </button>
-      <AnimatePresence>{open && <CurrencyList value={value} onPick={(c) => { onChange(c); setOpen(false); }} onClose={() => setOpen(false)} />}</AnimatePresence>
-    </div>
-  );
 }
 
 export function CurrencyList({ value, onPick, onClose }: { value: string; onPick: (c: string) => void; onClose: () => void }) {

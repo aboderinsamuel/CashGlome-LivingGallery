@@ -4,7 +4,7 @@
 // Never uploaded: the Meta Florin key, Spotify tokens, photos.
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
 import type { Remote } from './store';
-import type { Entry, Goal, Memory, State } from './types';
+import type { Entry, Memory, State } from './types';
 
 const URL = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.trim();
 const KEY = (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined)?.trim();

@@ -464,10 +464,6 @@ function segments(text: string, home?: string): string[] {
   return out;
 }
 
-export function splitStory(text: string): string[] {
-  return alertChunks(plain(text)).flatMap((c) => (isAlert(c) ? [c.trim()] : segments(c)));
-}
-
 /** Everything in a piece of writing that moved money, in the order it was written. */
 export function parseStory(text: string, opts: ReadOptions = {}): Parsed[] {
   const out: Parsed[] = [];

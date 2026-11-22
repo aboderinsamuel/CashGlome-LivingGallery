@@ -26,11 +26,6 @@ export function Medallion({ code, size = 30 }: { code: string; size?: number }) 
   );
 }
 
-/** A person's or the book's initial, in ink inside a double ruled ring. */
-export function Monogram({ name, size = 32, tone = 'ink' }: { name: string; size?: number; tone?: 'ink' | 'wax' }) {
-  return <span className={'mono ' + tone} style={{ width: size, height: size, fontSize: size * 0.5 }} aria-hidden>{(name.trim()[0] || 'Y').toUpperCase()}</span>;
-}
-
 /** A category as a dab of its pigment, with its initial scratched into it. */
 export function Pigment({ category, size = 36 }: { category: string; size?: number }) {
   const c = cat(category);

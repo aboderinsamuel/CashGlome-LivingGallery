@@ -196,21 +196,6 @@ export async function sitterSays(p: Persona, line: string, kinds: string[], hint
   } catch (e) { console.warn('[brain] cloud voice', e); return null; }
 }
 
-/** The museum label for today. Only categories go in, so the SDK may choose where it runs. */
-export async function museumLabel(kinds: string[], weekday: string, paintingTitle: string): Promise<{ text: string; where: Where } | null> {
-  const m = await load();
-  if (!m) return null;
-  try {
-    const ask = `Write a museum wall label, one sentence of at most 16 words, for an imaginary still life painted in the manner of "${paintingTitle}", showing a day that included: ${kinds.join(', ')}. Format: Title. Medium. Workshop of You, ${weekday}. Dry wit, no sums, no emoji, no exclamation marks.`;
-    // The cloud first, so any device is quick; Nano only offline. Past the budget the cloud writes it.
-    const r = deviceFirst()
-      ? await onDevice(m.device.generateContent(ask)).catch(() => m.cloud.generateContent(ask))
-      : await (offline() ? m.prefer : m.cloud).generateContent(ask);
-    const t = r.response.text().trim().split('\n')[0].replace(/^["“]|["”]$/g, '');
-    return t ? { text: t, where: whereOf(r.response.inferenceSource) } : null;
-  } catch (e) { console.warn('[brain] label', e); return null; }
-}
-
 export interface PlannedSearch { from?: string; to?: string; dir?: 'in' | 'out' | 'any'; categories?: string[]; search?: string[]; group_by?: string; sort?: string; title?: string }
 export interface Plan { kind: 'search' | 'afford' | 'free' | 'other'; amount?: number; what?: string; searches?: PlannedSearch[] }
 
@@ -244,23 +229,6 @@ export async function phraseOnDevice(p: Persona, question: string, facts: string
     const t = r.response.text().trim();
     return t || null;
   } catch (e) { console.warn('[brain] phrase', e); return null; }
-}
-
-const IMAGE_MODEL = env.VITE_GEMINI_IMAGE_MODEL || 'gemini-nano-banana-2.1';
-/**
- * A small still life of the thing just bought, painted in the manner of the month's painting, to hang in the
- * scene. Image generation runs in the cloud only, so it is told the kind of thing (e.g. "lunch"), never a
- * sum, a name or the line itself.
- */
-export async function paintStillLife(thing: string, painting: string, artist: string): Promise<string | null> {
-  const m = await load();
-  if (!m) return null;
-  try {
-    const model = m.ai.getGenerativeModel(m.backend, { model: IMAGE_MODEL, generationConfig: { responseModalities: [m.ai.ResponseModality.TEXT, m.ai.ResponseModality.IMAGE] } } as never);
-    const r = await model.generateContent(`A small oil-on-panel still life of ${thing.slice(0, 40)}, painted in the manner of ${artist}'s "${painting}": same palette, varnish, light and brushwork, plain dark background, no people, no text, no frame. Square.`);
-    const part = r.response.inlineDataParts?.()?.[0]?.inlineData;
-    return part ? `data:${part.mimeType};base64,${part.data}` : null;
-  } catch (e) { console.warn('[brain] still life', e); return null; }
 }
 
 /**

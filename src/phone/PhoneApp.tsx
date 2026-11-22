@@ -1,6 +1,6 @@
 // The phone app: one screen to write on, with the month's painting in front of you.
 // Chapter · Ledger · Gallery along the bottom; everything else is one tap away in the More sheet.
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { chapterOf, computeStats, spaceSegs, type Chapter as Ch } from '../lib/analytics';
 import { paintingOf, PATCHES, restorationOf } from '../lib/art';
@@ -12,7 +12,7 @@ import type { Entry, State } from '../lib/types';
 import { Icon } from '../components/Icons';
 import { RestorationPlate, revealTime } from '../components/Restoration';
 import { ChapterTabs, TabBar, tabOf, type Tab, type View } from '../components/Shell';
-import { cardSeason, chipsFor, closeDay, dateInWords, dayClosed, monthName, partOfDay, promptFor, type CashPocket, type Chip } from './moments';
+import { cardSeason, chipsFor, closeDay, dateInWords, dayClosed, monthName, partOfDay, type CashPocket, type Chip } from './moments';
 import { haptic } from './device';
 import { NowPlaying } from '../components/Music';
 
@@ -149,7 +149,6 @@ function PhoneHome({ state, dispatch, museChapter, isNow, onRead, onLedger, onSh
   const writtenToday = useMemo(() => state.entries.filter((e) => e.date === today).length, [state.entries, today]);
   const part = partOfDay(now.getHours());
   const evening = part === 'evening' || part === 'night';
-  const prompt = promptFor(part, writtenToday, closed);
 
   return (
     <div className="ph-home">

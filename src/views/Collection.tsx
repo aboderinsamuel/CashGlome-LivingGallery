@@ -13,8 +13,6 @@ import type { Entry } from '../lib/types';
 /** The gallery: one painting per month on a salon wall, and the sticker book. */
 export function Collection({ state, onOpen, onCamera, onPlay }: { state: State; onOpen: (month: string) => void; onCamera: () => void; onPlay?: () => void }) {
   const ref = useRef<HTMLDivElement>(null);
-  const phone = document.documentElement.dataset.phone !== undefined;
-  const calm = state.settings.calm;
   const badges = badgesOf(state);
   const earned = badges.filter((b) => b.done).length;
   const months = useMemo(() => {

@@ -66,7 +66,6 @@
   box-shadow: 0 0 0 0.5px rgba(255, 255, 255, 0.22) inset, 0 16px 40px -18px rgba(0, 0, 0, 0.55); text-align: left; overflow: hidden; cursor: pointer; }
 .widget .wl { font: 600 12px var(--ui); opacity: 0.78; }
 
-
 /* ——— Today: candle, card, restoration ——— */
 .today { display: grid; grid-template-columns: 1.05fr 1.3fr 1fr; gap: 16px; margin-top: 64px; }
 .tcard { position: relative; border-radius: 22px; background: var(--card); border: 1px solid var(--line); padding: 22px; min-height: 230px; overflow: hidden; }
@@ -121,15 +120,7 @@
 .book-back { transform: rotateY(180deg); background: #E8DDC4; box-shadow: inset -6px 0 12px -6px rgba(0, 0, 0, 0.3); }
 @media (max-width: 860px) { .ed-cover { grid-template-columns: 1fr; } .ed-grid { grid-template-columns: 1fr !important; } .ed-credit { bottom: 44px; right: 20px; left: 20px; } }
 
-/* ——— Welcome ——— */
-.welcome-pane { width: min(640px, 100%); padding: clamp(24px, 4vw, 40px); border-radius: 28px; color: #F6EEDC;
-  background: rgba(20, 14, 8, 0.5); backdrop-filter: blur(24px) saturate(1.5); -webkit-backdrop-filter: blur(24px) saturate(1.5);
-  box-shadow: inset 0 0 0 1px rgba(246, 238, 220, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 50px 100px -30px rgba(0, 0, 0, 0.7); }
-.welcome-h { font: 330 clamp(40px, 5.4vw, 66px)/0.98 var(--serif); letter-spacing: -0.04em; margin: 16px 0 0; }
-.welcome-h em { color: #E2C27A; }
-.welcome-input { margin-top: 30px; width: 100%; border: 0; border-bottom: 1px solid rgba(246, 238, 220, 0.5); background: transparent; outline: 0; font: 330 42px/1.2 var(--serif); letter-spacing: -0.03em; padding: 6px 0; color: #F6EEDC; caret-color: #E2C27A; }
-.welcome-input::placeholder { color: rgba(246, 238, 220, 0.35); }
-.welcome-input:focus { border-bottom-color: #E2C27A; }
+/* ——— Gold button ——— */
 .btn.gold { background: linear-gradient(180deg, #EBD08F, #C9A253); color: #1A140D; border-color: transparent; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 8px 20px -10px rgba(176, 138, 58, 0.8); }
 .btn.gold:disabled { opacity: 0.45; }
 .btn.gold:hover { background: linear-gradient(180deg, #F1D99E, #CFA95C); }
@@ -142,9 +133,7 @@
 .mb-item.strong { font-weight: 700; }
 .dock-item > button { display: block; padding: 0; }
 .dock-item > button > * { pointer-events: none; }
-.side-wall { position: absolute; inset: -60px; background-size: cover; background-position: center; filter: blur(42px) saturate(1.5); opacity: 0.5; pointer-events: none; z-index: 0; }
-:root[data-theme='dark'] .side-wall { opacity: 0.32; }
-.sidebar > :not(.side-wall) { position: relative; z-index: 1; }
+.sidebar > * { position: relative; z-index: 1; }
 
 /* ——— Bound chapters ——— */
 .bound { aspect-ratio: 3 / 4.2; border-radius: 4px 14px 14px 4px; padding: 18px 18px 18px 26px; display: flex; flex-direction: column; position: relative; overflow: hidden;
@@ -156,10 +145,6 @@
 /* Widgets show that they open: an arrow in the corner, a label and a lift on hover. */
 .widget.w-open { position: relative; cursor: pointer; text-align: left; transition: transform .18s ease, box-shadow .18s ease, background .18s; }
 .widget.w-open:hover { transform: translateY(-3px); background: rgba(30, 22, 14, 0.46); box-shadow: 0 18px 40px -14px rgba(0,0,0,.55), inset 0 0 0 1px rgba(255,255,255,.22); }
-.w-go { position: absolute; top: 10px; right: 10px; z-index: 3; display: inline-flex; align-items: center; gap: 0; height: 24px; min-width: 24px; padding: 0 6px; border-radius: 12px; background: rgba(255,248,236,.92); color: #17120C; font: 600 11.5px var(--ui); box-shadow: 0 2px 8px rgba(0,0,0,.3); }
-.w-go > span { max-width: 0; overflow: hidden; white-space: nowrap; transition: max-width .25s ease, margin .25s ease; }
-.w-go svg { transform: rotate(-45deg); flex: none; }
-.widget.w-open:hover .w-go > span, .widget.w-open:focus-visible .w-go > span { max-width: 140px; margin: 0 4px 0 2px; }
 
 /* Widgets say where they open, in words, at their foot; no hover-only corner badge. */
 .w-foot { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin: 12px -4px -4px; padding: 8px 4px 0; border-top: 1px solid rgba(255,248,236,.16); font: 600 11.5px var(--ui); color: rgba(255,248,236,.86); }

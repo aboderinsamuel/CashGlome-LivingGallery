@@ -1,7 +1,6 @@
 // The sitters' lines. Dry, warm, never a scold: they laugh with you. These are the device's own lines,
 // used offline and while the on-device model warms up; when a model is available it writes fresh ones in
 // the same voice (see brain.ts).
-import { cat } from '../lib/categories';
 import type { Entry } from '../lib/types';
 
 export interface Sitter { name: string; role: string }
@@ -47,16 +46,4 @@ export function sitterLine(painting: string, kept: Entry[], all: Entry[], seed: 
   if (has('dining')) return { who: b, text: pick(['Lunch. Painted properly, as all lunches should be.', 'A good meal is never wasted money. Mostly.'], seed) };
   if (has('shopping', 'tech')) return { who: b, text: pick(['Something new. I’d like to see it in the light.', 'Bought. The question is whether you’ll still love it on Tuesday.'], seed) };
   return { who: a, text: pick(['Written. That’s the hardest part done.', 'Another line in the book. The painting moves.', 'Noted, weighed, and kept.'], seed) };
-}
-
-/** The museum label for today, built from today's lines. */
-export function labelOf(kept: Entry[], weekday: string): string {
-  const outs = kept.filter((e) => e.dir === 'out');
-  const ins = kept.some((e) => e.dir === 'in');
-  const top = outs.sort((x, y) => y.amount - x.amount)[0];
-  const noun = top ? cat(top.category).short : 'Coin';
-  if (ins && outs.length) return `Still Life with Pay Day and ${noun}. Oil on ledger. Workshop of You, ${weekday}.`;
-  if (ins) return `Allegory of Pay Day. Gold leaf on linen. Workshop of You, ${weekday}.`;
-  if (outs.length >= 3) return `Still Life with ${outs.length} Purchases. Oil on budget. On loan from ${weekday}.`;
-  return `Study of ${noun}. Red chalk and oil. Workshop of You, ${weekday}.`;
 }

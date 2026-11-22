@@ -55,15 +55,9 @@
 .ph-main .ch-acts { width: 100%; }
 .ph-main .ch-acts button { flex: 1; justify-content: center; height: 34px; font-size: 12.5px; }
 
-/* ——— The living painting, over everything, with a way back ——— */
-.st-back { display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 14px 0 10px; border-radius: 19px; font: 600 14px/1 var(--ui); color: var(--bone, #F6EEDC); background: rgba(20, 16, 11, .5); backdrop-filter: blur(8px); }
-.st-back i { font: italic 400 15px/1 var(--serif); opacity: .75; margin-left: 4px; }
-@media (max-width: 760px) { .st-back i { display: none; } }
-
 /* ——— Your book ——— */
 .book-title { font: 400 24px/1 var(--serif); padding: 0 10px 14px; color: var(--ink); }
 .book-title i { color: var(--gold); }
-.sheet-panes { display: contents; }
 .in-sheet .page { padding: 0 !important; max-width: none !important; margin: 0 !important; }
 .in-sheet .page > header:first-child { display: none; }
 
