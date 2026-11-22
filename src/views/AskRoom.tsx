@@ -183,11 +183,12 @@ function AnswerCard({ a, cur, who }: { a: MuseAnswer; cur: string; who: string }
             <div className="ar-work">
               <dl>{a.figures.map((f, i) => <div key={i} className={f.label.startsWith('  ') ? 'sub' : ''}><dt>{f.label.trim()}</dt><dd className="num">{f.value}</dd></div>)}</dl>
               {a.rows.length > 0 && <ul>{a.rows.slice(0, 8).map((e) => <li key={e.id}><span>{e.label}</span><span>{new Date(e.date + 'T12:00').toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}</span><span className="num">{money(e.amount, cur)}</span></li>)}</ul>}
+              {/* Where it ran stays in the working, for anyone who looks; the conversation itself carries no label. */}
+              <div className="ar-seal"><span className={'st-wax ' + a.planned}>{mark}</span>{a.note ?? line}</div>
             </div>
           )}
         </>
       )}
-      <div className="ar-seal"><span className={'st-wax ' + a.planned}>{mark}</span>{a.note ?? (a.planned === 'cloud' && !a.figures.length ? 'Gemini wrote this, in the cloud' : line)}</div>
     </div>
   );
 }
