@@ -346,3 +346,16 @@
 .ph-page .ar-ideas { scroll-padding-inline: 16px; }
 .ph-main .ch-tabs { margin: 0; width: 100%; box-sizing: border-box; flex: none; }
 .ph-main .ch-seg button { flex: 1 1 auto; padding: 0 8px; letter-spacing: -.005em; }
+
+/* ——— On the home screen: one quiet suggestion on Today ——— */
+.ph-install { display: flex; gap: 14px; align-items: flex-start; margin: 22px 0 4px; padding: 14px; border-radius: 18px; border: 1px solid var(--line); background: var(--card); box-shadow: 0 8px 22px -16px rgba(60, 40, 10, .5); }
+.ph-install img { flex: none; border-radius: 11px; box-shadow: 0 0 0 1px rgba(60, 40, 10, .2); }
+.ph-install-t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.ph-install-t b { font: 400 18px/1.2 var(--serif); letter-spacing: -.01em; color: var(--ink); }
+.ph-install-t > span { font: 400 13.5px/1.4 var(--grot); color: var(--ink-2); }
+.ph-install-t > span b { font: 600 13.5px/1.4 var(--grot); }
+.ph-install-t > span svg { vertical-align: -2px; color: var(--lapis); }
+.ph-install-do { display: flex; align-items: center; gap: 16px; margin-top: 8px; }
+.ph-install-do .ph-btn { height: 38px; padding: 0 18px; }
+/* Opened from the home screen: no browser bar above, so the bar leaves room for the clock. */
+@media (display-mode: standalone) { .ph-app { padding-top: max(env(safe-area-inset-top), 0px); } }

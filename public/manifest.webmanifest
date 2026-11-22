@@ -1,16 +1,30 @@
 {
-  "name": "CashGlome",
+  "id": "/",
+  "name": "CashGlome: your money, painted",
   "short_name": "CashGlome",
-  "description": "Your money, painted. A private money diary that stays on this phone.",
+  "description": "A private money diary for cash and bank transfers. Write it the way you'd say it; each month becomes a painting. Your entries stay on this phone and work offline.",
+  "lang": "en",
+  "dir": "auto",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "orientation": "portrait",
   "background_color": "#EEE6D6",
   "theme_color": "#EEE6D6",
+  "categories": ["finance", "productivity", "lifestyle"],
+  "launch_handler": { "client_mode": "focus-existing" },
   "icons": [
     { "src": "./icon-64.png", "sizes": "64x64", "type": "image/png" },
-    { "src": "./icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+    { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "./icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Write an entry", "short_name": "Write", "url": "./?open=write", "icons": [{ "src": "./icon-maskable-192.png", "sizes": "192x192" }] },
+    { "name": "Ask Florin", "short_name": "Ask", "url": "./?open=ask", "icons": [{ "src": "./icon-maskable-192.png", "sizes": "192x192" }] },
+    { "name": "Open the ledger", "short_name": "Ledger", "url": "./?open=ledger", "icons": [{ "src": "./icon-maskable-192.png", "sizes": "192x192" }] }
   ],
   "share_target": {
     "action": "./",

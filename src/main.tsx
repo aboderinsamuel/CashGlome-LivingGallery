@@ -11,6 +11,8 @@ import './phone/phone.css';
 import './shell.css';
 import App from './App';
 import { spotifyCallbackWindow } from './lib/spotify';
+// Listens for the browser's install offer from the first moment, before any screen is drawn.
+import './lib/install';
 // Folio, the design language, goes last so it sits over every view's own styles.
 import './folio.css';
 

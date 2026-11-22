@@ -393,6 +393,17 @@ export default function App() {
     setTimeout(() => composer.current?.fill(shared.slice(0, 2000)), 300);
   }, [state.profile.onboarded]);
 
+  // ——— Home-screen shortcuts (long-press the installed icon): Write, Ask, Ledger ———
+  useEffect(() => {
+    if (!state.profile.onboarded) return;
+    const open = new URLSearchParams(location.search).get('open');
+    if (!open) return;
+    history.replaceState(null, '', location.pathname);
+    if (open === 'ask') setViewRaw('ask');
+    else if (open === 'ledger') setViewRaw('ledger');
+    else if (open === 'write') { setViewRaw('today'); setTimeout(() => composer.current?.focus(), 350); }
+  }, [state.profile.onboarded]);
+
   // ——— Cash by balance ———
   const cashDue = useMemo(() => (phone ? dueCash(state) : null), [phone, state]);
   const answerCash = useCallback((left: number) => {

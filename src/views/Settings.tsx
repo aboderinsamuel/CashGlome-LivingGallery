@@ -13,6 +13,7 @@ import { Account } from '../components/Account';
 import { AppIcon } from '../components/Logo';
 import { artSrc, PAINTINGS, seasonalWallpaper, WALLPAPERS } from '../lib/art';
 import { MUSIC_PICKS, parseSpotify } from '../lib/spotify';
+import { InstallRow } from '../components/Install';
 import { SpotifyConnect } from '../components/Music';
 
 export type Pane = 'general' | 'categories' | 'routines' | 'account' | 'appearance' | 'music' | 'muse' | 'data' | 'about';
@@ -112,6 +113,7 @@ function General({ state, dispatch }: { state: State; dispatch: (a: Action) => v
         </Row>
       </Group>
       <Reminder state={state} dispatch={dispatch} />
+      <Group><InstallRow Row={Row} /></Group>
     </>
   );
 }

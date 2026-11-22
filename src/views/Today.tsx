@@ -17,6 +17,7 @@ import { safeToSpend } from '../stage/askPainting';
 import { circleStatus, peopleOf } from '../stage/books';
 import { dateInWords } from '../stage/words';
 import { usePhone } from '../phone/device';
+import { InstallNudge } from '../components/Install';
 import './today.css';
 
 /** What a sitter just said about a line, shown beside the miniature. */
@@ -151,6 +152,8 @@ export function Today({ state, dispatch, voice, onVoiceDone, onFill, onLedger, o
       {!fresh && todays.length === 0 && (evening || quietToday) && (
         <Sitting painting={painting} todays={todays} quiet={quietToday} calm={state.settings.calm} onWrite={() => onFill('')} onQuiet={setQuiet} />
       )}
+
+      {phone && <InstallNudge lines={state.entries.length} />}
 
       <div className="td-book">
         <section className="td-section" aria-label="Today’s lines">
