@@ -171,7 +171,7 @@ export function Calling({ calling, askName, name: given = '', replay, calm, by, 
             {calling.why.length ? <>Called by {calling.why.slice(0, -1).join(', ')}{calling.why.length > 1 ? ' and ' : ''}{calling.why[calling.why.length - 1]}. </> : null}
             A house for {house.calls}, with a little of the {HOUSES[calling.runnerUp].word} in you. Yours for a year.
           </p>
-          {askName && <p className="cl-step"><b>Step 2 of 2</b> Your first name, or leave it blank</p>}
+          {askName && <p className="cl-step"><b>II</b> Your first name, or leave it blank</p>}
           {askName ? (
             <form className="cl-sign" onSubmit={(e) => { e.preventDefault(); finish(); }}>
               <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Sign with your first name" aria-label="Your first name" autoComplete="given-name" maxLength={40} enterKeyHint="go" />

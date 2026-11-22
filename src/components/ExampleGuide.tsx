@@ -27,6 +27,8 @@ const STEPS = [
   { act: 'See', title: <>Every line cleans a <em>patch</em></>, body: 'Each month has a painting under old varnish. What you write lifts it, patch by patch; a finished month hangs in your gallery for good.' },
 ] as const;
 
+const NUM = ['I', 'II', 'III', 'fin'];
+
 function Dots({ step }: { step: number }) {
   return <span className="xg-dots" aria-label={step < 3 ? `Step ${step + 1} of 3` : 'Tour finished'}>{[0, 1, 2].map((i) => <i key={i} className={i <= step ? 'on' : ''} />)}</span>;
 }
@@ -47,6 +49,7 @@ export function ExampleGuide({ example, step, line, onWrite, onSee, onAsk, onEnd
       <AnimatePresence mode="wait" initial={false}>
         {touring && (step! < 2 ? (
           <motion.div key={step} className="xg-card" initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4, transition: { duration: 0.15 } }} transition={{ duration: 0.3, ease: [0.2, 0.8, 0.2, 1] }}>
+            <span className="xg-num" aria-hidden>{NUM[step!]}</span>
             <div className="xg-kick">
               <Dots step={step!} />
               <span>{s!.act}</span>
@@ -59,6 +62,7 @@ export function ExampleGuide({ example, step, line, onWrite, onSee, onAsk, onEnd
         ) : (
           // The last two steps are a slim bar, so the painting and Florin's answer stay in view.
           <motion.div key={step} className="xg-card slim" initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4, transition: { duration: 0.15 } }} transition={{ duration: 0.3, ease: [0.2, 0.8, 0.2, 1] }}>
+            <span className="xg-num" aria-hidden>{NUM[step!]}</span>
             <Dots step={step!} />
             {step === 2
               ? <p><b>Ask in plain words.</b> Florin works out what you mean; your device does the sums and shows its working.</p>

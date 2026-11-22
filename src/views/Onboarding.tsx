@@ -110,7 +110,7 @@ export function Onboarding({ initialCurrency, calm, onDone }: Props) {
               A private diary for your money. Write what you spend and earn, see where it goes, and watch a painting come back to life as you do.
             </motion.p>
             <motion.p className="ob-step" initial={calm ? false : { opacity: 0 }} animate={{ opacity: sent ? 0 : 1 }} transition={{ delay: 0.6, duration: 0.6 }}>
-              <b>Step 1 of 2</b> Write what something cost
+              <b>I</b><span>Write what something cost</span>
             </motion.p>
             <motion.div className="ob-slip-wrap" initial={calm ? false : { opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.65, duration: 0.6 }}>
               <form className={'ob-slip' + (sent ? ' sent' : '') + (voice ? ' rec' : '')} onSubmit={(e) => { e.preventDefault(); send(); }}>
@@ -136,19 +136,18 @@ export function Onboarding({ initialCurrency, calm, onDone }: Props) {
                   <i style={{ background: cat(p.category).color }} />{p.label}<b className="num">{p.dir === 'in' ? '+' : '−'}{money(p.amount, p.currency ?? currency)}</b>
                 </motion.span>
               )) : note ? <span className="ob-note">{note}</span> : !sent && (
-                <div className="ob-try-wrap">
-                  <span className="ob-try-hint">Or tap one to try it</span>
-                  <div className="ob-try" role="group" aria-label="Example lines">
-                    {examples.map((x, i) => <button key={x} type="button" className={'ob-try-line' + (i === 0 && nudge ? ' nudge' : '')} onClick={() => tryLine(x)}>{x}</button>)}
-                  </div>
-                </div>
+                <p className="ob-try" role="group" aria-label="Example lines">
+                  <span className="ob-try-hint">or try</span>
+                  {examples.slice(0, 2).map((x, i) => <span key={x} className="ob-try-item">{i > 0 && <i aria-hidden>·</i>}<button type="button" className={'ob-try-line' + (i === 0 && nudge ? ' nudge' : '')} onClick={() => tryLine(x)}>{x}</button></span>)}
+                </p>
               )}
               {!sent && read.length > 0 && <span className="ob-again">Read like that? Press the arrow to keep it.</span>}
             </div>
             {!sent && (
               <motion.div className="ob-cover-foot" initial={calm ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1, duration: 0.6 }}>
+                <span className="ob-rule" aria-hidden />
                 <button type="button" className="ob-example" onClick={() => onDone({ name: '', currency, sample: true })}>
-                  <span>Show me a finished month first</span><small>An example book with a short tour. Nothing in it is real.</small>
+                  <span>Or see a finished month first</span><Icon.right size={16} />
                 </button>
                 <div className="ob-acts">
                   <button type="button" className="ob-quiet" onClick={() => onDone({ name: '', currency, statement: true })}>Import a bank statement</button>
