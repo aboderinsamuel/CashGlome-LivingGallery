@@ -1,0 +1,46 @@
+/* The example month's ribbon and tour: gold leaf on parchment, like a gallery's loan label. */
+.xg { position: relative; z-index: 6; }
+.xg-bar { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 6px 8px 6px 14px;
+  background: color-mix(in srgb, var(--gold) 14%, var(--paper)); border-block: 1px solid color-mix(in srgb, var(--gold) 45%, transparent); }
+.xg-mark { width: 4px; align-self: stretch; margin: 2px 0; border-radius: 2px; background: var(--gold); flex: none; }
+.xg-say { flex: 1; min-width: 0; display: grid; gap: 1px; font: 400 12.5px/1.25 var(--grot); color: var(--ink-2); }
+.xg-say b { font: italic 400 16px/1.1 var(--serif); color: var(--ink); }
+.xg-out { flex: none; height: 34px; padding: 0 13px; border-radius: 17px; background: var(--ink); color: var(--paper); font: 600 12.5px/1 var(--grot); white-space: nowrap; }
+.xg-link { flex: none; height: 34px; padding: 0 6px; font: 600 12.5px/1 var(--grot); color: var(--ink-2); text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--gold) 70%, transparent); text-underline-offset: 3px; white-space: nowrap; }
+
+.xg-card { margin: 8px 12px 4px; padding: 14px 16px 16px; border-radius: 16px; background: var(--paper);
+  border: 1px solid color-mix(in srgb, var(--gold) 55%, transparent); box-shadow: 0 2px 0 color-mix(in srgb, var(--gold) 35%, transparent), 0 18px 40px -22px rgba(40, 28, 12, .55); }
+.xg-kick { display: flex; align-items: center; gap: 10px; font: 600 10.5px/1 var(--grot); letter-spacing: .16em; text-transform: uppercase; color: var(--gold); }
+.xg-dots { display: flex; gap: 4px; }
+.xg-dots i { width: 16px; height: 3px; border-radius: 2px; background: color-mix(in srgb, var(--gold) 25%, transparent); }
+.xg-dots i.on { background: var(--gold); }
+.xg-skip { margin-left: auto; height: 28px; padding: 0 2px; font: 500 12px/1 var(--grot); letter-spacing: 0; text-transform: none; color: var(--ink-3); }
+.xg-card h2 { margin: 10px 0 4px; font: 400 23px/1.1 var(--serif); letter-spacing: -.02em; color: var(--ink); }
+.xg-card h2 em { font-style: italic; color: var(--vermilion, #A8432A); }
+.xg-card p { margin: 0 0 12px; font: 400 14px/1.45 var(--grot); color: var(--ink-2); }
+.xg-go { display: block; width: 100%; min-height: 44px; padding: 10px 14px; border-radius: 12px; background: var(--ink); color: var(--paper);
+  font: 600 14px/1.3 var(--grot); text-align: center; }
+.xg-go:active { transform: translateY(1px); }
+.xg-end { display: flex; align-items: center; gap: 12px; }
+.xg-end .xg-go { flex: 1; }
+.xg button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+/* The phone: under the top bar, above the page, so it never covers what it talks about. */
+.ph-app > .xg { flex: none; }
+
+/* The computer: a label pinned at the window's top right, clear of the toolbar. */
+.app > .xg { position: absolute; top: 60px; right: 16px; width: min(380px, calc(100% - var(--side, 0px) - 32px)); z-index: 16; }
+.app > .xg .xg-bar { border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent); border-radius: 14px; box-shadow: 0 14px 30px -20px rgba(40, 28, 12, .5); }
+.app > .xg .xg-card { margin: 8px 0 0; }
+:root[data-phone] .app > .xg { display: none; }
+
+/* The last steps: one slim row, so what they point at stays in view. */
+.xg-card.slim { display: flex; align-items: center; gap: 12px; padding: 10px 10px 10px 14px; }
+.xg-card.slim .xg-dots { flex-direction: column; gap: 3px; }
+.xg-card.slim .xg-dots i { width: 3px; height: 10px; }
+.xg-card.slim p { flex: 1; min-width: 0; margin: 0; font-size: 13px; line-height: 1.35; }
+.xg-card.slim p b { font: italic 400 15px/1.2 var(--serif); color: var(--ink); }
+.xg-card.slim .xg-go { flex: none; width: auto; min-height: 40px; padding: 0 14px; font-size: 13px; }
+.xg-say b, .xg-say span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 380px) { .xg-bar { gap: 6px; padding-left: 12px; } .xg-out { padding: 0 11px; } }
+.xg-say { min-width: 108px; }

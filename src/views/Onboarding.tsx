@@ -35,26 +35,6 @@ interface Props {
 
 const buzz = (ms: number | number[]) => { try { navigator.vibrate?.(ms); } catch { /* not on this device */ } };
 
-/** The placeholder writes example lines by itself, one after another, until they start typing. */
-function useTypedHint(lines: string[], on: boolean) {
-  const [hint, setHint] = useState('');
-  useEffect(() => {
-    if (!on) return;
-    let line = 0, i = 0, dir = 1, t = 0;
-    const step = () => {
-      const s = lines[line % lines.length];
-      i += dir;
-      setHint(s.slice(0, i));
-      if (dir > 0 && i >= s.length) { dir = -1; t = window.setTimeout(step, 1900); return; }
-      if (dir < 0 && i <= 0) { dir = 1; line++; t = window.setTimeout(step, 400); return; }
-      t = window.setTimeout(step, dir > 0 ? 55 : 22);
-    };
-    t = window.setTimeout(step, 900);
-    return () => clearTimeout(t);
-  }, [lines, on]);
-  return hint;
-}
-
 export function Onboarding({ initialCurrency, calm, onDone }: Props) {
   const [act, setAct] = useState<Act>('cover');
   const [currency, setCurrency] = useState(initialCurrency);
@@ -73,7 +53,15 @@ export function Onboarding({ initialCurrency, calm, onDone }: Props) {
   const canSpeak = useMemo(() => voiceSupport() !== null, []);
   const read = useMemo(() => parseStory(text, { home: currency }), [text, currency]);
   const examples = useMemo(() => examplesFor(currency), [currency]);
-  const hint = useTypedHint(examples, !text && !sent && !calm);
+  // Someone who hasn't typed after a few seconds may not know they can: the first example glows, once.
+  const [nudge, setNudge] = useState(false);
+  useEffect(() => {
+    if (text || sent || act !== 'cover') { setNudge(false); return; }
+    const t = setTimeout(() => setNudge(true), 8000);
+    return () => clearTimeout(t);
+  }, [text, sent, act]);
+  /** An example line goes on the slip, read at once; the arrow keeps it. */
+  const tryLine = (x: string) => { setText(x); setNote(''); setNudge(false); };
   useEffect(() => { prepareOverture(); }, []);
 
   // A line that names its money ("$20", "4,000 naira") says which currency they count in.
@@ -121,13 +109,16 @@ export function Onboarding({ initialCurrency, calm, onDone }: Props) {
             <motion.p className="ob-lede" initial={calm ? false : { opacity: 0 }} animate={{ opacity: sent ? 0 : 1 }} transition={{ delay: 0.5, duration: 0.6 }}>
               A private diary for your money. Write what you spend and earn, see where it goes, and watch a painting come back to life as you do.
             </motion.p>
+            <motion.p className="ob-step" initial={calm ? false : { opacity: 0 }} animate={{ opacity: sent ? 0 : 1 }} transition={{ delay: 0.6, duration: 0.6 }}>
+              <b>Step 1 of 2</b> Write what something cost
+            </motion.p>
             <motion.div className="ob-slip-wrap" initial={calm ? false : { opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.65, duration: 0.6 }}>
               <form className={'ob-slip' + (sent ? ' sent' : '') + (voice ? ' rec' : '')} onSubmit={(e) => { e.preventDefault(); send(); }}>
                 <button type="button" className="ob-coin" onClick={() => setPicking((p) => !p)} aria-label={`Counting in ${currency}. Change the currency`} aria-expanded={picking} disabled={sent}>
                   <Medallion code={currency} size={30} />
                 </button>
                 <input ref={input} value={text} onChange={(e) => { setText(e.target.value); setNote(''); }}
-                  placeholder={hint || 'What did today cost?'} aria-label="What did today cost?" enterKeyHint="send" disabled={sent} />
+                  placeholder="What did today cost?" aria-label="What did today cost?" enterKeyHint="send" disabled={sent} />
                 {canSpeak && !sent && <button type="button" className={'ob-mic' + (voice ? ' on' : '')} onClick={speak} aria-label={voice ? 'Stop listening' : 'Say it instead'}><Icon.mic size={18} /></button>}
                 <button type="submit" className="wax ob-send" aria-label="Keep this line" disabled={sent}><Icon.up size={18} /></button>
               </form>
@@ -144,17 +135,26 @@ export function Onboarding({ initialCurrency, calm, onDone }: Props) {
                 <motion.span key={i + p.label} className={'ob-read' + (p.dir === 'in' ? ' in' : '')} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}>
                   <i style={{ background: cat(p.category).color }} />{p.label}<b className="num">{p.dir === 'in' ? '+' : '−'}{money(p.amount, p.currency ?? currency)}</b>
                 </motion.span>
-              )) : note ? <span className="ob-note">{note}</span> : (
-                <ul className="ob-promise" aria-label="Promises"><li>No sign-up</li><li>Works offline</li><li>No bank login</li><li>No ads</li></ul>
+              )) : note ? <span className="ob-note">{note}</span> : !sent && (
+                <div className="ob-try-wrap">
+                  <span className="ob-try-hint">Or tap one to try it</span>
+                  <div className="ob-try" role="group" aria-label="Example lines">
+                    {examples.map((x, i) => <button key={x} type="button" className={'ob-try-line' + (i === 0 && nudge ? ' nudge' : '')} onClick={() => tryLine(x)}>{x}</button>)}
+                  </div>
+                </div>
               )}
+              {!sent && read.length > 0 && <span className="ob-again">Read like that? Press the arrow to keep it.</span>}
             </div>
             {!sent && (
               <motion.div className="ob-cover-foot" initial={calm ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1, duration: 0.6 }}>
+                <button type="button" className="ob-example" onClick={() => onDone({ name: '', currency, sample: true })}>
+                  <span>Show me a finished month first</span><small>An example book with a short tour. Nothing in it is real.</small>
+                </button>
                 <div className="ob-acts">
-                  <button type="button" className="ob-quiet" onClick={() => onDone({ name: '', currency, sample: true })}>Look around an example month</button>
-                  <span aria-hidden>·</span><button type="button" className="ob-quiet" onClick={() => onDone({ name: '', currency, statement: true })}>Import a bank statement</button>
+                  <button type="button" className="ob-quiet" onClick={() => onDone({ name: '', currency, statement: true })}>Import a bank statement</button>
                   {cloudConfigured && <><span aria-hidden>·</span><button type="button" className="ob-quiet" onClick={() => setAct('return')}>I already have a book</button></>}
                 </div>
+                <ul className="ob-promise" aria-label="Promises"><li>No sign-up</li><li>Works offline</li><li>No bank login</li><li>No ads</li></ul>
               </motion.div>
             )}
           </motion.section>

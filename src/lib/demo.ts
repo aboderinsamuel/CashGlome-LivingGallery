@@ -46,7 +46,7 @@ export function demoEntries(currency: string): Entry[] {
   const rnd = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
   const add = (d: Date, t: T, mult = 1, dir: 'in' | 'out' = t.dir ?? 'out') => {
     const amount = round(t.usd * scale * ppp * mult * (0.85 + rnd() * 0.35), currency);
-    out.push({ id: uid(), text: t.text, label: t.label, amount, dir, category: t.cat, feeling: t.feeling, date: todayISO(d), createdAt: d.getTime(), source: 'oracle', confidence: 0.9 });
+    out.push({ id: uid(), text: t.text, label: t.label, amount, dir, category: t.cat, feeling: t.feeling, date: todayISO(d), createdAt: d.getTime(), source: 'oracle', confidence: 0.9, sample: true });
   };
   const now = new Date();
   const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);

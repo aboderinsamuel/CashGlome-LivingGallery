@@ -266,7 +266,9 @@ function Data({ state, dispatch, close }: { state: State; dispatch: (a: Action) 
           }} />
           <button className="btn" onClick={() => file.current?.click()}><Icon.upload size={14} /> Import</button>
         </Row>
-        <Row label="Sample months" sub="Adds two months of example entries so you can look around."><button className="btn" onClick={() => { dispatch({ type: 'addEntries', entries: demoEntries(state.profile.currency) }); close(); }}>Add samples</button></Row>
+        {state.entries.some((e) => e.sample)
+          ? <Row label="Example months" sub="The example entries are in your book. Removing them leaves everything you wrote."><button className="btn" onClick={() => { dispatch({ type: 'dropSamples' }); close(); }}>Remove examples</button></Row>
+          : <Row label="Example months" sub="Adds two months of example entries so you can look around. They're marked, and come out in one tap."><button className="btn" onClick={() => { dispatch({ type: 'addEntries', entries: demoEntries(state.profile.currency) }); close(); }}>Add examples</button></Row>}
       </Group>
       <Group>
         <Row label="Erase everything" sub={confirm ? 'This deletes every entry, goal and setting on this device. It cannot be undone.' : 'Start again from a blank page.'}>

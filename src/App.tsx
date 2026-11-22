@@ -38,6 +38,7 @@ import { SettingsSheet } from './views/Settings';
 import { Edition } from './views/Edition';
 import { ShareSheet } from './components/ShareSheet';
 import { Onboarding } from './views/Onboarding';
+import { ExampleGuide, type TourStep } from './components/ExampleGuide';
 import { settleOverture } from './lib/overture';
 import type { Calling } from './lib/houses';
 import { MemoryView } from './views/Memory';
@@ -68,6 +69,8 @@ export default function App() {
   // First run: the cover, a name, and the first line. Shown until the book has been started.
   const [welcoming, setWelcoming] = useState(() => !state.profile.onboarded && state.entries.length === 0);
   const [firstLine, setFirstLine] = useState<string | null>(null);
+  // The example month's tour: Write, See, Ask, then the way into a book of your own.
+  const [tour, setTour] = useState<TourStep | null>(null);
   const [filter, setFilter] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [settings, setSettingsPane] = useState<Pane | 'list' | null>(null);
@@ -331,9 +334,9 @@ export default function App() {
   const welcomed = useCallback(({ name, currency, line, sample, house, statement: fromBank }: { name: string; currency: string; line?: string; sample?: boolean; house?: Calling; statement?: boolean }) => {
     if (welcomedOnce.current) return;
     welcomedOnce.current = true;
-    dispatch({ type: 'onboard', name, currency });
+    dispatch({ type: 'onboard', name, currency, example: sample });
     if (house) dispatch({ type: 'house', calling: house });
-    if (sample) dispatch({ type: 'addEntries', entries: demoEntries(currency) });
+    if (sample) { dispatch({ type: 'addEntries', entries: demoEntries(currency) }); setTour(0); }
     if (line) setFirstLine(line);
     if (fromBank) setStatement({ file: null });
     setView('today');
@@ -490,6 +493,26 @@ export default function App() {
     play: <Play state={state} />,
     collection: <Collection state={state} onOpen={(m) => { setMonth(m); setView('chapter'); }} onCamera={() => setCapture({ file: null })} onPlay={goView('play')} />,
   };
+  // While example entries are in the book, every page says so, with the way out in words.
+  const TOUR_QUESTION = 'Where did my money go this month?';
+  const leaveExample = () => {
+    setTour(null);
+    if (!state.profile.example) { dispatch({ type: 'dropSamples' }); return; }
+    // Opened as the example: start again as someone who has never been here.
+    try { localStorage.removeItem('cg-ask-room'); } catch { /* nothing kept */ }
+    setAskTurns([]); setAskFirst(null);
+    dispatch({ type: 'reset' });
+    welcomedOnce.current = false;
+    setViewRaw('today');
+    setWelcoming(true);
+  };
+  const guide = !welcoming && state.entries.some((e) => e.sample) ? (
+    <ExampleGuide example={!!state.profile.example} step={tour} line={examplesFor(cur)[0]}
+      onWrite={() => { setView('today'); void submit(examplesFor(cur)[0], {}); setTour(1); }}
+      onSee={() => { setView('chapter'); setTour(2); }}
+      onAsk={() => { askAbout(TOUR_QUESTION); setTour(3); }}
+      onEndTour={() => setTour(null)} onTour={() => { setView('today'); setTour(0); }} onLeave={leaveExample} />
+  ) : null;
   const composerProps = { currency: cur, aiOn: brainConfigured, busy, notice, onSubmit: submit, onCamera: (file?: Blob) => setCapture({ file: file ?? null }), onAsk: askAbout, onRemember: remember };
 
   const appWindow = (
@@ -501,6 +524,7 @@ export default function App() {
         onEdition={() => setEdition(true)} onBook={() => openSettings()} onRoutines={() => openSettings('routines')} onMusic={() => setMusic((x) => !x)} musicOn={!!state.settings.music?.on} musicName={state.settings.music?.on ? state.settings.music.name : undefined} wall={wall}
       />
 
+      {guide}
       <main className="main" ref={main}>
         {/* The new page is on screen in the same frame as the tap; it only settles in, like iOS. No waiting for the old one to leave. */}
         <motion.div key={`${view}:${state.month}`} initial={{ opacity: 0.4, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18, ease: [0.2, 0.8, 0.2, 1] }}>
@@ -547,6 +571,7 @@ export default function App() {
       onStopMusic={() => state.settings.music && dispatch({ type: 'settings', patch: { music: { ...state.settings.music, on: false } } })}
       musicDock={<MusicDock phone state={state} dispatch={dispatch} open={music} onClose={closeMusic} />}
       onEdition={() => setEdition(true)} onShare={() => setSharing(true)} onLiving={goView('collection')}
+      ribbon={guide}
       composer={
         <Composer ref={composer} {...composerProps}
           idle={state.entries.length === 0 ? <FirstLines cur={cur} onFill={fill} lead={<ImportChip onClick={openStatement} />} /> : <Chips state={state} onRepeat={repeat} onFill={fill} after={<ImportChip onClick={openStatement} />} />}

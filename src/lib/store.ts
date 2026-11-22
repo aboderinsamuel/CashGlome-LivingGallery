@@ -45,7 +45,8 @@ export interface Remote {
 }
 
 export type Action =
-  | { type: 'onboard'; name: string; currency: string }
+  | { type: 'onboard'; name: string; currency: string; example?: boolean }
+  | { type: 'dropSamples' }
   | { type: 'addEntries'; entries: Entry[] }
   | { type: 'update'; id: string; patch: Partial<Entry> }
   | { type: 'remove'; id: string }
@@ -81,7 +82,8 @@ export const toEntry = (p: Parsed): Entry => ({ id: uid(), text: p.text, label: 
 export function reducer(s: State, a: Action): State {
   switch (a.type) {
     case 'house': return { ...s, house: a.calling };
-    case 'onboard': return { ...s, profile: { ...s.profile, name: a.name || s.profile.name, currency: s.profile.onboarded ? s.profile.currency : a.currency, onboarded: true } };
+    case 'onboard': return { ...s, profile: { ...s.profile, name: a.name || s.profile.name, currency: s.profile.onboarded ? s.profile.currency : a.currency, onboarded: true, example: a.example || undefined } };
+    case 'dropSamples': return { ...s, entries: s.entries.filter((e) => !e.sample) };
     case 'addEntries': return { ...s, entries: [...s.entries, ...a.entries] };
     case 'update': return { ...s, entries: s.entries.map((e) => (e.id === a.id ? { ...e, ...a.patch, source: a.patch.category || a.patch.dir ? 'manual' : e.source, updatedAt: Date.now() } : e)) };
     case 'remove': return { ...s, entries: s.entries.filter((e) => e.id !== a.id), gone: [...s.gone, { kind: 'entry' as const, id: a.id, at: Date.now() }].slice(-500) };

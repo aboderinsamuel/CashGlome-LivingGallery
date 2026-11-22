@@ -40,6 +40,8 @@ interface Props {
   musicOn: boolean;
   musicName?: string;
   musicDock: ReactNode;
+  /** The example month's ribbon and tour, under the top bar on every page. */
+  ribbon?: ReactNode;
 }
 
 const PAGE_TITLE: Record<PhonePage, string> = { read: 'The chapter', plans: 'Plans', memory: 'Routines & memory' };
@@ -96,6 +98,7 @@ export function PhoneApp(p: Props) {
           </>
         )}
       </header>
+      {p.ribbon}
 
       <main className="ph-main" key={pushed ?? view} onScroll={(e) => { const y = e.currentTarget.scrollTop > 56; if (y !== scrolled) setScrolled(y); }}>
         {pushed ? <div className="ph-page">{pushed === 'read' ? p.pages.read : p.pages[pushed]}</div>

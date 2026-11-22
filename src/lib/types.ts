@@ -18,6 +18,7 @@ export interface Entry {
   routine?: string; // the memory it was logged from, when a routine logged it
   updatedAt?: number; // last edit, for sync
   statement?: string; // brought in from a bank statement: the bank's name (or the file's)
+  sample?: boolean; // part of the example month: not real money, removable in one tap
 }
 
 export interface Goal {
@@ -84,6 +85,8 @@ export interface Profile {
   currency: string;
   onboarded: boolean;
   createdAt: number;
+  /** The book was opened as the example month, not started by the person. */
+  example?: boolean;
 }
 
 export interface State {

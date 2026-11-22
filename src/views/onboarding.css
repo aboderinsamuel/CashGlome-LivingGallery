@@ -114,3 +114,47 @@
 .ob-reads .ob-promise { margin: 0; }
 /* While the shader warms up, the painting itself, drawn faint in chalk, instead of a black screen. */
 .ob-still.wait { filter: grayscale(1) sepia(1) hue-rotate(-25deg) saturate(2.2) contrast(1.4) brightness(1.15); opacity: .7; }
+
+/* ——— Saying what to do: the step, example lines to tap, and the way into the example month ——— */
+.ob-step { margin: 18px auto -12px; font: 400 14px/1.4 var(--grot); color: var(--bone-2); }
+.ob-step b { margin-right: 8px; font: 600 10.5px/1 var(--grot); letter-spacing: .16em; text-transform: uppercase; color: var(--gilt); }
+.ob-try { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; }
+.ob-try-wrap { width: 100%; display: grid; gap: 8px; animation: ob-in .6s ease .85s both; }
+.ob-try-hint { font: italic 400 14px/1.2 var(--serif); color: var(--bone-3); }
+.ob-try-line { height: 34px; padding: 0 13px; border-radius: 10px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  background: rgba(14,10,6,.5); border: 1px solid rgba(246,238,220,.22); font: 400 15px/1 var(--serif); color: var(--bone); transition: background-color .2s, border-color .2s; }
+.ob-try-line:hover { border-color: rgba(226,194,122,.6); }
+.ob-try-line.nudge { border-color: var(--gilt); animation: ob-gild 1.6s ease-in-out 2; }
+@keyframes ob-gild { 50% { background: rgba(226,194,122,.22); box-shadow: 0 0 0 4px rgba(226,194,122,.18); } }
+.ob-again { width: 100%; font: italic 400 13.5px/1.3 var(--serif); color: var(--bone-3); }
+.ob-example { display: grid; gap: 3px; justify-items: center; width: min(420px, 100%); padding: 11px 18px 12px; border-radius: 14px;
+  border: 1px solid rgba(226,194,122,.55); background: rgba(14,10,6,.42); color: var(--bone); transition: background-color .2s, border-color .2s; }
+.ob-example span { font: 400 18px/1.15 var(--serif); }
+.ob-example small { font: 400 12.5px/1.3 var(--grot); color: var(--bone-3); }
+.ob-example:hover { border-color: var(--gilt); background: rgba(226,194,122,.1); }
+.ob-example:focus-visible { outline: 2px solid var(--chalk); outline-offset: 3px; }
+.ob-cover-foot { gap: 6px; margin-top: 10px; }
+.ob-cover-foot .ob-acts { margin-top: 0; }
+.ob-cover-foot .ob-promise { margin-top: 2px; }
+@media (max-width: 640px) {
+  .ob-cover h1 { font-size: clamp(40px, 12.4vw, 56px); }
+  .ob-lede { font-size: 15px; margin-top: 8px; }
+  .ob-step { margin: 12px auto -14px; font-size: 13px; }
+  .ob-try-line { font-size: 14px; height: 32px; padding: 0 11px; }
+  .ob-reads { margin-top: 10px; }
+}
+@media (max-height: 700px) and (max-width: 640px) { .ob-lede { display: none; } }
+@media (prefers-reduced-motion: reduce) { .ob-try-line.nudge { animation: none; } }
+/* The examples arrive with the rest of the cover, not before it. */
+@keyframes ob-in { from { opacity: 0; transform: translateY(6px); } }
+@media (max-width: 640px) {
+  /* More words sit on the painting now, so the veil reaches higher. */
+  .ob-veil { background: linear-gradient(0deg, rgba(14,10,6,.95) 0%, rgba(14,10,6,.86) 52%, rgba(14,10,6,.35) 78%, rgba(14,10,6,.1) 90%), linear-gradient(rgba(14,10,6,.55), transparent 18%); }
+  /* One row of examples that scrolls sideways, so the cover keeps its height. */
+  .ob-try { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 0 16px 2px; scroll-padding: 0 16px; }
+  .ob-try::-webkit-scrollbar { display: none; }
+  .ob-try-line { flex: none; }
+  .ob-reads { flex-direction: column; align-items: stretch; }
+  .ob-reads:has(.ob-read) { flex-direction: row; align-items: center; }
+}
+@media (prefers-reduced-motion: reduce) { .ob-try-wrap { animation: none; } }
