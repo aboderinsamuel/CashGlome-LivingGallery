@@ -175,8 +175,6 @@
 .mini-frame img { box-shadow: 0 0 0 1px rgba(40, 25, 5, 0.6); }
 .popup.dark { height: 40px; border-radius: 20px; padding: 0 14px; background: rgba(246, 238, 220, 0.1); color: #F6EEDC; border-color: rgba(246, 238, 220, 0.18); box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.15); font-size: 14px; }
 .popup.dark select option { color: #1A140D; }
-.welcome-sample { display: block; margin: 22px auto 0; font: 400 14px var(--grot); color: rgba(246, 238, 220, 0.66); text-decoration: underline; text-decoration-color: rgba(246, 238, 220, 0.25); text-underline-offset: 4px; cursor: pointer; }
-.welcome-sample:hover { color: #F6EEDC; }
 .starts { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-top: 30px; max-width: 520px; }
 .start { display: grid; justify-items: start; gap: 4px; padding: 16px 16px 14px; border-radius: 18px; text-align: left; cursor: pointer; background: var(--card); border: 0.5px solid var(--hair); box-shadow: inset 0 0.5px 0 var(--hair-hi), var(--shadow-1); transition: transform 0.2s var(--ease), box-shadow 0.2s; }
 .start:hover { transform: translateY(-2px); box-shadow: inset 0 0.5px 0 var(--hair-hi), var(--shadow-2); }
@@ -208,48 +206,9 @@
 @keyframes dotPop { from { transform: scale(0); } }
 @media (prefers-reduced-motion: reduce) { .tray, .tray .coin, .days .bar, .days .dot { animation: none !important; transition: none !important; } .days .bar, .days .dot { visibility: visible !important; } .tray { opacity: 1; transform: none; } }
 
-/* ——— Ask about your money: a Spotlight-like panel above the writing box ——— */
-.ask-scrim { display: grid; place-items: end center; padding: 24px 16px 96px; background: rgba(20, 14, 6, 0.18); backdrop-filter: none; -webkit-backdrop-filter: none; }
-.panel.ask { width: min(640px, 100%); max-height: min(72vh, 680px); display: flex; flex-direction: column; overflow: hidden; }
-.ask-head { display: flex; align-items: center; gap: 12px; padding: 16px 16px 12px 18px; border-bottom: 0.5px solid var(--hair); }
-.ask-badge { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; color: #1A140D; background: linear-gradient(180deg, #EBD08F, #C9A253); box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.5); flex: none; }
-.ask-title { font: 600 15px var(--ui); letter-spacing: -0.01em; }
-.panel-x.static { position: static; flex: none; }
-.ask-body { flex: 1; overflow-y: auto; padding: 14px 18px 6px; display: grid; gap: 18px; align-content: start; overscroll-behavior: contain; }
-.ask-try { display: grid; gap: 10px; }
-.ask-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+/* ——— Question chips: tap one to ask it ——— */
 .ask-chip { padding: 8px 13px; border-radius: 999px; background: var(--fill); font: 500 13px var(--ui); color: var(--ink); text-align: left; transition: background 0.15s; }
 .ask-chip:hover { background: var(--fill-2); }
-.ask-turn { display: grid; gap: 8px; }
-.ask-q { justify-self: end; max-width: 85%; padding: 8px 13px; border-radius: 16px 16px 4px 16px; background: var(--accent); color: #fff; font: 500 14px/1.35 var(--ui); }
-.ask-a { justify-self: start; max-width: 100%; }
-.ask-a p { margin: 0; font: 400 17px/1.45 var(--serif); color: var(--ink); text-wrap: pretty; }
-.ask-a p + p, .ask-a p + .ask-list, .ask-a .ask-list + p { margin-top: 8px; }
-.ask-list { margin: 6px 0 0; padding-left: 20px; font: 400 16px/1.45 var(--serif); color: var(--ink); }
-.ask-list li + li { margin-top: 3px; }
-.ask-thinking { display: flex; align-items: center; gap: 10px; }
-.ask-src { margin-top: 6px; font: 500 11px var(--ui); color: var(--ink-3); letter-spacing: 0.01em; }
-.ask-work { margin-top: 10px; border-radius: 12px; background: var(--fill); padding: 0 12px; }
-.ask-work > summary { list-style: none; padding: 9px 0; font: 600 12.5px var(--ui); color: var(--ink-2); display: flex; align-items: center; gap: 6px; }
-.ask-work > summary::-webkit-details-marker { display: none; }
-.ask-work > summary::before { content: '›'; display: inline-block; transition: transform 0.15s; font-size: 15px; line-height: 1; }
-.ask-work[open] > summary::before { transform: rotate(90deg); }
-.ask-figs { margin: 0 0 10px; display: grid; gap: 4px; }
-.ask-figs > div { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; }
-.ask-figs dt { color: var(--ink-2); } .ask-figs dd { margin: 0; font-weight: 600; }
-.ask-rows { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 6px; }
-.ask-rows li { display: grid; grid-template-columns: 10px 1fr auto auto; align-items: center; gap: 10px; font-size: 13px; }
-.ask-rows .dotc { width: 10px; height: 10px; border-radius: 5px; }
-.ask-row-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ask-consent { padding: 14px; border-radius: 14px; background: var(--fill); }
-.ask-consent p { margin: 0 0 12px; font-size: 13.5px; line-height: 1.45; }
-.ask-input { display: flex; gap: 8px; padding: 10px 12px 12px 18px; border-top: 0.5px solid var(--hair); align-items: center; }
-.ask-input input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font: 400 15px var(--ui); padding: 8px 0; }
-.ask-dots { display: inline-flex; gap: 5px; padding: 8px 0; }
-.ask-dots i { width: 7px; height: 7px; border-radius: 4px; background: var(--ink-3); animation: askDot 1s ease-in-out infinite; }
-.ask-dots i:nth-child(2) { animation-delay: 0.15s; } .ask-dots i:nth-child(3) { animation-delay: 0.3s; }
-@keyframes askDot { 0%, 100% { opacity: 0.25; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-3px); } }
-@media (max-width: 560px) { .ask-scrim { padding: 8px 8px 8px; } .panel.ask { max-height: 86vh; } }
 /* The writing box says when Enter will ask instead of add. */
 .pchip.asking { color: var(--ink-2); }
 
@@ -285,7 +244,6 @@
 .share-actions .btn { height: 38px; padding: 0 18px; }
 .share-actions .btn:disabled { opacity: 0.5; }
 .share-note { min-height: 16px; }
-.share-chip { display: inline-flex; align-items: center; gap: 7px; }
 @media (max-width: 760px) {
   .panel.share { grid-template-columns: 1fr; max-height: calc(100dvh - 20px); overflow: auto; }
   .share-preview { padding: 50px 16px 12px; }
@@ -383,10 +341,6 @@
   .mem-add { padding-left: 14px; }
   .mem-input.field { font-size: 17px; }
 }
-.ask-runway { margin: 12px 0 4px; padding: 12px 12px 6px; border-radius: 14px; background: var(--fill); }
-.ask-remember { display: flex; align-items: center; gap: 10px; margin-top: 10px; padding: 8px 8px 8px 12px; border-radius: 14px; background: color-mix(in srgb, var(--gold) 12%, transparent); font-size: 13.5px; }
-.ask-remember span { flex: 1; }
-.ask-remember .small { flex: none; }
 
 /* Account & sync */
 .acct { display: grid; gap: 12px; max-width: 460px; }
@@ -403,6 +357,3 @@
 .btn.danger { color: #fff; background: var(--vermilion); border-color: transparent; }
 .btn.ghost { background: transparent; box-shadow: none; border-color: transparent; }
 .acct code { font-size: 12px; padding: 1px 5px; border-radius: 5px; background: var(--fill); }
-.welcome-acct { margin-top: 18px; padding-top: 18px; border-top: 1px solid rgba(246, 238, 220, 0.18); }
-.welcome-acct .acct { max-width: none; }
-.welcome-acct .field { background: rgba(246, 238, 220, 0.1); color: #F6EEDC; }

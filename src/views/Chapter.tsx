@@ -1,7 +1,7 @@
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { cat } from '../lib/categories';
-import { chapterOf, computeStats, momentsOf, projection, recurringOf, spaceSegs, type Chapter as Ch, type Stats } from '../lib/analytics';
+import { chapterOf, computeStats, momentsOf, projection, recurringOf, type Stats } from '../lib/analytics';
 import { dayCardOf, paintingOf, restorationOf, PATCHES, type Restoration } from '../lib/art';
 import { ex, money, monthLabel, shiftMonth, todayISO } from '../lib/format';
 import { useInView, useStages } from '../lib/inview';
@@ -19,7 +19,6 @@ import { Photo } from '../components/Photo';
 interface Props {
   state: State;
   dispatch: (a: Action) => void;
-  museChapter?: { title: Ch['title']; lede: string; notes: string[] } | null;
   onOpenCategory: (id: string) => void;
   onEdition: () => void;
   onWrite: (hint?: string) => void;
@@ -40,14 +39,14 @@ const PARTS: { id: Part; label: string; sub: string }[] = [
 const ease = [0.2, 0.8, 0.2, 1] as const;
 const reveal = { initial: { opacity: 0, y: 12 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true, margin: '0px 0px 120px 0px' }, transition: { duration: 0.4, ease } };
 
-export function Chapter({ state, dispatch, museChapter, onOpenCategory, onEdition, onWrite, onPlans, onGallery, onSay, onSnap, onShare }: Props) {
+export function Chapter({ state, dispatch, onOpenCategory, onEdition, onWrite, onPlans, onGallery, onSay, onSnap, onShare }: Props) {
   const canSay = useMemo(() => voiceSupport() !== null, []);
   const cur = state.profile.currency;
   const calm = state.settings.calm;
   const s = useMemo(() => computeStats(state.entries, state.month), [state.entries, state.month]);
   const prev = useMemo(() => computeStats(state.entries, shiftMonth(state.month, -1)), [state.entries, state.month]);
   const local = chapterOf(state, s);
-  const ch = museChapter ? { ...local, title: spaceSegs(museChapter.title), lede: museChapter.lede } : local;
+  const ch = local;
   const pageRef = useRef<HTMLDivElement>(null);
   const empty = !s.entries.length;
   const top = s.byCat.filter((c) => c.id !== 'savings');
@@ -174,11 +173,6 @@ export function Chapter({ state, dispatch, museChapter, onOpenCategory, onEditio
             <div className="kicker">Who you were this month</div>
             <h2 className="h2" style={{ marginTop: 14, fontSize: 'clamp(44px, 5vw, 64px)' }}>{ch.character.name}</h2>
             <p className="body-serif" style={{ marginTop: 14, maxWidth: 460 }}>{ch.character.line} Your painting this month is <em>{painting.title}</em>: {painting.why.charAt(0).toLowerCase() + painting.why.slice(1)}</p>
-            {museChapter?.notes?.length ? (
-              <ul style={{ margin: '22px 0 0', padding: 0, listStyle: 'none', display: 'grid', gap: 10, maxWidth: 520 }}>
-                {museChapter.notes.map((n, i) => <li key={i} style={{ display: 'flex', gap: 12, fontSize: 15 }}><span style={{ font: 'italic 400 16px var(--serif)', color: 'var(--gold)' }}>{['i.', 'ii.', 'iii.'][i]}</span>{n}</li>)}
-              </ul>
-            ) : null}
           </motion.div>
           <CharacterCard name={ch.character.name} line={ch.character.line} paintingId={painting.id} month={monthLabel(state.month)} owner={state.profile.name} calm={calm} />
         </section>

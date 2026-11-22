@@ -3,7 +3,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { downscale, type Picture } from '../lib/images';
 import { paintParchment, paintRenaissance } from '../lib/paint';
 import { readPicture, warmReader, type Reading } from '../lib/receipt';
-import { aiEnabled } from '../lib/ai';
 import { parseOne } from '../lib/parser';
 import { cat, choosable } from '../lib/categories';
 import { dayLabel, money, todayISO, uid } from '../lib/format';
@@ -37,7 +36,7 @@ export function CaptureSheet({ file: initial, settings, currency, attachTo, onDo
   const field = useRef<HTMLInputElement>(null);
   const seed = useMemo(() => Math.floor(Math.random() * 1e6), []);
 
-  useEffect(() => { if (!attachTo && !aiEnabled(settings)) warmReader(); if (initial) start(initial); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (!attachTo) warmReader(); if (initial) start(initial); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     const k = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', k);

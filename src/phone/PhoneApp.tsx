@@ -2,7 +2,7 @@
 // Chapter · Ledger · Gallery along the bottom; everything else is one tap away in the More sheet.
 import { motion } from 'framer-motion';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { chapterOf, computeStats, spaceSegs, type Chapter as Ch } from '../lib/analytics';
+import { chapterOf, computeStats } from '../lib/analytics';
 import { paintingOf, PATCHES, restorationOf } from '../lib/art';
 import { money, monthOf, shiftMonth, todayISO } from '../lib/format';
 import { findAmounts } from '../lib/parser';
@@ -24,7 +24,6 @@ interface Props {
   view: View;
   setView: (v: View) => void;
   setMonth: (m: string) => void;
-  museChapter?: { title: Ch['title']; lede: string } | null;
   /** The writing box, built by App (it owns saving). On every place but Ask, which has its own. */
   composer: ReactNode;
   pages: Record<'today' | 'ledger' | 'ask' | 'people' | 'play' | 'shelf' | 'collection' | PhonePage, ReactNode>;
@@ -103,7 +102,7 @@ export function PhoneApp(p: Props) {
           : place === 'chapter' ? (
             <>
               <ChapterTabs phone view={view} setView={go} onEdition={p.onEdition} onLiving={p.onLiving} />
-              {view === 'chapter' ? <PhoneHome key={state.month} state={state} dispatch={p.dispatch} museChapter={p.museChapter} isNow={isNow} onRead={() => setPage('read')} onLedger={() => go('ledger')} onShare={p.onShare} onLiving={p.onLiving} />
+              {view === 'chapter' ? <PhoneHome key={state.month} state={state} dispatch={p.dispatch} isNow={isNow} onRead={() => setPage('read')} onLedger={() => go('ledger')} onShare={p.onShare} onLiving={p.onLiving} />
                 : <div className="ph-page">{view === 'shelf' ? p.pages.shelf : view === 'play' ? p.pages.play : p.pages.collection}</div>}
             </>
           )
@@ -120,14 +119,14 @@ export function PhoneApp(p: Props) {
 }
 
 /* ——— Home: the title, the painting, one question ——— */
-function PhoneHome({ state, dispatch, museChapter, isNow, onRead, onLedger, onShare, onLiving }: {
-  state: State; dispatch: (a: Action) => void; museChapter?: { title: Ch['title']; lede: string } | null; isNow: boolean;
+function PhoneHome({ state, dispatch, isNow, onRead, onLedger, onShare, onLiving }: {
+  state: State; dispatch: (a: Action) => void; isNow: boolean;
   onRead: () => void; onLedger: () => void; onShare: () => void; onLiving: () => void;
 }) {
   const cur = state.profile.currency;
   const s = useMemo(() => computeStats(state.entries, state.month), [state.entries, state.month]);
   const local = chapterOf(state, s);
-  const title = museChapter ? spaceSegs(museChapter.title) : local.title;
+  const title = local.title;
   const painting = paintingOf(s);
   const r = useMemo(() => restorationOf(state.entries, state.month, state.quiet), [state.entries, state.quiet, state.month]);
   const empty = !s.entries.length;

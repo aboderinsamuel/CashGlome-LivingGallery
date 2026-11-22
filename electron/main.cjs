@@ -65,22 +65,6 @@ ipcMain.handle('win:zoom', () => {
   else win.isMaximized() ? win.unmaximize() : win.maximize();
 });
 
-// AI calls go through the main process: no CORS, key never leaves the machine except to the API.
-ipcMain.handle('ai:chat', async (_e, { base, key, body }) => {
-  const url = String(base || 'https://api.meta.ai/v1').replace(/\/+$/, '') + '/chat/completions';
-  if (!/^https:\/\//.test(url)) return { ok: false, status: 400, text: 'Base URL must be https' };
-  try {
-    const r = await fetch(url, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', authorization: 'Bearer ' + key },
-      body: JSON.stringify(body),
-    });
-    return { ok: r.ok, status: r.status, text: await r.text() };
-  } catch (e) {
-    return { ok: false, status: 0, text: String((e && e.message) || e) };
-  }
-});
-
 // Spotify sign-in (PKCE). The browser does the sign-in; this catches the redirect on a loopback port
 // for a few minutes, then closes. Only Spotify's accounts site is ever opened, and only https.
 let spotifyServer = null;

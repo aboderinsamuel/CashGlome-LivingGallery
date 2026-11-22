@@ -1,5 +1,4 @@
 import { useEffect, useReducer } from 'react';
-import { DEFAULT_BASE, SHARED_MUSE } from './ai';
 import { applyCategories } from './categories';
 import { guessCurrency, monthOf, todayISO, uid } from './format';
 import type { Entry, Goal, Memory, Parsed, RoutineMark, Settings, State } from './types';
@@ -7,8 +6,8 @@ import type { Entry, Goal, Memory, Parsed, RoutineMark, Settings, State } from '
 const KEY = 'cashglome.v1';
 
 export const defaultSettings: Settings = {
-  // With a shared Florin built in, Florin is on from the start; otherwise it waits for someone's own key.
-  ai: { provider: SHARED_MUSE ? 'meta' : 'local', key: '', base: DEFAULT_BASE, parseModel: 'muse-spark-1.1', storyModel: 'muse-wonder-1.0' },
+  // Left from the old cloud chat; kept so older books load unchanged. Florin needs no settings here.
+  ai: { provider: 'local', key: '', base: '', parseModel: '', storyModel: '' },
   sound: true,
   calm: false,
   theme: 'auto',

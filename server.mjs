@@ -1,16 +1,14 @@
-// Production web server: serves the built app and the AI proxy.
+// Production web server: serves the built app.
 // Usage: npm run build && npm run serve   (PORT env optional)
 import http from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { aiProxy } from './scripts/ai-proxy.mjs';
 
 const root = join(fileURLToPath(new URL('.', import.meta.url)), 'dist');
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.woff2': 'font/woff2', '.woff': 'font/woff', '.json': 'application/json', '.ico': 'image/x-icon', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.wasm': 'application/wasm', '.gz': 'application/gzip' };
 
 http.createServer(async (req, res) => {
-  if (req.url?.startsWith('/__ai')) { req.url = req.url.slice(5) || '/'; return aiProxy(req, res); }
   let p = normalize(decodeURIComponent((req.url || '/').split('?')[0])).replace(/^[/\\]+/, '');
   let file = join(root, p);
   if (!file.startsWith(root)) { res.statusCode = 403; return res.end(); }

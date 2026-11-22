@@ -6,7 +6,6 @@ contextBridge.exposeInMainWorld('glome', {
   minimize: () => ipcRenderer.invoke('win:minimize'),
   zoom: () => ipcRenderer.invoke('win:zoom'),
   onState: (cb) => ipcRenderer.on('win:state', (_e, s) => cb(s)),
-  aiChat: (payload) => ipcRenderer.invoke('ai:chat', payload),
   spotifyAuth: (url) => ipcRenderer.invoke('spotify:auth', url),
   spotifyToken: (body) => ipcRenderer.invoke('spotify:token', body),
   speech: process.platform === 'win32' ? {

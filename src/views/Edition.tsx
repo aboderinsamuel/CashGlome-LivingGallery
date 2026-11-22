@@ -5,7 +5,6 @@ import { chapterOf, computeStats, momentsOf, paceOf, projection, ROMAN, spaceSeg
 import { paintingOf, PAINTINGS } from '../lib/art';
 import { money, monthLabel } from '../lib/format';
 import type { State } from '../lib/types';
-import type { MuseChapter } from '../lib/muse-story';
 import { Icon } from '../components/Icons';
 import { LivingArt } from '../components/LivingArt';
 
@@ -14,13 +13,13 @@ const DUR = 7500;
 const ease = [0.2, 0.8, 0.2, 1] as const;
 
 /** The month as an illustrated book: one painting to a page, read like a short film. */
-export function Edition({ state, muse, close, onShare }: { state: State; muse: MuseChapter | null; close: () => void; onShare?: () => void }) {
+export function Edition({ state, close, onShare }: { state: State; close: () => void; onShare?: () => void }) {
   const cur = state.profile.currency;
   const calm = state.settings.calm;
   const s = useMemo(() => computeStats(state.entries, state.month), [state]);
   const ch = chapterOf(state, s);
-  const title = spaceSegs(muse?.title ?? ch.title);
-  const lede = muse?.lede ?? ch.lede;
+  const title = spaceSegs(ch.title);
+  const lede = ch.lede;
   const moments = momentsOf(state, s);
   const top = s.byCat.filter((c) => c.id !== 'savings').slice(0, 6);
   const pj = projection(s);

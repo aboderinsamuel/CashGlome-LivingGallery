@@ -1,9 +1,8 @@
 import { AnimatePresence, MotionConfig, motion } from 'framer-motion';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useGlomeStore, toEntry } from './lib/store';
-import { aiEnabled, readMoney } from './lib/ai';
+import { readMoney } from './lib/ai';
 import { badgesOf, chapterOf, computeStats, chapterNumeral } from './lib/analytics';
-import { chapterIsStale, chapterStep, loadChapters, museChapter, saveChapters, validChapter, type SavedChapter } from './lib/muse-story';
 import { cat } from './lib/categories';
 import { demoEntries } from './lib/demo';
 import { artSrc, isGilded, paintingOf, restorationOf, seasonalWallpaper } from './lib/art';
@@ -45,7 +44,6 @@ import { MemoryView } from './views/Memory';
 import { CheckIns, type CheckIn } from './components/CheckIns';
 import { describeMemory, dueRoutines, pendingRoutines, readMemory, routineEntry } from './lib/memory';
 import { useCloudSync, useSyncStatus } from './lib/useCloud';
-import { museParse } from './lib/ai';
 import { parseStory } from './lib/parser';
 import { CashCard, Chips, PhoneApp } from './phone/PhoneApp';
 import { haptic, useKeyboardViewport, useOnline, usePhone } from './phone/device';
@@ -80,13 +78,11 @@ export default function App() {
   const [capture, setCapture] = useState<{ file: Blob | null; attach?: Entry } | null>(null);
   const [statement, setStatement] = useState<{ file: File | null } | null>(null);
   const openStatement = useCallback(() => setStatement({ file: null }), []);
-  const [saved, setSaved] = useState<Record<string, SavedChapter>>(loadChapters);
   const [music, setMusic] = useState(false);
   const closeMusic = useCallback(() => setMusic(false), []);
   const composer = useRef<ComposerHandle>(null);
   const main = useRef<HTMLDivElement>(null);
   const cur = state.profile.currency;
-  const ai = aiEnabled(state.settings);
   const desk = useDesktopMode();
   // Gemini Nano starts on the first tap or keypress (Chrome only lets a page start it after a gesture).
   useEffect(() => {
@@ -132,19 +128,7 @@ export default function App() {
     set.add(monthOf(todayISO()));
     return [...set].sort().reverse();
   }, [state.entries]);
-  // The oldest entry of each month: ties a saved Florin story to the data it was written from.
-  const firstOf = useMemo(() => {
-    const f: Record<string, { id: string; at: number; n: number }> = {};
-    for (const e of state.entries) {
-      const m = monthOf(e.date);
-      if (!f[m]) f[m] = { id: e.id, at: e.createdAt, n: 0 };
-      f[m].n++;
-      if (e.createdAt < f[m].at) { f[m].id = e.id; f[m].at = e.createdAt; }
-    }
-    return f;
-  }, [state.entries]);
-  const muse = useMemo(() => Object.fromEntries(months.map((m) => [m, validChapter(saved[m], firstOf[m]?.id, firstOf[m]?.n ?? 0)])), [months, saved, firstOf]);
-  const chapters = useMemo(() => months.map((m) => ({ month: m, numeral: chapterNumeral(state.entries, m), title: (muse[m]?.title ?? chapterOf(state, computeStats(state.entries, m)).title).map((x) => x.t).join('') })), [months, state, muse]);
+  const chapters = useMemo(() => months.map((m) => ({ month: m, numeral: chapterNumeral(state.entries, m), title: chapterOf(state, computeStats(state.entries, m)).title.map((x) => x.t).join('') })), [months, state]);
   const badges = useMemo(() => badgesOf(state), [state]);
   const wroteToday = useMemo(() => state.entries.some((e) => e.date === todayISO()), [state.entries]);
   // Details open and waiting to be found, counted beside Play (rechecked when you come back from a game).
@@ -153,21 +137,6 @@ export default function App() {
   const toFind = useMemo(() => readyToFind(state), [state.entries, state.house, state.quiet, foundTick]); // eslint-disable-line react-hooks/exhaustive-deps
   const monthCount = useMemo(() => state.entries.filter((e) => monthOf(e.date) === state.month).length, [state.entries, state.month]);
   const wall = !state.settings.wallpaper || state.settings.wallpaper === 'season' ? seasonalWallpaper() : state.settings.wallpaper;
-
-  // ——— Florin writes the chapter when connected ———
-  useEffect(() => {
-    const m = state.month, first = firstOf[m]?.id, model = state.settings.ai.storyModel, today = todayISO();
-    if (!ai || monthCount < 4 || !first) return;
-    if (!chapterIsStale(saved[m], { month: m, count: monthCount, first, model, today, current: m === monthOf(today) })) return;
-    const t = setTimeout(() => {
-      museChapter(state, m).then((ch) => setSaved((x) => {
-        const next = { ...x, [m]: { step: chapterStep(m, monthCount, model), day: today, count: monthCount, first, ch } };
-        saveChapters(next);
-        return next;
-      })).catch(() => { /* the local chapter stays */ });
-    }, 1500);
-    return () => clearTimeout(t);
-  }, [ai, state.month, monthCount, state.settings.ai.storyModel, firstOf[state.month]?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ——— Stickers: one quiet line, never a pile of toasts ———
   const prevLen = useRef(state.entries.length);
@@ -319,17 +288,7 @@ export default function App() {
       haptic();
       setNotice({ text: <>Noted <b className="num">{money(pockets.reduce((a, x) => a + x.amount, 0), cur)}</b> in cash. I’ll ask what’s left in a day or two.</>, undo: () => { pockets.forEach((x) => dispatch({ type: 'removeCash', id: x.id })); setNotice(null); } });
     }
-    if (ai && entries.length && navigator.onLine !== false) {
-      museParse(state.settings, text, cur).then((muse) => {
-        if (muse.length !== seen.length || muse.some((m, i) => Math.abs(m.amount - seen[i].amount) > 0.005)) return;
-        kept.forEach(({ p, i }, k) => {
-          const m = muse[i];
-          const patch = { label: m.label, ...(m.dir === p.dir && !overrides[i]?.category && recall(p).category === p.category ? { category: m.category } : {}) };
-          dispatch({ type: 'refine', id: entries[k].id, patch });
-        });
-      }).catch(() => { /* the on-device reading stands */ });
-    }
-  }, [cur, ai, state.settings, commit, dispatch, offerRoutine]);
+  }, [cur, state.settings, commit, dispatch, offerRoutine]);
 
   const submit = useCallback(async (text: string, overrides: Record<number, Partial<Parsed>>) => {
     // A savings circle in one sentence: "Ajo of 10 people, 20k monthly, my turn is 4th".
@@ -531,7 +490,7 @@ export default function App() {
         <motion.div key={`${view}:${state.month}`} initial={{ opacity: 0.4, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18, ease: [0.2, 0.8, 0.2, 1] }}>
             {view === 'today' && <Today state={state} dispatch={dispatch} voice={voice} onVoiceDone={clearVoice} onFill={(t) => composer.current?.fill(t)} onLedger={goView('ledger')} onPeople={goView('people')} onAsk={askAbout} onPainting={goView('chapter')} onEdit={() => setView('ledger')} onPlay={goView('play')} />}
             {(view === 'chapter' || view === 'shelf') && <ChapterTabs view={view} setView={setView} onEdition={() => setEdition(true)} />}
-            {view === 'chapter' && <Chapter state={state} dispatch={dispatch} museChapter={muse[state.month] ?? null} onOpenCategory={(id) => { setFilter(id); setView('ledger'); }} onEdition={() => setEdition(true)} onWrite={(h) => composer.current?.fill(h ?? '')} onPlans={goView('plans')} onGallery={goView('collection')} onSay={() => composer.current?.speak()} onSnap={() => setCapture({ file: null })} onShare={() => setSharing(true)} />}
+            {view === 'chapter' && <Chapter state={state} dispatch={dispatch} onOpenCategory={(id) => { setFilter(id); setView('ledger'); }} onEdition={() => setEdition(true)} onWrite={(h) => composer.current?.fill(h ?? '')} onPlans={goView('plans')} onGallery={goView('collection')} onSay={() => composer.current?.speak()} onSnap={() => setCapture({ file: null })} onShare={() => setSharing(true)} />}
             {view === 'shelf' && <Shelf state={state} months={months} onOpen={(m) => { setMonth(m); setView('chapter'); }} />}
             {view === 'ledger' && <><Ledger state={state} dispatch={dispatch} filter={filter} setFilter={setFilter} query={query} onAttach={(e) => setCapture({ file: null, attach: e })} onImport={openStatement} /><LedgerReports state={state} /></>}
             {view === 'ask' && <AskRoom state={state} turns={askTurns} setTurns={setAskTurns} first={askFirst} onFirstDone={() => setAskFirst(null)} />}
@@ -567,7 +526,7 @@ export default function App() {
       </TitleBar>
 
       <MusicDock state={state} dispatch={dispatch} open={music} onClose={closeMusic} />
-      {view !== 'ask' && <Composer ref={composer} currency={cur} aiOn={ai || brainConfigured} busy={busy} notice={notice} onSubmit={submit} onCamera={(file) => setCapture({ file: file ?? null })} onAsk={askAbout} usuals={usual} onRepeat={repeat} onRemember={remember}
+      {view !== 'ask' && <Composer ref={composer} currency={cur} aiOn={brainConfigured} busy={busy} notice={notice} onSubmit={submit} onCamera={(file) => setCapture({ file: file ?? null })} onAsk={askAbout} usuals={usual} onRepeat={repeat} onRemember={remember}
         idle={state.entries.length === 0 ? <FirstLines cur={cur} onFill={(t) => composer.current?.fill(t)} lead={<ImportChip onClick={openStatement} />} /> : undefined /* once the book has lines, statements come in from the Ledger, the File menu or a dropped file: a chip here floated over every page */}
         above={<CheckIns list={checkins} cur={cur} onYes={(c, a) => answerCheckIn(c, true, a)} onNo={(c) => answerCheckIn(c, false)} onAllYes={allYes} />} />}
       <TabBar view={view} setView={setView} />
@@ -576,13 +535,13 @@ export default function App() {
 
   const phoneWindow = phone && (
     <PhoneApp
-      state={state} dispatch={dispatch} view={view} setView={setView} setMonth={setMonth} museChapter={muse[state.month] ?? null} online={online}
+      state={state} dispatch={dispatch} view={view} setView={setView} setMonth={setMonth} online={online}
       onBook={() => openSettings()} onMusic={() => setMusic((x) => !x)} musicOn={!!state.settings.music?.on} musicName={state.settings.music?.on ? state.settings.music.name : undefined}
       onStopMusic={() => state.settings.music && dispatch({ type: 'settings', patch: { music: { ...state.settings.music, on: false } } })}
       musicDock={<MusicDock phone state={state} dispatch={dispatch} open={music} onClose={closeMusic} />}
       onEdition={() => setEdition(true)} onShare={() => setSharing(true)} onLiving={goView('collection')}
       composer={
-        <Composer ref={composer} currency={cur} aiOn={ai || brainConfigured} busy={busy} notice={notice} onSubmit={submit} onCamera={(file) => setCapture({ file: file ?? null })} onAsk={askAbout} onRemember={remember}
+        <Composer ref={composer} currency={cur} aiOn={brainConfigured} busy={busy} notice={notice} onSubmit={submit} onCamera={(file) => setCapture({ file: file ?? null })} onAsk={askAbout} onRemember={remember}
           idle={state.entries.length === 0 ? <FirstLines cur={cur} onFill={(t) => composer.current?.fill(t)} lead={<ImportChip onClick={openStatement} />} /> : <Chips state={state} onRepeat={repeat} onFill={(t) => composer.current?.fill(t)} after={<ImportChip onClick={openStatement} />} />}
           above={<>
             <AnimatePresence>{cashDue && <CashCard key={cashDue.id} pocket={cashDue} cur={cur} onAnswer={answerCash} onLater={() => dispatch({ type: 'cash', pocket: { ...cashDue, askedOn: todayISO() } })} />}</AnimatePresence>
@@ -596,7 +555,7 @@ export default function App() {
         people: <PeoplePage state={state} dispatch={dispatch} onFill={(t) => composer.current?.fill(t)} />,
         play: <Play state={state} />,
         collection: <Collection state={state} onOpen={(m) => { setMonth(m); setView('chapter'); }} onCamera={() => setCapture({ file: null })} onPlay={goView('play')} />,
-        read: <Chapter state={state} dispatch={dispatch} museChapter={muse[state.month] ?? null} onOpenCategory={(id) => { setFilter(id); setView('ledger'); }} onEdition={() => setEdition(true)} onWrite={(h) => composer.current?.fill(h ?? '')} onPlans={goView('plans')} onGallery={goView('collection')} onSay={() => composer.current?.speak()} onSnap={() => setCapture({ file: null })} onShare={() => setSharing(true)} />,
+        read: <Chapter state={state} dispatch={dispatch} onOpenCategory={(id) => { setFilter(id); setView('ledger'); }} onEdition={() => setEdition(true)} onWrite={(h) => composer.current?.fill(h ?? '')} onPlans={goView('plans')} onGallery={goView('collection')} onSay={() => composer.current?.speak()} onSnap={() => setCapture({ file: null })} onShare={() => setSharing(true)} />,
         plans: <Plans state={state} dispatch={dispatch} />,
         memory: <MemoryView state={state} dispatch={dispatch} notify={(text, undo) => setNotice({ text, undo: undo ? () => { undo(); setNotice(null); } : undefined })} />,
         shelf: <Shelf state={state} months={months} onOpen={(m) => { setMonth(m); setView('chapter'); }} />,
@@ -669,7 +628,7 @@ export default function App() {
   return (
     <MotionConfig reducedMotion={state.settings.calm ? 'always' : 'user'}>
       <StickerDefs />
-      {phoneWindow || (desk ? (deskOS() ? <Desktop state={state} menus={menus} aiOn={ai} onDock={onDock} active={active}>{appWindow}</Desktop> : <GalleryWall state={state} onOpen={onDock}>{appWindow}</GalleryWall>) : appWindow)}
+      {phoneWindow || (desk ? (deskOS() ? <Desktop state={state} menus={menus} aiOn={false} onDock={onDock} active={active}>{appWindow}</Desktop> : <GalleryWall state={state} onOpen={onDock}>{appWindow}</GalleryWall>) : appWindow)}
 
       <AnimatePresence>
         {settings && <SettingsSheet key="settings" state={state} dispatch={dispatch} initial={settings === 'list' ? undefined : settings} onOpenMusic={() => setMusic(true)} close={() => setSettingsPane(null)} />}
@@ -678,8 +637,8 @@ export default function App() {
           onAsk={() => { setStatement(null); setNotice(null); askAbout(STATEMENT_QUESTION); }}
           onLedger={() => { setStatement(null); setView('ledger'); }} />}
         {capture && <CaptureSheet key="capture" file={capture.file} attachTo={capture.attach?.label} settings={state.settings} currency={cur} onDone={captured} onClose={() => setCapture(null)} />}
-        {edition && <Edition key="edition" state={state} muse={muse[state.month] ?? null} close={() => setEdition(false)} onShare={() => setSharing(true)} />}
-        {sharing && <ShareSheet key="share" state={state} title={muse[state.month]?.title} onClose={() => setSharing(false)} />}
+        {edition && <Edition key="edition" state={state} close={() => setEdition(false)} onShare={() => setSharing(true)} />}
+        {sharing && <ShareSheet key="share" state={state} onClose={() => setSharing(false)} />}
         {welcoming && <Onboarding key="welcome" initialCurrency={cur} calm={state.settings.calm} onDone={welcomed} />}
       </AnimatePresence>
     </MotionConfig>

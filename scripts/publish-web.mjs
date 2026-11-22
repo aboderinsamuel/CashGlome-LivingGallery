@@ -28,13 +28,12 @@ if (existsSync(file)) {
 const leaks = Object.entries(env).filter(([k, v]) => k.startsWith('VITE_') && v && (/(META|MUSE).*KEY|SECRET|SERVICE_ROLE|PASSWORD/.test(k) || /service_role|sb_secret_/.test(v)));
 if (leaks.length) {
   console.error(`Stopped: ${leaks.map(([k]) => k).join(', ')} would be published inside the app for anyone to read.`);
-  console.error('Keep the Meta key in Vercel (META_API_KEY) and never put the Supabase service_role / secret key in the app.');
+  console.error('Keep secrets in Vercel environment variables, and never put the Supabase service_role / secret key in the app.');
   process.exit(1);
 }
 
 const on = (k) => (env[k] ? 'on ' : 'off');
 console.log(`Accounts & sync (Supabase): ${on('VITE_SUPABASE_URL')}  ${env.VITE_SUPABASE_URL || ''}`);
-console.log(`Shared Muse:                ${on('VITE_MUSE_PROXY')}  ${env.VITE_MUSE_PROXY || ''}`);
 if (!!env.VITE_SUPABASE_URL !== !!env.VITE_SUPABASE_ANON_KEY) {
   console.error('Set both VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY, or neither.');
   process.exit(1);

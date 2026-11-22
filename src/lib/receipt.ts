@@ -1,8 +1,5 @@
 // Reads a photo: is it a receipt (then find the shop, the total and the date) or a thing someone bought?
-// Meta Florin looks at it when connected; otherwise Tesseract reads it on this device, from files bundled
-// with the app (nothing is downloaded at run time).
-import { chat, extractJSON, aiEnabled } from './ai';
-import { CATEGORIES } from './categories';
+// Tesseract reads it on this device, from files bundled with the app (nothing is downloaded at run time).
 import { parseOne } from './parser';
 import { todayISO } from './format';
 import type { Settings } from './types';
@@ -21,42 +18,10 @@ export interface Reading {
 }
 type Progress = (p: number, stage: string) => void;
 
-export async function readPicture(s: Settings, file: Blob, currency: string, onProgress: Progress): Promise<Reading> {
-  if (aiEnabled(s)) {
-    try {
-      onProgress(0.2, 'Florin is looking');
-      return await museLook(s, file, currency);
-    } catch (e) {
-      const r = await deviceRead(file, onProgress);
-      return { ...r, note: (e as Error).message };
-    }
-  }
+export async function readPicture(_s: Settings, file: Blob, _currency: string, onProgress: Progress): Promise<Reading> {
   return deviceRead(file, onProgress);
 }
 
-/* ——— Meta Florin (vision) ——— */
-async function museLook(s: Settings, file: Blob, currency: string): Promise<Reading> {
-  const url = await toDataURL(file, 1100, 0.82);
-  const cats = CATEGORIES.filter((c) => c.dir === 'out').map((c) => c.id).join(', ');
-  const out = await chat(s, s.ai.parseModel, [
-    { role: 'system', content: `You look at one photo for a money diary. Currency: ${currency}. Today is ${todayISO()}.
-Return ONLY JSON: {"kind":"receipt"|"thing","merchant":string|null,"total":number|null,"date":"YYYY-MM-DD"|null,"category":string,"label":string}
-"receipt" is any receipt, bill or invoice; then "total" is the amount actually paid. "thing" is a photo of something bought; then "label" names it in 1-3 plain words and total is null unless a price tag is visible. category is one of: ${cats}.` },
-    { role: 'user', content: [{ type: 'text', text: 'What is this?' }, { type: 'image_url', image_url: { url } }] },
-  ], { temperature: 0, max_tokens: 200, timeoutMs: 30000 });
-  const j = extractJSON<Record<string, unknown>>(out);
-  const total = Number(j.total);
-  const category = CATEGORIES.some((c) => c.id === j.category && c.dir === 'out') ? String(j.category) : undefined;
-  const date = typeof j.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(j.date) && j.date <= todayISO() ? j.date : undefined;
-  return {
-    kind: j.kind === 'receipt' ? 'receipt' : 'thing',
-    merchant: typeof j.merchant === 'string' && j.merchant ? tidyName(j.merchant) : undefined,
-    total: isFinite(total) && total > 0 ? total : undefined,
-    date, category,
-    label: typeof j.label === 'string' && j.label ? j.label.slice(0, 40) : undefined,
-    engine: 'muse',
-  };
-}
 
 /* ——— On this device (Tesseract) ——— */
 type TWorker = Awaited<ReturnType<typeof import('tesseract.js')['createWorker']>>;
@@ -205,12 +170,4 @@ export function findDate(text: string, now = new Date()): string | undefined {
 function tidyName(s: string) {
   const t = s.replace(/[^\p{L}\p{N}&' .-]/gu, ' ').replace(/\s+/g, ' ').trim().slice(0, 32);
   return t.toLowerCase().replace(/(^|[\s-])(\p{L})/gu, (_, a, b) => a + b.toUpperCase());
-}
-
-async function toDataURL(file: Blob, max: number, q: number) {
-  const bmp = await createImageBitmap(file);
-  const k = Math.min(1, max / Math.max(bmp.width, bmp.height));
-  const c = document.createElement('canvas'); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
-  c.getContext('2d')!.drawImage(bmp, 0, 0, c.width, c.height); bmp.close();
-  return c.toDataURL('image/jpeg', q);
 }
