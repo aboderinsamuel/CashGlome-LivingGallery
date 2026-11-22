@@ -65,8 +65,8 @@ export function SpotifyConnect({ current, onPick, showPlaylists = true }: { curr
   if (status.kind === 'off') {
     return (
       <div className="sp-connect">
-        <span className="sp-say"><b>Whole songs, not previews</b><span>{note ?? 'Sign in on Spotify’s own page. CashGlome never sees your password.'}</span></span>
-        <button type="button" className="btn primary" onClick={connect}>Connect Spotify</button>
+        <span className="sp-say"><b>Your own playlists</b><span>{note ?? 'Optional. Spotify is still approving CashGlome, so for now only invited accounts can connect. Everything above works without it.'}</span></span>
+        <button type="button" className="btn" onClick={connect}>Connect Spotify</button>
       </div>
     );
   }
@@ -76,9 +76,9 @@ export function SpotifyConnect({ current, onPick, showPlaylists = true }: { curr
         {status.kind === 'linked' && status.me.image ? <img className="sp-face" src={status.me.image} alt="" /> : <span className="sp-face"><Icon.music size={14} /></span>}
         <span className="sp-say">
           <b>{status.kind === 'linked' ? <>Connected as {status.me.name}</> : 'Spotify is connected'}</b>
-          <span>{status.kind === 'linked' ? 'Whole songs play here, and your playlists are below.'
-            : status.refused ? 'Whole songs play here. Your playlists need Spotify’s approval for CashGlome; search finds anything meanwhile.'
-              : 'Whole songs play here.'}</span>
+          <span>{status.kind === 'linked' ? 'Your playlists are below.'
+            : status.refused ? 'Spotify hasn’t approved this account for playlists yet. Search and the picks above still work.'
+              : 'Your playlists will appear here.'}</span>
         </span>
         <button type="button" className="link-btn" onClick={() => { disconnectSpotify(); setMine(null); setNote(null); }}>Disconnect</button>
       </div>
@@ -100,52 +100,107 @@ export function SpotifyConnect({ current, onPick, showPlaylists = true }: { curr
 }
 
 /**
- * Spotify's own player, in a pop-over under the toolbar. It stays loaded while the pop-over is closed,
- * so the music keeps playing as you move around the app.
+ * Everything Music is, in one place, the same on a phone and a computer: what's playing (Spotify's own player),
+ * search, quiet picks, a pasted link, and, last and optional, your own playlists. Nothing here needs an account.
+ * `player` is false where the player already lives elsewhere (Your book), so two never play at once.
  */
-export function MusicDock({ state, dispatch, open, onClose, onChange }: { state: State; dispatch: (a: Action) => void; open: boolean; onClose: () => void; onChange: () => void }) {
+export function MusicPanel({ state, dispatch, player = true, onOpenPlayer }: { state: State; dispatch: (a: Action) => void; player?: boolean; onOpenPlayer?: () => void }) {
   const m = state.settings.music;
   const ref = m?.on ? parseSpotify(m.url) : null;
   const [reload, setReload] = useState(0);
+  const [link, setLink] = useState('');
+  const [bad, setBad] = useState(false);
   useEffect(() => { const r = () => setReload((n) => n + 1); window.addEventListener(RELOAD_PLAYER, r); return () => window.removeEventListener(RELOAD_PLAYER, r); }, []);
+  const play = (url: string, name: string) => dispatch({ type: 'settings', patch: { music: { url, name, on: true } } });
+  const stop = () => m && dispatch({ type: 'settings', patch: { music: { ...m, on: false } } });
+  const open = () => ref && window.open(window.glome?.isDesktop ? appURI(ref) : webURL(ref), '_blank', 'noopener');
+  const usePasted = () => { const r = parseSpotify(link.trim()); if (!r) { setBad(true); return; } setBad(false); play(link.trim(), 'From your link'); setLink(''); };
+  const current = m?.on ? m.url : undefined;
+  return (
+    <div className="mu">
+      {ref && (
+        <section className="mu-now" aria-label="Playing now">
+          {player
+            ? <iframe key={`${ref.id}-${reload}`} title="Spotify player" src={embedURL(ref)} width="100%" height="152" loading="lazy" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" style={{ border: 0, borderRadius: 12, display: 'block' }} />
+            : (
+              <div className="mu-now-row">
+                <span className="ms-noart" style={{ background: SWATCH[0], color: '#F6EFE2' }}><Icon.music size={15} /></span>
+                <span className="ms-t"><b>{m?.name ?? 'Your music'}</b><span>Playing now</span></span>
+                {onOpenPlayer && <button type="button" className="btn" onClick={onOpenPlayer}>Show the player</button>}
+              </div>
+            )}
+          <div className="mu-acts">
+            <button type="button" className="btn" onClick={open}>Open in Spotify<Icon.right size={13} /></button>
+            <button type="button" className="btn" onClick={stop}>Stop the music</button>
+          </div>
+          {player && <p className="mu-note">Whole songs play when you’re signed in to Spotify in this browser; otherwise Spotify plays a 30-second preview. Open in Spotify always plays the whole thing. Music keeps playing when you close this.</p>}
+        </section>
+      )}
+      <section aria-label="Find music">
+        <div className="sp-label">Find anything</div>
+        <MusicSearch current={current} onPick={play} />
+      </section>
+      <section aria-label="Quiet picks">
+        <div className="sp-label">Quiet picks for writing</div>
+        <ul className="ms-hits sp-list">
+          {MUSIC_PICKS.map((p, i) => <PlayRow key={p.url} name={p.name} sub={p.note} swatch={SWATCH[i % SWATCH.length]} playing={current === p.url} onPlay={() => play(p.url, p.name)} />)}
+        </ul>
+      </section>
+      <section aria-label="Paste a Spotify link">
+        <div className="sp-label">Or paste a link</div>
+        <form className="mu-link" onSubmit={(e) => { e.preventDefault(); usePasted(); }}>
+          <input className="field" value={link} onChange={(e) => { setLink(e.target.value); setBad(false); }} placeholder="In Spotify: Share › Copy link" spellCheck={false} aria-label="Spotify link" aria-invalid={bad} />
+          <button className="btn" disabled={!link.trim()}>Play</button>
+        </form>
+        {bad && <p className="mu-note warn" role="alert">That isn’t a Spotify link. In Spotify, choose Share, then Copy link.</p>}
+      </section>
+      <SpotifyConnect current={current} onPick={play} />
+    </div>
+  );
+}
+
+/**
+ * The Music panel as a pop-over (computer) or a sheet rising from the bottom (phone). It stays mounted while closed,
+ * so the music keeps playing as you move around the app.
+ */
+export function MusicDock({ state, dispatch, open, onClose, phone }: { state: State; dispatch: (a: Action) => void; open: boolean; onClose: () => void; phone?: boolean }) {
+  const m = state.settings.music;
+  const ref = m?.on ? parseSpotify(m.url) : null;
   useEffect(() => {
     if (!open) return;
     const k = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    // A click anywhere outside the panel (except the Music button itself) closes it; the music keeps playing.
+    // A click anywhere outside the panel (except a Music button) closes it; the music keeps playing.
     const away = (e: PointerEvent) => { const t = e.target as HTMLElement; if (!t.closest('.music-pop, .side-music, [data-music]')) onClose(); };
     window.addEventListener('keydown', k);
     const t = setTimeout(() => window.addEventListener('pointerdown', away), 0);
     return () => { clearTimeout(t); window.removeEventListener('keydown', k); window.removeEventListener('pointerdown', away); };
   }, [open, onClose]);
-  const play = (url: string, name: string) => dispatch({ type: 'settings', patch: { music: { url, name, on: true } } });
   if (!ref && !open) return null;
   return (
-    <div className={'music-pop' + (open ? ' open' : '')} aria-hidden={!open} role="dialog" aria-label="Music">
-      <div className="music-head">
-        <Icon.music size={15} /><b>Music</b>
-        <span style={{ flex: 1 }} />
-        {ref && <button className="link-btn" onClick={() => window.open(window.glome?.isDesktop ? appURI(ref) : webURL(ref), '_blank')}>Open in Spotify</button>}
-        <button className="link-btn" onClick={onChange}>Settings</button>
-        <button className="music-close" onClick={onClose} aria-label="Close music"><Icon.close size={13} />Close</button>
-      </div>
-      <MusicSearch compact current={m?.on ? m.url : undefined} onPick={play} />
-      {ref ? (
-        <>
-          <iframe key={`${ref.id}-${reload}`} title="Spotify player" src={embedURL(ref)} width="100%" height="152" loading="lazy" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" style={{ border: 0, borderRadius: 12, display: 'block' }} />
-          <div className="sp-under">
-            <span className="small">Keeps playing when you close this.</span>
-            <button type="button" className="link-btn" onClick={() => m && dispatch({ type: 'settings', patch: { music: { ...m, on: false } } })}>Stop the music</button>
-          </div>
-        </>
-      ) : (
-        <div className="sp-mine">
-          <div className="sp-label">Quiet picks</div>
-          <ul className="ms-hits sp-list" aria-label="Quiet picks">
-            {MUSIC_PICKS.map((p, i) => <PlayRow key={p.url} name={p.name} sub={p.note} swatch={SWATCH[i % SWATCH.length]} playing={false} onPlay={() => play(p.url, p.name)} />)}
-          </ul>
+    <>
+      {phone && <div className={'music-scrim' + (open ? ' open' : '')} aria-hidden />}
+      <div className={'music-pop' + (phone ? ' phone' : '') + (open ? ' open' : '')} aria-hidden={!open} role="dialog" aria-label="Music">
+        {phone && <div className="ph-grab" aria-hidden />}
+        <div className="music-head">
+          <b className="music-title">Music</b>
+          <span style={{ flex: 1 }} />
+          <button className="music-close" onClick={onClose} aria-label="Close music"><Icon.close size={13} />Close</button>
         </div>
-      )}
-      <SpotifyConnect current={m?.on ? m.url : undefined} onPick={play} />
+        <MusicPanel state={state} dispatch={dispatch} />
+      </div>
+    </>
+  );
+}
+
+/** On a phone, while something plays: a slim strip above the tabs. Tap to open Music; Stop is one tap. */
+export function NowPlaying({ name, onOpen, onStop }: { name?: string; onOpen: () => void; onStop: () => void }) {
+  return (
+    <div className="ph-playing" role="group" aria-label="Music playing">
+      <button className="ph-playing-open" onClick={onOpen} data-music>
+        <span className="ph-playing-bars" aria-hidden><i /><i /><i /></span>
+        <span className="ph-playing-t"><b>{name ?? 'Music'}</b><small>Your music · tap to open the player</small></span>
+      </button>
+      <button className="ph-playing-stop" onClick={onStop}>Stop</button>
     </div>
   );
 }

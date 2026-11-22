@@ -14,6 +14,7 @@ import { RestorationPlate, revealTime } from '../components/Restoration';
 import { ChapterTabs, TabBar, tabOf, type Tab, type View } from '../components/Shell';
 import { cardSeason, chipsFor, closeDay, dateInWords, dayClosed, monthName, partOfDay, promptFor, type CashPocket, type Chip } from './moments';
 import { haptic } from './device';
+import { NowPlaying } from '../components/Music';
 
 export type PhonePage = 'read' | 'plans' | 'memory';
 
@@ -34,6 +35,12 @@ interface Props {
   onShare: () => void;
   /** The living painting, full size. */
   onLiving: () => void;
+  /** Music: the button in the bar, the sheet it opens, and the strip while something plays. */
+  onMusic: () => void;
+  onStopMusic: () => void;
+  musicOn: boolean;
+  musicName?: string;
+  musicDock: ReactNode;
 }
 
 const PAGE_TITLE: Record<PhonePage, string> = { read: 'The chapter', plans: 'Plans', memory: 'Routines & memory' };
@@ -80,6 +87,9 @@ export function PhoneApp(p: Props) {
             )}
             {!p.online && <span className="ph-offline" role="status">Offline</span>}
             <span style={{ flex: 1 }} />
+            <button className={'ph-music' + (p.musicOn ? ' on' : '')} onClick={p.onMusic} data-music aria-label={p.musicOn ? `Music: ${p.musicName ?? 'playing'}` : 'Music'}>
+              <Icon.music size={15} /><span>Music</span>{p.musicOn && <i className="ph-music-live" aria-hidden />}
+            </button>
             <button className="ph-book" onClick={p.onBook} aria-label="Your book: settings, categories, routines and backup">
               <span className="ph-book-face" aria-hidden>{(first || 'Y').charAt(0).toUpperCase()}</span>
               <span>Your book</span>
@@ -100,9 +110,11 @@ export function PhoneApp(p: Props) {
           : <div className="ph-page">{p.pages[place === 'people' ? 'people' : place]}</div>}
       </main>
 
+      {!pushed && p.musicOn && <NowPlaying name={p.musicName} onOpen={p.onMusic} onStop={p.onStopMusic} />}
       {writes && p.composer}
 
       {!pushed && <TabBar view={view} setView={go} className="ph-tabs" />}
+      {p.musicDock}
     </div>
   );
 }

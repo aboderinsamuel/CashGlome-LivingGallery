@@ -105,6 +105,12 @@ export function Sidebar(p: SidebarProps) {
         ))}
           </div>
         ))}
+        <div className="side-act">
+          <div className="side-label">Listen</div>
+          <button className={'side-item place side-listen' + (p.musicOn ? ' on-air' : '')} onClick={p.onMusic} data-music aria-label={p.musicName ? `Music: playing ${p.musicName}` : 'Music'}>
+            <Icon.music size={17} /><span className="side-music-t">Music{p.musicName && <small title={p.musicName}>{p.musicName}</small>}</span>{p.musicOn && <span className="music-live" aria-hidden />}
+          </button>
+        </div>
         {place === 'chapter' && p.chapters.length > 1 && (
           <>
             <div className="side-label">Contents</div>
@@ -131,7 +137,6 @@ export function Sidebar(p: SidebarProps) {
       </div>
       <div className="side-book nodrag">
         <button className="side-music" onClick={p.onRoutines}><Icon.repeat size={15} />Routines &amp; memory</button>
-        <button className={'side-music' + (p.musicOn ? ' on' : '')} onClick={p.onMusic} data-music><Icon.music size={15} /><span className="side-music-t">Music{p.musicName && <small title={p.musicName}>{p.musicName}</small>}</span>{p.musicOn && <span className="music-live" aria-hidden />}</button>
       </div>
       <button className="me nodrag" onClick={p.onBook} aria-label="Your book: settings, categories, routines and backup">
         <span className="avatar">{(p.name || 'Y').charAt(0).toUpperCase()}</span>

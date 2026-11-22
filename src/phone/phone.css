@@ -359,3 +359,56 @@
 .ph-install-do .ph-btn { height: 38px; padding: 0 18px; }
 /* Opened from the home screen: no browser bar above, so the bar leaves room for the clock. */
 @media (display-mode: standalone) { .ph-app { padding-top: max(env(safe-area-inset-top), 0px); } }
+
+/* ——— Music on a phone: a labelled button in the bar, a sheet from the bottom, a strip while it plays ——— */
+.ph-music { position: relative; display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px 0 10px; margin-right: 6px; border-radius: 17px; background: var(--card); box-shadow: 0 2px 0 var(--chip-edge, rgba(60,40,10,.18)), 0 0 0 1px var(--chip-edge, rgba(60,40,10,.18)); font: 600 12.5px/1 var(--grot); color: var(--ink); }
+.ph-music svg { color: var(--vermilion); }
+.ph-music-live { position: absolute; top: 4px; right: 5px; width: 7px; height: 7px; border-radius: 4px; background: var(--gold); box-shadow: 0 0 0 1.5px var(--card); }
+
+.music-scrim { position: fixed; inset: 0; z-index: 68; background: rgba(20, 14, 6, .44); opacity: 0; pointer-events: none; transition: opacity .2s ease; }
+.music-scrim.open { opacity: 1; pointer-events: auto; }
+.music-pop.phone { position: fixed; top: auto; left: 0; right: 0; bottom: 0; width: auto; max-height: min(88%, calc(var(--vvh, 100dvh) - 40px)); padding: 6px 16px calc(18px + env(safe-area-inset-bottom)); border-radius: 22px 22px 0 0;
+  background: var(--paper); color: var(--ink); backdrop-filter: none; -webkit-backdrop-filter: none; border: 0; box-shadow: 0 -12px 40px rgba(0, 0, 0, .28);
+  transform: translateY(104%); transform-origin: bottom; transition: transform .28s var(--ease, ease), visibility 0s linear .28s; opacity: 1; }
+.music-pop.phone.open { transform: none; transition: transform .28s var(--ease, ease), visibility 0s; }
+.music-pop.phone .music-head { margin: 4px 0 14px; }
+.music-pop.phone .music-close { border-color: var(--line); height: 34px; padding: 0 12px; }
+.music-pop.phone .ms-field { height: 44px; }
+.music-pop.phone .ms-field input { font-size: 16px; }
+.music-pop.phone .ms-hits button { min-height: 52px; }
+.music-pop.phone .field { font-size: 16px; height: 44px; }
+.music-pop.phone .btn { height: 42px; }
+
+.ph-playing { flex: none; display: flex; align-items: center; gap: 4px; margin: 0 12px 6px; padding: 4px 4px 4px 6px; border-radius: 16px; background: var(--ink); color: var(--paper); box-shadow: 0 8px 18px -12px rgba(40, 26, 6, .7); }
+.ph-playing-open { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 6px; text-align: left; color: inherit; }
+.ph-playing-t { min-width: 0; display: grid; }
+.ph-playing-t b { font: 600 13.5px/1.2 var(--grot); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ph-playing-t small { font: 500 11.5px/1.2 var(--grot); opacity: .7; }
+.ph-playing-stop { flex: none; height: 34px; padding: 0 14px; border-radius: 17px; background: rgba(246, 240, 226, .14); color: inherit; font: 600 12.5px/1 var(--grot); }
+.ph-playing-bars { display: inline-flex; align-items: flex-end; gap: 2px; height: 14px; flex: none; }
+.ph-playing-bars i { width: 3px; height: 100%; border-radius: 1px; background: var(--gold-2, #D8B565); transform-origin: bottom; animation: ph-eq 1s ease-in-out infinite; }
+.ph-playing-bars i:nth-child(2) { animation-delay: .2s; } .ph-playing-bars i:nth-child(3) { animation-delay: .4s; }
+@keyframes ph-eq { 0%, 100% { transform: scaleY(.35); } 50% { transform: scaleY(1); } }
+@media (prefers-reduced-motion: reduce) { .ph-playing-bars i { animation: none; transform: scaleY(.7); } }
+:root[data-kb] .ph-playing { display: none; }
+
+/* ——— Your book on a phone: one list, like the phone's own Settings; a page with Back ——— */
+:root[data-phone] .sheet.sb-phone { grid-template-rows: auto minmax(0, 1fr); }
+.sb-head { display: flex; align-items: center; gap: 8px; min-height: 60px; padding: 8px 14px 8px 18px; border-bottom: 1px solid var(--line); }
+.sb-head .book-title { flex: 1; padding: 0; font-size: 26px; }
+.sb-back { flex: 1; display: inline-flex; align-items: center; gap: 4px; min-height: 44px; margin-left: -8px; font: 600 15px/1 var(--grot); color: var(--ink); }
+.sb-back svg { color: var(--gold); }
+:root[data-phone] .sb-head .sheet-done { margin: 0; }
+.sb-phone .sb-body { padding: 16px 16px calc(30px + env(safe-area-inset-bottom)); }
+.sb-phone .sb-title { font-size: 26px; margin-bottom: 14px; }
+.sb-list { margin-bottom: 22px; }
+.sb-list-h { margin: 0 6px 8px; font: 650 11px/1 var(--grot); letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); }
+.sb-list-rows { border-radius: 16px; border: 1px solid var(--line); background: var(--card); overflow: hidden; }
+.sb-row { width: 100%; display: flex; align-items: center; gap: 12px; min-height: 60px; padding: 9px 12px 9px 14px; text-align: left; color: var(--ink); }
+.sb-row + .sb-row { border-top: 1px solid var(--line); }
+.sb-row:active { background: var(--fill); }
+.sb-row .sb-tint { width: 30px; height: 30px; border-radius: 8px; }
+.sb-row-t { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.sb-row-t b { font: 400 17px/1.2 var(--serif); letter-spacing: -.005em; }
+.sb-row-t small { font: 400 12.5px/1.3 var(--grot); color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sb-row > svg { flex: none; color: var(--ink-3); }

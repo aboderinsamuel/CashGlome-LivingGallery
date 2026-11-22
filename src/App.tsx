@@ -72,7 +72,7 @@ export default function App() {
   const [firstLine, setFirstLine] = useState<string | null>(null);
   const [filter, setFilter] = useState<string | null>(null);
   const [query, setQuery] = useState('');
-  const [settings, setSettingsPane] = useState<Pane | null>(null);
+  const [settings, setSettingsPane] = useState<Pane | 'list' | null>(null);
   const [edition, setEdition] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -99,7 +99,7 @@ export default function App() {
   const phone = usePhone();
   useKeyboardViewport(phone);
   const online = useOnline();
-  const openSettings = useCallback((p: Pane = 'general') => setSettingsPane(p), []);
+  const openSettings = useCallback((p?: Pane) => setSettingsPane(p ?? 'list'), []);
 
   // ——— Account & sync: in the background while signed in ———
   useCloudSync(state, dispatch);
@@ -118,7 +118,7 @@ export default function App() {
   }, [theme, phone]);
   useEffect(() => setSound(state.settings.sound), [state.settings.sound]);
   // Back from Spotify's sign-in page (web): finish linking, then show the Music pane.
-  useEffect(() => { finishSpotifyLink().then((ok) => ok && setSettingsPane('music')).catch(() => setSettingsPane('music')); }, []);
+  useEffect(() => { finishSpotifyLink().then((ok) => ok && setMusic(true)).catch(() => setMusic(true)); }, []);
 
   const setView = useCallback((v: View) => { setViewRaw(v === 'accounts' ? 'people' : v); if (v !== 'ledger') setQuery(''); }, []);
   /** A question from anywhere opens Ask with it. */
@@ -523,7 +523,7 @@ export default function App() {
         view={view} setView={setView} month={state.month} setMonth={setMonth} chapters={chapters}
         counts={{ ledger: monthCount, play: toFind }}
         name={state.profile.name}
-        onEdition={() => setEdition(true)} onBook={() => openSettings()} onRoutines={() => openSettings('routines')} onMusic={() => setMusic((x) => !x)} musicOn={!!state.settings.music?.on || music} musicName={state.settings.music?.on ? state.settings.music.name : undefined} wall={wall}
+        onEdition={() => setEdition(true)} onBook={() => openSettings()} onRoutines={() => openSettings('routines')} onMusic={() => setMusic((x) => !x)} musicOn={!!state.settings.music?.on} musicName={state.settings.music?.on ? state.settings.music.name : undefined} wall={wall}
       />
 
       <main className="main" ref={main}>
@@ -566,7 +566,7 @@ export default function App() {
         )}
       </TitleBar>
 
-      <MusicDock state={state} dispatch={dispatch} open={music} onClose={closeMusic} onChange={() => { setMusic(false); openSettings('music'); }} />
+      <MusicDock state={state} dispatch={dispatch} open={music} onClose={closeMusic} />
       {view !== 'ask' && <Composer ref={composer} currency={cur} aiOn={ai || brainConfigured} busy={busy} notice={notice} onSubmit={submit} onCamera={(file) => setCapture({ file: file ?? null })} onAsk={askAbout} usuals={usual} onRepeat={repeat} onRemember={remember}
         idle={state.entries.length === 0 ? <FirstLines cur={cur} onFill={(t) => composer.current?.fill(t)} lead={<ImportChip onClick={openStatement} />} /> : undefined /* once the book has lines, statements come in from the Ledger, the File menu or a dropped file: a chip here floated over every page */}
         above={<CheckIns list={checkins} cur={cur} onYes={(c, a) => answerCheckIn(c, true, a)} onNo={(c) => answerCheckIn(c, false)} onAllYes={allYes} />} />}
@@ -577,7 +577,10 @@ export default function App() {
   const phoneWindow = phone && (
     <PhoneApp
       state={state} dispatch={dispatch} view={view} setView={setView} setMonth={setMonth} museChapter={muse[state.month] ?? null} online={online}
-      onBook={() => openSettings()} onEdition={() => setEdition(true)} onShare={() => setSharing(true)} onLiving={goView('collection')}
+      onBook={() => openSettings()} onMusic={() => setMusic((x) => !x)} musicOn={!!state.settings.music?.on} musicName={state.settings.music?.on ? state.settings.music.name : undefined}
+      onStopMusic={() => state.settings.music && dispatch({ type: 'settings', patch: { music: { ...state.settings.music, on: false } } })}
+      musicDock={<MusicDock phone state={state} dispatch={dispatch} open={music} onClose={closeMusic} />}
+      onEdition={() => setEdition(true)} onShare={() => setSharing(true)} onLiving={goView('collection')}
       composer={
         <Composer ref={composer} currency={cur} aiOn={ai || brainConfigured} busy={busy} notice={notice} onSubmit={submit} onCamera={(file) => setCapture({ file: file ?? null })} onAsk={askAbout} onRemember={remember}
           idle={state.entries.length === 0 ? <FirstLines cur={cur} onFill={(t) => composer.current?.fill(t)} lead={<ImportChip onClick={openStatement} />} /> : <Chips state={state} onRepeat={repeat} onFill={(t) => composer.current?.fill(t)} after={<ImportChip onClick={openStatement} />} />}
@@ -606,7 +609,7 @@ export default function App() {
       { label: 'About CashGlome', action: () => openSettings('about') },
       'sep',
       { label: 'Change wallpaper…', action: () => openSettings('appearance') },
-      { label: 'Music…', action: () => openSettings('music') },
+      { label: 'Music…', action: () => setMusic(true) },
       { label: 'Reduce motion', checked: state.settings.calm, action: () => dispatch({ type: 'settings', patch: { calm: !state.settings.calm } }) },
     ] },
     { title: 'CashGlome', items: [
@@ -669,7 +672,7 @@ export default function App() {
       {phoneWindow || (desk ? (deskOS() ? <Desktop state={state} menus={menus} aiOn={ai} onDock={onDock} active={active}>{appWindow}</Desktop> : <GalleryWall state={state} onOpen={onDock}>{appWindow}</GalleryWall>) : appWindow)}
 
       <AnimatePresence>
-        {settings && <SettingsSheet key="settings" state={state} dispatch={dispatch} initial={settings} close={() => setSettingsPane(null)} />}
+        {settings && <SettingsSheet key="settings" state={state} dispatch={dispatch} initial={settings === 'list' ? undefined : settings} onOpenMusic={() => setMusic(true)} close={() => setSettingsPane(null)} />}
         {statement && <StatementSheet key="statement" file={statement.file} book={state.entries} currency={cur} empty={state.entries.length === 0}
           onAdd={importStatement} onClose={() => setStatement(null)}
           onAsk={() => { setStatement(null); setNotice(null); askAbout(STATEMENT_QUESTION); }}

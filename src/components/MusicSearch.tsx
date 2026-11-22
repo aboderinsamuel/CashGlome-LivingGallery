@@ -39,7 +39,7 @@ export function MusicSearch({ current, onPick, compact }: { current?: string; on
     <div className={'ms' + (compact ? ' compact' : '')}>
       <label className="ms-field">
         <Icon.search size={15} />
-        <input ref={input} value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search for a song, artist, album or playlist" aria-label="Search Spotify" spellCheck={false}
+        <input ref={input} value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search songs, artists, playlists" aria-label="Search Spotify" spellCheck={false}
           onKeyDown={(e) => { if (e.key === 'Escape' && q) { e.stopPropagation(); setQ(''); } }} />
         {mode === 'busy' && <span className="ms-busy" aria-label="Searching" />}
         {q && mode !== 'busy' && <button type="button" className="ms-clear" onClick={() => { setQ(''); input.current?.focus(); }} aria-label="Clear the search"><Icon.close size={12} /></button>}

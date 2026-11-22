@@ -637,3 +637,32 @@
 }
 .side-music:has(small) { height: auto; min-height: 34px; padding-block: 5px; }
 .music-head .link-btn { white-space: nowrap; }
+
+/* ——— Music, one panel: what's playing, find, quiet picks, a link, your playlists ——— */
+.mu { display: grid; gap: 18px; }
+.mu section { display: grid; gap: 8px; }
+.mu-now { gap: 10px !important; }
+.mu-now-row { display: flex; align-items: center; gap: 10px; }
+.mu-acts { display: flex; gap: 8px; flex-wrap: wrap; }
+.mu-acts .btn { flex: 1 1 auto; justify-content: center; height: 38px; border-radius: 19px; }
+.mu-note { margin: 0; font: 400 12.5px/1.45 var(--grot, inherit); color: var(--ink-3, inherit); }
+.mu-note.warn { color: var(--rust, #A8402E); }
+.mu-link { display: flex; gap: 8px; }
+.mu-link .field { flex: 1; min-width: 0; height: 40px; }
+.mu-link .btn { height: 40px; }
+.mu .sp-connect { margin-top: 0; }
+.mu .sp-list { max-height: none; }
+.music-title { font: 400 22px/1 var(--serif); letter-spacing: -.01em; }
+.side-listen { position: relative; height: auto !important; min-height: 32px; padding-block: 5px !important; }
+.side-listen .music-live { top: 50%; right: 10px; margin-top: -3px; }
+.side-listen.on-air { color: var(--ink); }
+
+/* ——— Your book: four labelled groups, each page titled once ——— */
+.sb-side { display: flex; flex-direction: column; gap: 2px; padding: 18px 10px 14px; border-right: 1px solid var(--line); background: var(--fill); overflow-y: auto; }
+.sb-group { display: grid; gap: 1px; margin-bottom: 10px; }
+.sb-group .side-label { margin: 6px 10px 4px; }
+.sb-tint { width: 22px; height: 22px; border-radius: 6px; display: grid; place-items: center; flex: none; color: #fff; }
+.sb-tint svg { color: #fff !important; }
+.sb-done { align-self: stretch; justify-content: center; height: 34px; }
+.sb-body { overflow-y: auto; padding: 22px 28px 30px; min-width: 0; }
+.sb-title { margin: 0 0 18px; font: 400 28px/1.1 var(--serif); letter-spacing: -.015em; color: var(--ink); }
