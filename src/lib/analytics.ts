@@ -248,30 +248,7 @@ export function recurringOf(all: Entry[]): Recurring[] {
   return res.sort((a, b) => b.amount - a.amount).slice(0, 8);
 }
 
-// ——— Gamification ———
-export const LEVELS = [
-  { xp: 0, title: 'Apprentice' }, { xp: 150, title: 'Journeyman' }, { xp: 400, title: 'Artisan' }, { xp: 900, title: 'Master' },
-  { xp: 1800, title: 'Patron' }, { xp: 3500, title: 'Maestro' }, { xp: 6000, title: 'Medici' },
-];
-export function streakOf(entries: Entry[]) {
-  const days = new Set(entries.map((e) => e.date));
-  let n = 0;
-  const d = new Date();
-  if (!days.has(todayISO(d))) d.setDate(d.getDate() - 1);
-  while (days.has(todayISO(d))) { n++; d.setDate(d.getDate() - 1); }
-  return n;
-}
-export function xpOf(entries: Entry[]) {
-  const days = new Set(entries.map((e) => e.date)).size;
-  return entries.length * 10 + days * 15 + entries.filter((e) => e.feeling).length * 5 + entries.filter((e) => e.category === 'savings').length * 20;
-}
-export function levelOf(xp: number) {
-  let i = 0;
-  while (i < LEVELS.length - 1 && xp >= LEVELS[i + 1].xp) i++;
-  const cur = LEVELS[i], next = LEVELS[i + 1];
-  return { index: i, title: cur.title, xp, next: next?.xp ?? cur.xp, progress: next ? (xp - cur.xp) / (next.xp - cur.xp) : 1, nextTitle: next?.title };
-}
-
+// ——— Stickers: kind milestones, never a streak to lose ———
 export interface Badge { id: string; name: string; desc: string; sticker: string; color: string; done: boolean; progress: number }
 export function badgesOf(state: State): Badge[] {
   const e = state.entries;

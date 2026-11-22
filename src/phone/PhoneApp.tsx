@@ -90,7 +90,7 @@ export function PhoneApp(p: Props) {
             <button className={'ph-music' + (p.musicOn ? ' on' : '')} onClick={p.onMusic} data-music aria-label={p.musicOn ? `Music: ${p.musicName ?? 'playing'}` : 'Music'}>
               <Icon.music size={15} /><span>Music</span>{p.musicOn && <i className="ph-music-live" aria-hidden />}
             </button>
-            <button className="ph-book" onClick={p.onBook} aria-label="Your book: settings, categories, routines and backup">
+            <button className="ph-book" onClick={p.onBook} aria-label="Your book: settings, categories, routines, music and your data">
               <span className="ph-book-face" aria-hidden>{(first || 'Y').charAt(0).toUpperCase()}</span>
               <span>Your book</span>
             </button>

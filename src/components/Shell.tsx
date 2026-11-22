@@ -138,7 +138,7 @@ export function Sidebar(p: SidebarProps) {
       <div className="side-book nodrag">
         <button className="side-music" onClick={p.onRoutines}><Icon.repeat size={15} />Routines &amp; memory</button>
       </div>
-      <button className="me nodrag" onClick={p.onBook} aria-label="Your book: settings, categories, routines and backup">
+      <button className="me nodrag" onClick={p.onBook} aria-label="Your book: settings, categories, routines, music and your data">
         <span className="avatar">{(p.name || 'Y').charAt(0).toUpperCase()}</span>
         <span style={{ minWidth: 0, flex: 1, overflow: 'hidden' }}>
           <span style={{ display: 'block', fontWeight: 600, fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name || 'Your book'}</span>

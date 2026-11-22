@@ -2,7 +2,7 @@
 // title and a few plain numbers. Drawn on a canvas on this device and handed to the share sheet.
 // Amounts are left off unless the person turns them on.
 import { chapterOf, computeStats, spaceSegs, type Seg } from './analytics';
-import { artSrc, candleOf, COLS, PATCHES, paintingOf, restorationOf, ROWS } from './art';
+import { artSrc, COLS, PATCHES, paintingOf, restorationOf, ROWS } from './art';
 import { cat } from './categories';
 import { money, monthLabel } from './format';
 import type { State } from './types';
@@ -75,7 +75,6 @@ export function cardFacts(state: State, month = state.month, title?: Seg[]) {
   const r = restorationOf(state.entries, month, state.quiet);
   const spendCats = s.byCat.filter((c) => cat(c.id).nature !== 'save');
   const top = spendCats[0];
-  const candle = candleOf(state.entries);
   return {
     s, painting, r,
     numeral: ch.numeral,
@@ -83,7 +82,6 @@ export function cardFacts(state: State, month = state.month, title?: Seg[]) {
     character: ch.character,
     month: monthLabel(month),
     top: top ? { name: cat(top.id).short, color: cat(top.id).color, pct: Math.round((top.total / Math.max(1, s.spend)) * 100) } : null,
-    candle: s.isCurrent && candle.streak >= 2 ? candle.streak : 0,
   };
 }
 
@@ -203,7 +201,6 @@ export async function drawCard({ state, month = state.month, title, amounts, for
     { big: String(F.s.entries.length), small: F.s.entries.length === 1 ? 'entry written' : 'entries written' },
     { big: String(F.s.daysLogged), small: F.s.daysLogged === 1 ? 'day written' : 'days written' },
   ];
-  if (F.candle) stats.push({ big: String(F.candle), small: 'day candle' });
   if (F.top) stats.push({ big: F.top.name, small: `${F.top.pct}% of spending`, dot: F.top.color });
   if (amounts) {
     stats.length = Math.min(stats.length, 2);

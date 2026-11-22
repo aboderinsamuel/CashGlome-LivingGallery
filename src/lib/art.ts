@@ -146,32 +146,6 @@ export function restorationOf(entries: Entry[], month: string, quiet: string[] =
   return { restored, order, gilded, complete: restored >= PATCHES, today, todayCap: 3, remaining: PATCHES - restored };
 }
 
-/* ——— The candle: a daily streak, with wax seals that protect a missed day ——— */
-export interface Candle { streak: number; seals: number; litToday: boolean; best: number; sealed: string[]; toNextSeal: number }
-export function candleOf(entries: Entry[]): Candle {
-  const days = new Set(entries.map((e) => e.date));
-  if (!days.size) return { streak: 0, seals: 0, litToday: false, best: 0, sealed: [], toNextSeal: 7 };
-  const first = [...days].sort()[0];
-  const d = new Date(first + 'T12:00');
-  const today = todayISO();
-  let run = 0, seals = 0, best = 0, sinceSeal = 0;
-  const sealed: string[] = [];
-  while (todayISO(d) <= today) {
-    const iso = todayISO(d);
-    if (days.has(iso)) {
-      run++; sinceSeal++;
-      if (sinceSeal >= 7) { seals = Math.min(2, seals + 1); sinceSeal = 0; }
-    } else if (iso !== today) {
-      if (seals > 0 && run > 0) { seals--; sealed.push(iso); }
-      else { run = 0; sinceSeal = 0; }
-    }
-    best = Math.max(best, run);
-    d.setDate(d.getDate() + 1);
-  }
-  return { streak: run, seals, litToday: days.has(today), best, sealed, toNextSeal: seals >= 2 ? 0 : 7 - sinceSeal };
-}
-
-
 /* ——— Today's card: one observation a day, drawn from your own entries ——— */
 export interface DayCard { title: string; line: string; painting: Painting; focus: string; numeral: string }
 export function dayCardOf(state: State, date = todayISO()): DayCard | null {
@@ -196,8 +170,6 @@ export function dayCardOf(state: State, date = todayISO()): DayCard | null {
   if (s.inflow > 0) pool.push({ title: `${Math.round(Math.max(0, s.savingsRate) * 100)}% kept`, line: s.savingsRate >= 0.2 ? 'More than the one-in-five most advisers aim for. Keep the habit going.' : `One in five is a common target. That's ${m(s.inflow * 0.2)} this month.` });
   const g = state.goals[0];
   if (g && s.inflow) { const eta = goalEta(g, Math.max(s.inflow - projection(s).projectedSpend, s.inflow * 0.1)); if (Number.isFinite(eta)) pool.push({ title: `${g.name}, ${eta} ${eta === 1 ? 'month' : 'months'} out`, line: `At the pace you're keeping now. Cut one small habit and it moves closer.` }); }
-  const c = candleOf(all);
-  if (c.streak >= 2 && c.toNextSeal > 0) pool.push({ title: `${c.toNextSeal} ${c.toNextSeal === 1 ? 'day' : 'days'} to a seal`, line: 'A wax seal protects your candle if you miss a day. You can hold two.' });
   if (!pool.length) return null;
   const r = rng(hash(date + state.profile.name));
   const pick = pool[Math.floor(r() * pool.length)];

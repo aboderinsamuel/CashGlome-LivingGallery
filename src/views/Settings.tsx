@@ -9,6 +9,7 @@ import { exportState, importState, type Action } from '../lib/store';
 import type { State } from '../lib/types';
 import { Icon } from '../components/Icons';
 import { Account } from '../components/Account';
+import { cloudConfigured } from '../lib/cloud';
 import { AppIcon } from '../components/Logo';
 import { artSrc, PAINTINGS, seasonalWallpaper, WALLPAPERS } from '../lib/art';
 import { InstallRow } from '../components/Install';
@@ -28,7 +29,9 @@ const PANES: { id: Pane; label: string; sub: string; icon: ReactNode; tint: stri
   { id: 'data', label: 'Your data', sub: 'Export, import, or start again', icon: <Icon.download size={14} />, tint: '#5E4A2E', group: 'Florin & privacy' },
   { id: 'about', label: 'About', sub: 'CashGlome and the paintings', icon: <Icon.book size={14} />, tint: '#7A6A52', group: 'About' },
 ];
-const GROUPS = [...new Set(PANES.map((p) => p.group))];
+// Backup & account appears only where this copy has a sync service to back up to.
+const SHOWN = PANES.filter((p) => p.id !== 'account' || cloudConfigured);
+const GROUPS = [...new Set(SHOWN.map((p) => p.group))];
 const Tint = ({ p }: { p: (typeof PANES)[number] }) => <span className="sb-tint" style={{ background: p.tint }}>{p.icon}</span>;
 
 /**
@@ -37,9 +40,9 @@ const Tint = ({ p }: { p: (typeof PANES)[number] }) => <span className="sb-tint"
  */
 export function SettingsSheet({ state, dispatch, close, initial, onOpenMusic }: { state: State; dispatch: (a: Action) => void; close: () => void; initial?: Pane; onOpenMusic?: () => void }) {
   const phone = usePhone();
-  const [pane, setPane] = useState<Pane>(initial ?? 'general');
+  const [pane, setPane] = useState<Pane>(initial && SHOWN.some((p) => p.id === initial) ? initial : 'general');
   const [listing, setListing] = useState(phone && !initial);
-  const P = PANES.find((p) => p.id === pane)!;
+  const P = SHOWN.find((p) => p.id === pane)!;
   const body = useRef<HTMLDivElement>(null);
   const go = (id: Pane) => { setPane(id); setListing(false); body.current?.scrollTo(0, 0); };
   useEffect(() => {
@@ -63,7 +66,7 @@ export function SettingsSheet({ state, dispatch, close, initial, onOpenMusic }: 
             {GROUPS.map((g) => (
               <div key={g} className="sb-group">
                 <div className="side-label">{g}</div>
-                {PANES.filter((p) => p.group === g).map((p) => (
+                {SHOWN.filter((p) => p.group === g).map((p) => (
                   <button key={p.id} className={'side-item' + (pane === p.id ? ' on' : '')} onClick={() => go(p.id)} aria-current={pane === p.id ? 'page' : undefined}>
                     <Tint p={p} />{p.label}
                   </button>
@@ -80,7 +83,7 @@ export function SettingsSheet({ state, dispatch, close, initial, onOpenMusic }: 
               <section key={g} className="sb-list" aria-label={g}>
                 <div className="sb-list-h">{g}</div>
                 <div className="sb-list-rows">
-                  {PANES.filter((p) => p.group === g).map((p) => (
+                  {SHOWN.filter((p) => p.group === g).map((p) => (
                     <button key={p.id} className="sb-row" onClick={() => (p.id === 'music' && onOpenMusic ? (close(), setTimeout(onOpenMusic, 120)) : go(p.id))}>
                       <Tint p={p} />
                       <span className="sb-row-t"><b>{p.label}</b><small>{p.id === 'music' && state.settings.music?.on && state.settings.music.name ? `Playing: ${state.settings.music.name}` : p.sub}</small></span>
