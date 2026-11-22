@@ -65,7 +65,7 @@ export function SpotifyConnect({ current, onPick, showPlaylists = true }: { curr
   if (status.kind === 'off') {
     return (
       <div className="sp-connect">
-        <span className="sp-say"><b>Your own playlists</b><span>{note ?? 'Optional. Spotify is still approving CashGlome, so for now only invited accounts can connect. Everything above works without it.'}</span></span>
+        <span className="sp-say"><b>Your own playlists</b><span>{note ?? 'Optional. While CashGlome is in testing, Spotify lets only a few invited accounts connect. Search, the quiet picks and pasted links above work for everyone.'}</span></span>
         <button type="button" className="btn" onClick={connect}>Connect Spotify</button>
       </div>
     );
@@ -75,12 +75,12 @@ export function SpotifyConnect({ current, onPick, showPlaylists = true }: { curr
       <div className="sp-connect on">
         {status.kind === 'linked' && status.me.image ? <img className="sp-face" src={status.me.image} alt="" /> : <span className="sp-face"><Icon.music size={14} /></span>}
         <span className="sp-say">
-          <b>{status.kind === 'linked' ? <>Connected as {status.me.name}</> : 'Spotify is connected'}</b>
+          <b>{status.kind === 'linked' ? <>Connected as {status.me.name}</> : status.refused ? 'Not on the invite list' : 'Spotify is connected'}</b>
           <span>{status.kind === 'linked' ? 'Your playlists are below.'
-            : status.refused ? 'Spotify hasn’t approved this account for playlists yet. Search and the picks above still work.'
+            : status.refused ? 'Spotify didn’t let this account connect: it isn’t on CashGlome’s invite list. Search and play still work without it.'
               : 'Your playlists will appear here.'}</span>
         </span>
-        <button type="button" className="link-btn" onClick={() => { disconnectSpotify(); setMine(null); setNote(null); }}>Disconnect</button>
+        <button type="button" className="link-btn" onClick={() => { disconnectSpotify(); setMine(null); setNote(null); }}>{status.kind === 'songs' && status.refused ? 'Try another account' : 'Disconnect'}</button>
       </div>
       {linked && showPlaylists && (
         <div className="sp-mine">
