@@ -129,7 +129,7 @@ export function pricesOf(entries: Entry[], today = todayISO()) {
 
 /* ——— The income record ——— */
 export interface IncomeMonth { month: string; total: number; byCat: { id: string; name: string; total: number; count: number }[]; count: number }
-const LOAN_IN = /(borrow(ed)?|loan|lent me|advance from)/i;
+const LOAN_IN = /\b(borrow(ed)?|loan|lent me|advance from)\b/i;
 export function incomeRecord(entries: Entry[], months = 6, today = todayISO()): IncomeMonth[] {
   const out: IncomeMonth[] = [];
   const d = new Date(today + 'T12:00'); d.setDate(1);

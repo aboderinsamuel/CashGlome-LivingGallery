@@ -119,9 +119,12 @@ export function thingOf(q: string) {
   return t || 'this';
 }
 
+/** "Can I afford…", "can I buy…", "should I get…": answered from what is left, never by a category. */
+const AFFORD_Q = /\bafford\b|\bcan i (buy|get|spend)\b|\bshould i (buy|get)\b/;
+
 export function answerLocally(state: State, q: string): Answer | null {
   const a = answerInner(state, q);
-  const guess = a?.by === 'device' && !a.runway ? topicOf(q, state.entries)?.guess : undefined;
+  const guess = a?.by === 'device' && !a.runway && !AFFORD_Q.test(q.toLowerCase()) ? topicOf(q, state.entries)?.guess : undefined;
   if (a && guess) a.text = `No entry says “${guess}”, so I counted ${topicOf(q, state.entries)!.name}. ${a.text}`;
   return a;
 }
@@ -146,7 +149,7 @@ function answerInner(state: State, q: string): Answer | null {
   const ins = inP.filter((e) => e.dir === 'in');
 
   // Can I afford X? With a balance remembered: until payday, with the routines on the way. Otherwise: this month.
-  if (/afford|can i (buy|get|spend)|should i (buy|get)/.test(t)) return affordAnswer(state, parseOne(q)?.amount, thingOf(q));
+  if (AFFORD_Q.test(t)) return affordAnswer(state, parseOne(q)?.amount, thingOf(q));
 
   // How much do I have? A remembered balance answers it exactly.
   const bal = balanceNow(state);

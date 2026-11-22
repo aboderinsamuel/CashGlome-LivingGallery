@@ -195,7 +195,7 @@ export async function askFlorin(state: State, question: string, history: FlorinH
   const offline = typeof navigator !== 'undefined' && navigator.onLine === false;
   const rules = async (note?: string): Promise<FlorinAnswer> => {
     // Who owes whom is the people ledger, counted here; the rules' search doesn't read it.
-    if (/owe[sd]?|owing|debts?/i.test(question)) {
+    if (/\bowe[sd]?\b|\bowing\b|\bdebts?\b/i.test(question)) {
       const cur = state.profile.currency;
       const ps = peopleOf(state.entries).filter((p) => p.net !== 0);
       const them = ps.filter((p) => p.net > 0), me = ps.filter((p) => p.net < 0);
