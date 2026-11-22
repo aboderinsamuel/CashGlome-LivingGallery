@@ -13,7 +13,7 @@ export interface Reading {
   category?: string;
   label?: string;
   box?: Box;
-  engine: 'muse' | 'device';
+  engine: 'device';
   note?: string; // why Florin wasn't used, when it failed
 }
 type Progress = (p: number, stage: string) => void;

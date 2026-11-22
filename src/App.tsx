@@ -571,7 +571,7 @@ export default function App() {
       { label: 'About CashGlome', action: () => openSettings('about') },
       'sep',
       { label: 'Settings…', kbd: kbd(','), action: () => openSettings() },
-      { label: 'The AI (Florin)…', action: () => openSettings('muse') },
+      { label: 'The AI (Florin)…', action: () => openSettings('florin') },
       'sep',
       { label: 'Sounds', checked: state.settings.sound, action: () => dispatch({ type: 'settings', patch: { sound: !state.settings.sound } }) },
     ] },

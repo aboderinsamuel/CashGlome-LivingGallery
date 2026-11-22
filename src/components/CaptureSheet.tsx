@@ -80,7 +80,7 @@ export function CaptureSheet({ file: initial, settings, currency, attachTo, onDo
     const p = parseOne(sentence);
     if (!p) return null;
     const date = p.date !== todayISO() ? p.date : reading?.date ?? p.date;
-    return { ...p, dir: 'out', category: category && cat(category).dir === 'out' ? category : p.dir === 'in' ? 'other' : p.category, date, source: reading?.engine === 'muse' ? 'muse' : 'oracle' };
+    return { ...p, dir: 'out', category: category && cat(category).dir === 'out' ? category : p.dir === 'in' ? 'other' : p.category, date, source: 'oracle' };
   }, [sentence, category, reading]);
 
   const ready = !!small.current && !!art[kind] && (attachTo ? true : !!parsed);
@@ -139,7 +139,7 @@ export function CaptureSheet({ file: initial, settings, currency, attachTo, onDo
               <div className="cap-foot">
                 <span className="small cap-privacy">
                   <Icon.check size={12} />
-                  {reading?.engine === 'muse' ? 'Florin read it. The photo stays on this device.' : 'Read on this device. Nothing was uploaded.'}
+                  Read on this device. Nothing was uploaded.
                 </span>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button className="btn" onClick={onClose}>Cancel</button>

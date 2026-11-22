@@ -25,7 +25,7 @@ if (existsSync(file)) {
 }
 
 // Anything starting with VITE_ ends up inside the app for anyone to read. Secrets never belong there.
-const leaks = Object.entries(env).filter(([k, v]) => k.startsWith('VITE_') && v && (/(META|MUSE).*KEY|SECRET|SERVICE_ROLE|PASSWORD/.test(k) || /service_role|sb_secret_/.test(v)));
+const leaks = Object.entries(env).filter(([k, v]) => k.startsWith('VITE_') && v && (/META.*KEY|SECRET|SERVICE_ROLE|PASSWORD/.test(k) || /service_role|sb_secret_/.test(v)));
 if (leaks.length) {
   console.error(`Stopped: ${leaks.map(([k]) => k).join(', ')} would be published inside the app for anyone to read.`);
   console.error('Keep secrets in Vercel environment variables, and never put the Supabase service_role / secret key in the app.');

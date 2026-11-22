@@ -159,7 +159,7 @@ function Inspector({ e, cur, dispatch, close, onAttach }: { e: Entry; cur: strin
           </Field>
         )}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
-          <span className="small">{e.source === 'muse' ? 'Read by Florin' : e.source === 'manual' ? 'Edited by you' : 'Read on this device'} · {money(e.amount, cur)}</span>
+          <span className="small">{e.source === 'florin' ? 'Read by Florin' : e.source === 'manual' ? 'Edited by you' : 'Read on this device'} · {money(e.amount, cur)}</span>
           <button className="btn danger" onClick={() => { dispatch({ type: 'remove', id: e.id }); close(); }}><Icon.trash size={14} /> Delete</button>
         </div>
       </div>

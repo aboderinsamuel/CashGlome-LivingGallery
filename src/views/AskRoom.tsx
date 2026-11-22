@@ -9,7 +9,7 @@ import type { State } from '../lib/types';
 import { Icon } from '../components/Icons';
 import { Runway } from '../components/Runway';
 import { safeToSpend } from '../stage/askPainting';
-import { askMuse, type MuseAnswer } from '../stage/muse';
+import { askFlorin, type FlorinAnswer } from '../stage/florin';
 import { brainConfigured } from '../stage/brain';
 import { peopleOf } from '../stage/books';
 import { castOf } from '../stage/voices';
@@ -17,9 +17,9 @@ import { STATEMENT_QUESTION } from '../components/StatementSheet';
 import './ask-room.css';
 import '../stage/stage.css';
 
-export interface AskTurn { q: string; a: MuseAnswer | null; at: number }
+export interface AskTurn { q: string; a: FlorinAnswer | null; at: number }
 const KEY = 'cg-ask-room';
-const SEAL: Record<MuseAnswer['planned'], [string, string]> = {
+const SEAL: Record<FlorinAnswer['planned'], [string, string]> = {
   cloud: ['G', 'Gemini wrote this · every figure counted on this device'],
   device: ['N', 'Gemini Nano, on this device · nothing left it'],
   rules: ['C', 'Counted on this device'],
@@ -91,8 +91,8 @@ export function AskRoom({ state, turns, setTurns, first, onFirstDone }: { state:
     const history = turns.map((t) => ({ q: t.q, a: t.a }));
     const at = Date.now();
     setTurns((t) => [...t, { q, a: null, at }]);
-    let a: MuseAnswer;
-    try { a = await askMuse(state, q, history, { name: sitter.name, role: sitter.role, painting: p.title, artist: p.artist, year: p.year }, setLive); }
+    let a: FlorinAnswer;
+    try { a = await askFlorin(state, q, history, { name: sitter.name, role: sitter.role, painting: p.title, artist: p.artist, year: p.year }, setLive); }
     catch { a = { text: 'I lost my train of thought. Ask me again in a moment.', figures: [], rows: [], planned: 'rules', wordsBy: 'app' }; }
     // The answer goes to its own question, found by when it was asked, never simply the last one.
     setTurns((t) => { const next = t.map((x) => (x.at === at && !x.a ? { q, a, at: Date.now() } : x)); saveTurns(next); return next; });
@@ -167,7 +167,7 @@ export function AskRoom({ state, turns, setTurns, first, onFirstDone }: { state:
   );
 }
 
-function AnswerCard({ a, cur, who }: { a: MuseAnswer; cur: string; who: string }) {
+function AnswerCard({ a, cur, who }: { a: FlorinAnswer; cur: string; who: string }) {
   const [open, setOpen] = useState(false);
   const [mark, line] = SEAL[a.planned] ?? SEAL.rules;
   return (

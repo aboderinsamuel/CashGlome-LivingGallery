@@ -22,7 +22,7 @@ Write, See, Ask.
 - See: each month is a Chapter with a title (e.g. "The Homebody") and a
   public-domain masterpiece under old varnish. Every entry cleans a
   patch. Finished paintings hang in the gallery for good.
-- Ask: Muse (cloud AI) only plans the query; the device does every sum
+- Ask: Florin (cloud AI) only plans the query; the device does every sum
   exactly and shows its working.
 - Rules we don't bend: entries live on the device and work offline; no
   sign-up before the first entry (the account comes after it, one tap,

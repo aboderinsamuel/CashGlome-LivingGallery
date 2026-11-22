@@ -12,16 +12,16 @@ import { affordability, memoryDigest, relDay } from '../lib/memory';
 import type { Entry, State } from '../lib/types';
 import { askPainting, safeToSpend, type PaintingAnswer } from './askPainting';
 import { peopleOf } from './books';
-import { brainConfigured, museModels, type Persona } from './brain';
+import { brainConfigured, florinModels, type Persona } from './brain';
 import { STATEMENT_Q, statementAnswer, statementDigest, statementFigures } from './statements';
 
-export interface MuseAnswer extends PaintingAnswer {
+export interface FlorinAnswer extends PaintingAnswer {
   /** The answer holds a figure Florin guessed rather than one counted from the book. */
   estimate?: boolean;
   /** Why it was answered where it was (offline, kept on this device, Florin unreachable). */
   note?: string;
 }
-export interface MuseHistory { q: string; a: { text: string } | null }
+export interface FlorinHistory { q: string; a: { text: string } | null }
 
 // Ask goes to Gemini in the cloud while online, so it is quick on any device; Gemini Nano answers offline.
 // The old "Keep Ask on this device" switch is gone; its saved setting is cleared.
@@ -191,9 +191,9 @@ const tidy = (t: string) => t.replace(/!/g, '.').replace(/\*\*?/g, '').trim();
 const ESTIMATE = /\bestimate\b/i;
 
 /** One turn of the conversation. onText receives the reply as it is written. */
-export async function askMuse(state: State, question: string, history: MuseHistory[], sitter: Persona, onText: (t: string) => void): Promise<MuseAnswer> {
+export async function askFlorin(state: State, question: string, history: FlorinHistory[], sitter: Persona, onText: (t: string) => void): Promise<FlorinAnswer> {
   const offline = typeof navigator !== 'undefined' && navigator.onLine === false;
-  const rules = async (note?: string): Promise<MuseAnswer> => {
+  const rules = async (note?: string): Promise<FlorinAnswer> => {
     // Who owes whom is the people ledger, counted here; the rules' search doesn't read it.
     if (/owe[sd]?|owing|debts?/i.test(question)) {
       const cur = state.profile.currency;
@@ -209,7 +209,7 @@ export async function askMuse(state: State, question: string, history: MuseHisto
     return { ...(await askPainting(state, question, sitter, !offline)), planned: 'rules', note };
   };
   if (!brainConfigured) return rules();
-  const models = await museModels().catch(() => null);
+  const models = await florinModels().catch(() => null);
   if (!models) return rules(offline ? 'Offline. The book answered on this device.' : undefined);
   const summary = bookSummary(state);
   const past = history.filter((h) => h.a?.text).slice(-6);
@@ -233,7 +233,7 @@ ${question}`);
       if (!text) return { ...base, planned: 'rules' };
       return { text, figures: base.figures, rows: base.rows, runway: base.runway, planned: 'device', wordsBy: 'device', estimate: ESTIMATE.test(text), note: offline ? 'Offline. Gemini Nano answered on this device.' : undefined };
     } catch (e) {
-      console.warn('[muse] device', e);
+      console.warn('[florin] device', e);
       return rules();
     }
   }
@@ -263,7 +263,7 @@ ${question}`);
     if (!text) return rules();
     return { text, figures: run.figures.length ? run.figures : STATEMENT_Q.test(question) ? statementFigures(state) : /\d/.test(text) ? summaryFigures(state) : [], rows: run.rows, runway: run.runway, planned: 'cloud', wordsBy: 'app', estimate: ESTIMATE.test(text) };
   } catch (e) {
-    console.warn('[muse] cloud', e);
+    console.warn('[florin] cloud', e);
     return rules('Florin couldn’t be reached just now, so the book answered on its own.');
   }
 }

@@ -31,7 +31,7 @@ function load(): State {
     const base = initialState();
     // Forgotten memories wait 30 days to be restored, then only an empty marker stays (so sync deletes them everywhere).
     const memories = (s.memories ?? []).map((m) => ((m.deletedAt ?? 0) > 0 && Date.now() - m.deletedAt! > 30 * 864e5 ? { id: m.id, kind: m.kind, text: '', createdAt: m.createdAt, updatedAt: Date.now(), deletedAt: -1 } : m));
-    return { ...base, ...s, seenRestored: s.seenRestored ?? {}, memories, routineLog: s.routineLog ?? {}, gone: s.gone ?? [], settings: { ...base.settings, ...s.settings, ai: { ...base.settings.ai, ...s.settings?.ai }, reminder: { ...base.settings.reminder, ...s.settings?.reminder } }, month: monthOf(todayISO()) };
+    return { ...base, ...s, entries: renamed(s.entries ?? []), seenRestored: s.seenRestored ?? {}, memories, routineLog: s.routineLog ?? {}, gone: s.gone ?? [], settings: { ...base.settings, ...s.settings, ai: { ...base.settings.ai, ...s.settings?.ai }, reminder: { ...base.settings.reminder, ...s.settings?.reminder } }, month: monthOf(todayISO()) };
   } catch {
     return initialState();
   }
@@ -141,7 +141,7 @@ export function reducer(s: State, a: Action): State {
     case 'cash': return { ...s, cash: [...(s.cash ?? []).filter((p) => p.id !== a.pocket.id), a.pocket].slice(-20) };
     case 'removeCash': return { ...s, cash: (s.cash ?? []).filter((p) => p.id !== a.id) };
     // Florin's better wording for an entry already saved from the on-device reading.
-    case 'refine': return { ...s, entries: s.entries.map((e) => (e.id === a.id && e.source !== 'manual' ? { ...e, ...a.patch, source: 'muse', updatedAt: Date.now() } : e)) };
+    case 'refine': return { ...s, entries: s.entries.map((e) => (e.id === a.id && e.source !== 'manual' ? { ...e, ...a.patch, source: 'florin', updatedAt: Date.now() } : e)) };
     case 'merge': {
       const r = a.remote;
       const stamp = (x: { updatedAt?: number; createdAt?: number }) => x.updatedAt ?? x.createdAt ?? 0;
@@ -197,8 +197,11 @@ export function exportState(state: State) {
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 }
 
+/** Books written before the AI was named Florin marked its lines 'muse'. */
+const renamed = (entries: Entry[]) => entries.map((e) => ((e.source as string) === 'muse' ? { ...e, source: 'florin' as const } : e));
+
 export async function importState(file: File, current: State): Promise<State> {
   const data = JSON.parse(await file.text()) as Partial<State>;
   if (!Array.isArray(data.entries)) throw new Error('This file is not a CashGlome world.');
-  return { ...current, ...data, settings: { ...current.settings, ...data.settings, ai: { ...current.settings.ai, ...data.settings?.ai, key: current.settings.ai.key } } } as State;
+  return { ...current, ...data, entries: renamed(data.entries), settings: { ...current.settings, ...data.settings, ai: { ...current.settings.ai, ...data.settings?.ai, key: current.settings.ai.key } } } as State;
 }

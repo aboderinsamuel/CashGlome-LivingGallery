@@ -83,7 +83,7 @@ Each line becomes a **memory** CashGlome reads and acts on:
 | **Routine** | "Train 12 every weekday at 6pm" | On each of those days, writes the entry for you, or asks one tap: *Did you spend $12 on train today?* |
 | **Balance** | "I have 1,800 in my account" | Today's money = that balance + everything you've written since. |
 | **Income** | "I get paid 3,200 on the 28th" | Knows when the purse fills up again. |
-| **Note** | "I'm saving for a trip to Lisbon" | Context for Ask and for Muse. |
+| **Note** | "I'm saving for a trip to Lisbon" | Context for Ask and for Florin. |
 
 <img src="assets/memory-cards.jpg" alt="Three routine cards: Train $12 every weekday, Lunch $14 every weekday, Rent $1,400 on the 1st of each month." width="100%">
 
@@ -162,7 +162,7 @@ The composer has a camera on the left, words in the middle and a microphone on t
 - **Snap.** Use the camera button, or drop or paste a photo.
   - **Receipts** are read **on this device** with Tesseract (`public/ocr`, bundled). CashGlome finds the shop, the *total paid* (not subtotal, VAT or change) and the date, rings the total in gold, and prefills one editable line.
   - **Things you bought** are repainted as an old-master oil painting, entirely on the device (`src/lib/paint.ts`): a Kuwahara filter, brushstrokes along the forms, an umber-to-ivory grade, canvas weave and craquelure. Then it hangs in a gilt frame.
-  - With Meta Muse connected, photos are read by Muse instead, and the sheet says so. If Muse fails, the on-device reader takes over.
+  - Photos are always read on the device; nothing is uploaded.
 
 <details>
 <summary><b>Where your paintings show up</b></summary>
@@ -182,10 +182,10 @@ Type or say a question in the same box (or press `Ctrl/⌘ K`): *Where did my mo
 
 <img align="right" src="assets/ask.jpg" alt="Ask: 'Can I afford a 90 dinner on Saturday?' answered with Yes, the figures, and a small purse drawing." width="46%">
 
-- **Exact numbers, always.** With Meta Muse on, Muse reads the question and asks the app to search your entries (by date, category, words, amount, weekday…) as many times as it needs. **The app does every sum.** Muse only writes the sentence. *Show the numbers* lists the figures behind any answer.
-- **It knows your memory.** Muse sees your routines, balance and payday, can run the purse (`check_affordability`), and can suggest something worth remembering, which you keep with one tap (`remember`). It never saves a memory on its own.
-- **Muse only with your OK.** The first time, it says exactly what is sent and asks.
-- **Works without Muse.** Offline, totals, top categories, comparisons, "when did I last…", "how much do I have" and "can I afford" are still counted on the device.
+- **Exact numbers, always.** Florin, a Gemini conversation, reads the question and calls tools that run on the device (`search_entries`, `can_afford`). **The device does every sum.** Florin only writes the sentence, and *Show the working* lists the figures behind any answer.
+- **It knows your book, not your entries.** Florin gets a summary (this month's totals by category, what's free to spend, who owes whom), never the lines themselves.
+- **Said plainly before anything is sent.** Ask says what goes to Gemini: your question and that summary.
+- **Works offline.** Ask sends nothing then: Gemini Nano answers if the browser has it, the book's own rules if not. Totals, top categories, comparisons, "when did I last…" and "can I afford" are always counted on the device.
 
 <br clear="right">
 
@@ -230,7 +230,7 @@ The loop rewards **writing things down and keeping money**, never spending.
 
 | Complaint | CashGlome |
 |---|---|
-| Bank sync breaks silently | No bank connection to break. Muse failures are said out loud and the offline reader takes over. |
+| Bank sync breaks silently | No bank connection to break. If Florin can't be reached, the book's own rules answer instead. |
 | Typing everything is tedious | One line for many entries, voice, receipts, one-tap repeats, and **routines that write themselves**. |
 | Categories are wrong and never learn | Fix one once and it's remembered. |
 | The AI gets numbers wrong | Every sum is counted on the device, and every answer can show its working. |
@@ -298,7 +298,6 @@ flowchart LR
 | Memory (routines, balance, payday, notes, history) | ✅ | ✅ |
 | Profile, theme, settings, routine check-ins | ✅ | ✅ |
 | Photos and receipt images | ✅ | ❌ |
-| Your Meta Muse key | ✅ | ❌ |
 | Spotify link | ✅ | ❌ |
 
 > [!NOTE]
@@ -337,29 +336,22 @@ npm run desktop:dev    # desktop app with hot reload
 ```
 
 ```bash
-npm run build && npm run serve    # production web server + AI proxy (PORT, default 4173)
+npm run build && npm run serve    # production web server (PORT, default 4173)
 npm run dist:win                  # Windows installer → release/
 npm run dist:mac                  # macOS .dmg (on a Mac)
 node scripts/publish-web.mjs      # build into ../cashglome-site/app for cashglome.vercel.app/app/
 ```
 
-`publish-web.mjs` reads `.env.local`, says which features are on (accounts, the shared Muse), and refuses to build if a secret is about to be published. Push `cashglome-site` afterwards and Vercel deploys it. [docs/SETUP.md](SETUP.md) walks through all of it.
+`publish-web.mjs` reads `.env.local`, says which features are on (accounts), and refuses to build if a secret is about to be published. Push `cashglome-site` afterwards and Vercel deploys it. [docs/SETUP.md](SETUP.md) walks through all of it.
 
 <details>
-<summary><b>Meta Muse (optional AI)</b></summary>
+<summary><b>Florin (optional AI)</b></summary>
 
-CashGlome's own parser understands `5k`, `2.5m`, `₦4,500` and `$12`, tells money in from money out, splits one line into several entries, and picks up feelings ("regret", "worth it") and dates ("yesterday", "last friday").
+CashGlome's own parser understands `5k`, `2.5m`, `₦4,500` and `$12`, tells money in from money out, splits one line into several entries, and picks up feelings ("regret", "worth it") and dates ("yesterday", "last friday"). It needs no AI.
 
-Muse is Meta's models doing the reading and writing instead:
+Florin adds Gemini through **Firebase AI Logic** (`src/stage/brain.ts`): the cloud model first, so any device is quick, and **Gemini Nano** on the device when offline. It answers questions in Ask, and reads lines written in other scripts or that the rules can't read. App Check with reCAPTCHA Enterprise guards the API, so the Firebase values in the app are public by design.
 
-- **Muse Spark 1.1** (`muse-spark-1.1`) reads your entries.
-- **Muse Wonder 1.0** (`muse-wonder-1.0`) writes each chapter's headline and notes, and answers questions with the app's tools.
-
-**With the shared Muse** (below) built in, as intended for the hosted app, Muse runs on CashGlome's own key and is on from the start, with nothing to paste. Switch it off in *Settings → Meta Muse* and everything is read on the device again. **Anywhere else**, paste your own Meta Model API key there.
-
-The API is OpenAI-compatible (default base `https://api.meta.ai/v1`). Your own key stays on the device, is never synced and is left out of exports. On desktop, requests go from the Electron main process; on the web, through the bundled `/__ai` proxy.
-
-**The shared Muse.** A build can turn Muse on for everyone without a key: set `VITE_MUSE_PROXY` to a server function holding your key ([`api/muse.js`](https://github.com/cashglome/cashglome-site/blob/main/api/muse.js) on the website, with the key in Vercel as `META_API_KEY`). It limits each visitor and accepts only Muse models; anyone who pastes their own key uses theirs instead. Setup is in [docs/SETUP.md](docs/SETUP.md#b-shared-muse-your-meta-key-on-the-server).
+Set `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_APP_ID` and `VITE_RECAPTCHA_SITE_KEY` in `.env.local` (optionally `VITE_GEMINI_MODEL`). Without them, everything is read and counted on the device. Setup is in [docs/SETUP.md](SETUP.md#b-florin-gemini-through-firebase).
 </details>
 
 <details>
@@ -389,18 +381,21 @@ This writes `assets/`. The banner is a PNG with its rounded corners cut out, sin
 ## Project map
 
 ```
-electron/           desktop shell: frameless window, AI calls, offline speech
-docs/               SETUP.md (accounts, shared Muse, publishing) and the README pictures
-scripts/            AI proxy, desktop dev runner, icon renderer, painting sizes, README shots, publish-web
+electron/           desktop shell: frameless window, offline speech
+docs/               SETUP.md (accounts, Florin, publishing) and the README pictures
+scripts/            desktop dev runner, icon renderer, painting sizes, README shots, publish-web
 server.mjs          production web server
 supabase/           database schema (migrations) and check.sql for optional accounts
 src/lib/
   memory.ts         the commonplace book: reading memories, routines, the purse, affordability
   cloud.ts          Supabase auth and sync (loaded only when configured)
   useCloud.ts       background sync and its status
-  ask.ts            Ask: on-device answers, Muse tools (search, check_affordability, remember)
+  ask.ts            Ask: questions counted on the device, and the searches Florin's tools run
   store.ts          the world: entries, goals, memories, merge
-  analytics.ts …    parser, chapter copy, art & restoration, candle, receipts, paint, sounds
+  analytics.ts …    parser, chapter copy, art & restoration, receipts, paint, sounds
+src/stage/
+  brain.ts          Gemini Nano on the device and Gemini in the cloud (Firebase AI Logic)
+  florin.ts         Florin: the chat, its tools, and the working it shows
 src/components/     Desktop, Shell, Composer, CheckIns, Runway, Account, ShareSheet, Coins, LivingArt…
 src/views/          Chapter, Memory, Ledger, Plans, Collection, Edition, Settings, Welcome…
 public/art/         sixteen public-domain paintings (Wikimedia Commons)
@@ -411,7 +406,7 @@ public/art/         sixteen public-domain paintings (Wikimedia Commons)
 ## Related repos
 
 - [cashglome-ios](https://github.com/cashglome/cashglome-ios): the native iPhone and iPad app (SwiftUI).
-- [cashglome-site](https://github.com/cashglome/cashglome-site): the website at [cashglome.vercel.app](https://cashglome.vercel.app). It also serves this app at `/app/` and runs the shared Muse (`api/muse.js`).
+- [cashglome-site](https://github.com/cashglome/cashglome-site): the website at [cashglome.vercel.app](https://cashglome.vercel.app). It also serves this app at `/app/`.
 
 <br>
 

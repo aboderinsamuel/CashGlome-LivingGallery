@@ -12,7 +12,7 @@ export interface Entry {
   feeling?: Feeling;
   date: string; // YYYY-MM-DD
   createdAt: number;
-  source: 'oracle' | 'muse' | 'manual' | 'routine';
+  source: 'oracle' | 'florin' | 'manual' | 'routine';
   confidence: number; // 0..1
   photo?: string; // picture id in IndexedDB (this device only)
   routine?: string; // the memory it was logged from, when a routine logged it
@@ -74,7 +74,7 @@ export interface Settings {
   wallpaper: string; // painting id, or 'season'
   reminder: { on: boolean; time: string };
   /** Questions the app can't count itself may go to Florin: undefined until the person decides. */
-  askMuse?: boolean;
+  askFlorin?: boolean;
   /** Background music: a Spotify playlist, album or track link, and whether it plays. */
   music?: { url: string; on: boolean; name?: string };
 }
@@ -134,7 +134,7 @@ export interface Parsed {
   date: string;
   confidence: number;
   text: string;
-  source: 'oracle' | 'muse';
+  source: 'oracle' | 'florin';
   /** Set when the text names a currency ("4,000 naira", "$20"), which may not be the person's own. */
   currency?: string;
 }

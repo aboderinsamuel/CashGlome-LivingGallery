@@ -39,7 +39,7 @@ We wanted the opposite: a diary that takes one line a day, keeps it on the phone
   - The sitters' one-liners send the cloud categories only, never sums or the line.
   - Today's museum label goes to the cloud online and `PREFER_ON_DEVICE` offline.
   - Every result reports `inferenceSource`, so each answer is labelled with where it ran: on this device, or in the cloud.
-- **Florin**, in [`src/stage/muse.ts`](https://github.com/aboderinsamuel/CashGlome-LivingGallery/blob/main/src/stage/muse.ts): a Gemini chat with function calling.
+- **Florin**, in [`src/stage/florin.ts`](https://github.com/aboderinsamuel/CashGlome-LivingGallery/blob/main/src/stage/florin.ts): a Gemini chat with function calling.
   - The model gets a summary of the book and two tools that run on the device: `search_entries` (exact totals, counts and a category split) and `can_afford` (balance, routines and pay day).
   - Replies stream word by word. Guessed figures are labelled as estimates.
   - Offline, Ask goes to Gemini Nano or the book's own rules, so nothing is sent.
@@ -104,7 +104,7 @@ firebase-ai-logic, gemini, gemini-nano, firebase-app-check, recaptcha-enterprise
 
 **Built during the submission period** (from 11 November 2026, 1:30 PM PT; the first commit in the window is [`50fe538`](https://github.com/aboderinsamuel/CashGlome-LivingGallery/commit/50fe538), at 5:23 PM PT; every change since is in [this comparison](https://github.com/aboderinsamuel/CashGlome-LivingGallery/compare/5e5f583...main)):
 - **The Firebase hybrid brain** ([`src/stage/brain.ts`](https://github.com/aboderinsamuel/CashGlome-LivingGallery/blob/main/src/stage/brain.ts)). Firebase AI Logic with Gemini Nano on the device and Gemini in the cloud, with the cloud first so any device is fast and Nano as the offline fallback, with App Check and reCAPTCHA Enterprise. None of it existed before.
-- **Florin** ([`src/stage/muse.ts`](https://github.com/aboderinsamuel/CashGlome-LivingGallery/blob/main/src/stage/muse.ts)). A Gemini chat with function calling, in which tools on the device do every sum and the answer shows its working. It replaces the old Ask panel, which has been deleted.
+- **Florin** ([`src/stage/florin.ts`](https://github.com/aboderinsamuel/CashGlome-LivingGallery/blob/main/src/stage/florin.ts)). A Gemini chat with function calling, in which tools on the device do every sum and the answer shows its working. It replaces the old Ask panel, which has been deleted.
 - **The money reader, extended.** Nine more languages read on the device and five more currencies, on top of the rewrite made that morning.
 - **The living canvas.** One WebGL2 shader takes each painting from a red-chalk underdrawing through grisaille and glaze to varnish, with brush strokes, mood light and candlelight. It replaces the flat varnish wipe.
 - **A world library of 57 public-domain masters.** The paintings come from China, Korea, Japan, India, Persia, Africa and the Americas as well as Europe, hung so that no month repeats until the whole library has been shown.

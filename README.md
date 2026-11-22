@@ -51,7 +51,7 @@
 
 **Built during the submission period** (from 11 November 2026, 1:30 PM PT; the first commit in the window is [`50fe538`](https://github.com/aboderinsamuel/CashGlome-LivingGallery/commit/50fe538), at 5:23 PM PT; every change since is in [this comparison](https://github.com/aboderinsamuel/CashGlome-LivingGallery/compare/5e5f583...main)):
 - **The Firebase hybrid brain** ([`src/stage/brain.ts`](https://github.com/aboderinsamuel/CashGlome-LivingGallery/blob/main/src/stage/brain.ts)). Firebase AI Logic with Gemini Nano on the device and Gemini in the cloud, with the cloud first so any device is fast and Nano as the offline fallback, with App Check and reCAPTCHA Enterprise. None of it existed before.
-- **Florin** ([`src/stage/muse.ts`](https://github.com/aboderinsamuel/CashGlome-LivingGallery/blob/main/src/stage/muse.ts)). A Gemini chat with function calling, in which tools on the device do every sum and the answer shows its working. It replaces the old Ask panel, which has been deleted.
+- **Florin** ([`src/stage/florin.ts`](https://github.com/aboderinsamuel/CashGlome-LivingGallery/blob/main/src/stage/florin.ts)). A Gemini chat with function calling, in which tools on the device do every sum and the answer shows its working. It replaces the old Ask panel, which has been deleted.
 - **The money reader, extended.** Nine more languages read on the device and five more currencies, on top of the rewrite made that morning.
 - **The living canvas.** One WebGL2 shader takes each painting from a red-chalk underdrawing through grisaille and glaze to varnish, with brush strokes, mood light and candlelight. It replaces the flat varnish wipe.
 - **A world library of 57 public-domain masters.** The paintings come from China, Korea, Japan, India, Persia, Africa and the Americas as well as Europe, hung so that no month repeats until the whole library has been shown.
@@ -120,7 +120,7 @@ Florin speaks as a figure in the month's painting. It's a real Gemini conversati
 - It gets a **summary of the book** (this month's totals by category, what's free to spend, who owes whom) and **tools that run on the device**: `search_entries` (exact totals, counts and a category split) and `can_afford` (balance, routines and pay day). Any figure from your book comes from those, copied exactly, and the answer shows the same figures as its working.
 - When it **guesses** (what a dinner for two usually costs), it says so, and the answer is labelled *holds an estimate*.
 - **Offline**, Ask sends nothing: Gemini Nano answers if the browser has it, the book's own rules if not.
-- Code: [`src/stage/muse.ts`](src/stage/muse.ts).
+- Code: [`src/stage/florin.ts`](src/stage/florin.ts).
 
 ## Hybrid AI: what runs where
 

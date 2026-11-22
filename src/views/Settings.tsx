@@ -15,7 +15,7 @@ import { artSrc, PAINTINGS, seasonalWallpaper, WALLPAPERS } from '../lib/art';
 import { InstallRow } from '../components/Install';
 import { usePhone } from '../phone/device';
 
-export type Pane = 'general' | 'categories' | 'routines' | 'account' | 'appearance' | 'music' | 'muse' | 'data' | 'about';
+export type Pane = 'general' | 'categories' | 'routines' | 'account' | 'appearance' | 'music' | 'florin' | 'data' | 'about';
 // Tints are pigments from the paintings: umber, ochre, lapis, verdigris, vermilion, madder, gold.
 // Four groups, each named for what it holds: the book itself, how it sounds and looks, the AI and your privacy, and about.
 const PANES: { id: Pane; label: string; sub: string; icon: ReactNode; tint: string; group: string }[] = [
@@ -24,7 +24,7 @@ const PANES: { id: Pane; label: string; sub: string; icon: ReactNode; tint: stri
   { id: 'routines', label: 'Routines & memory', sub: 'Rent, fares, pay day: what repeats', icon: <Icon.repeat size={14} />, tint: '#3E8C86', group: 'Your book' },
   { id: 'music', label: 'Music', sub: 'Spotify, search and quiet picks', icon: <Icon.music size={14} />, tint: '#8E2A20', group: 'Music & look' },
   { id: 'appearance', label: 'Look & sound', sub: 'Wallpaper, light or dark, sounds', icon: <Icon.sun size={14} />, tint: '#B08A3A', group: 'Music & look' },
-  { id: 'muse', label: 'Florin, the AI', sub: 'Where your questions are answered', icon: <Icon.bolt size={14} />, tint: '#2A2620', group: 'Florin & privacy' },
+  { id: 'florin', label: 'Florin, the AI', sub: 'Where your questions are answered', icon: <Icon.bolt size={14} />, tint: '#2A2620', group: 'Florin & privacy' },
   { id: 'account', label: 'Backup & account', sub: 'An encrypted backup only you can read', icon: <Icon.cloud size={14} />, tint: '#2B3FA8', group: 'Florin & privacy' },
   { id: 'data', label: 'Your data', sub: 'Export, import, or start again', icon: <Icon.download size={14} />, tint: '#5E4A2E', group: 'Florin & privacy' },
   { id: 'about', label: 'About', sub: 'CashGlome and the paintings', icon: <Icon.book size={14} />, tint: '#7A6A52', group: 'About' },
@@ -102,7 +102,7 @@ export function SettingsSheet({ state, dispatch, close, initial, onOpenMusic }: 
               {pane === 'account' && <Group><div style={{ padding: 16 }}><Account /></div></Group>}
               {pane === 'appearance' && <Appearance state={state} dispatch={dispatch} />}
               {pane === 'music' && <MusicPane state={state} onOpenMusic={onOpenMusic ? () => { close(); setTimeout(onOpenMusic, 120); } : undefined} />}
-              {pane === 'muse' && <Florin />}
+              {pane === 'florin' && <Florin />}
               {pane === 'data' && <Data state={state} dispatch={dispatch} close={close} />}
               {pane === 'about' && <About />}
             </>

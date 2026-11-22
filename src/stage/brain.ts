@@ -161,7 +161,7 @@ export async function readLine(text: string, currency: string): Promise<{ read: 
     const rows = JSON.parse(r.response.text()) as { label: string; amount: number; dir: 'in' | 'out'; category: string }[];
     const read: Parsed[] = rows.filter((x) => x && x.amount > 0 && Number.isFinite(x.amount)).map((x) => ({
       amount: Math.round(x.amount * 100) / 100, dir: x.dir === 'in' ? 'in' : 'out', category: ENTRY_SCHEMA_IDS.includes(x.category) ? x.category : (x.dir === 'in' ? 'windfall' : 'other'),
-      label: String(x.label || '').slice(0, 40) || 'Entry', date: todayISO(), confidence: 0.75, text, source: 'muse',
+      label: String(x.label || '').slice(0, 40) || 'Entry', date: todayISO(), confidence: 0.75, text, source: 'florin',
     }));
     return { read, where: whereOf(r.response.inferenceSource) };
   };
@@ -235,7 +235,7 @@ export async function phraseOnDevice(p: Persona, question: string, facts: string
  * Florin's own models, for conversation. The cloud model may call the device's tools (searches, sums,
  * affordability); the device model gets the device's figures already counted, since it can't call tools.
  */
-export async function museModels() {
+export async function florinModels() {
   const m = await load();
   if (!m) return null;
   return {

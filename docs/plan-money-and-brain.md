@@ -19,7 +19,7 @@ Written Friday, the thirteenth of November 2026. It extends the money plan appro
 
 **The AI**
 - `src/lib/ai.ts` is written for one provider (Meta Florin, three model names hard-coded). The server proxy in the site repo allows only those three models.
-- The good part to keep: `askMuse` already makes the model call tools and forbids it from doing arithmetic. The device counts.
+- The good part to keep: `askFlorin` already makes the model call tools and forbids it from doing arithmetic. The device counts.
 - Missing: any provider but one, a way to check an answer's numbers, memory beyond four kinds of note, proactive help, tests that score a model, and entry points outside the Ask panel.
 
 ## 2. Research, and what I take from it
