@@ -1,11 +1,14 @@
-// Draws the "under old varnish" copy of a painting: browned, softened, blotched with grime and specks.
-// Shared by the worker and the main-thread fallback, so it only touches canvas APIs both have.
+// Draws the month's painting as its underdrawing: the sinopia a painter lays on the canvas before any colour.
+// Bare linen, the drawing in red chalk, a light hatching in the shadows. Every entry then paints a stroke of
+// the real colour over it. The same look as the living canvas's first stage (stage/shader.ts), drawn once on
+// the CPU so a plate can show it as a plain image. Shared by the worker and the main-thread fallback, so it
+// only touches canvas APIs both have. (The file keeps its old name; it used to draw varnish.)
 
 type Canvas2D = OffscreenCanvasRenderingContext2D | CanvasRenderingContext2D;
 type AnyCanvas = OffscreenCanvas | HTMLCanvasElement;
 export interface VarnishJob { w: number; h: number; ax: number; ay: number }
 
-/** Deterministic, so a painting always ages the same way. */
+/** Deterministic, so a painting is always drawn the same way. */
 function rng(seed: number) {
   return () => { seed |= 0; seed = (seed + 0x6d2b79f5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
 }
@@ -28,11 +31,14 @@ function noise(make: (w: number, h: number) => AnyCanvas, w: number, h: number, 
   return out;
 }
 
-export function renderVarnish(make: (w: number, h: number) => AnyCanvas, src: ImageBitmap, { w, h, ax, ay }: VarnishJob): AnyCanvas {
+const smooth = (a: number, b: number, x: number) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+
+export function renderVarnish(make: (w: number, h: number) => AnyCanvas, src: ImageBitmap | HTMLImageElement, { w, h, ax, ay }: VarnishJob): AnyCanvas {
   // Cover-crop exactly like object-fit: cover with object-position ax/ay.
-  const k = Math.max(w / src.width, h / src.height);
-  const sw = w / k, sh = h / k, sx = (src.width - sw) * ax, sy = (src.height - sh) * ay;
-  // A soft blur: draw at half size, then back up.
+  const iw = 'naturalWidth' in src ? src.naturalWidth : src.width, ih = 'naturalHeight' in src ? src.naturalHeight : src.height;
+  const k = Math.max(w / iw, h / ih);
+  const sw = w / k, sh = h / k, sx = (iw - sw) * ax, sy = (ih - sh) * ay;
+  // Read the picture a little softened, so the chalk follows forms, not every brush hair.
   const half = make(Math.round(w / 2), Math.round(h / 2)), hc = half.getContext('2d') as Canvas2D;
   hc.imageSmoothingQuality = 'high';
   hc.drawImage(src, sx, sy, sw, sh, 0, 0, half.width, half.height);
@@ -41,21 +47,35 @@ export function renderVarnish(make: (w: number, h: number) => AnyCanvas, src: Im
   c.drawImage(half, 0, 0, w, h);
   const img = c.getImageData(0, 0, w, h), d = img.data;
 
-  const blotch = noise(make, w, h, [[7, 9, 0.45], [15, 19, 0.33], [31, 39, 0.22]], 7);
-  const speck = noise(make, w, h, [[60, 75, 0.55], [140, 175, 0.45]], 3);
-  for (let i = 0, p = 0; i < d.length; i += 4, p++) {
-    const R = d[i], G = d[i + 1], B = d[i + 2];
-    // Yellowed varnish: the same colour matrix the old SVG filter used.
-    let r = 0.34 * R + 0.55 * G + 0.13 * B - 5, g = 0.27 * R + 0.45 * G + 0.1 * B - 10, b = 0.15 * R + 0.3 * G + 0.07 * B - 15;
-    // Brown grime in blotches.
-    const a1 = Math.min(1, Math.max(0, (0.62 - blotch[p]) * 2.6)) * 0.75;
-    r += (46 - r) * a1; g += (28 - g) * a1; b += (10 - b) * a1;
-    // Dark specks and veins.
-    const a2 = Math.min(1, Math.max(0, (0.4 - speck[p]) * 7)) * 0.5;
-    r += (20 - r) * a2; g += (13 - g) * a2; b += (5 - b) * a2;
-    // An even film over everything.
-    r += (58 - r) * 0.18; g += (42 - g) * 0.18; b += (18 - b) * 0.18;
-    d[i] = r; d[i + 1] = g; d[i + 2] = b;
+  const L = new Float32Array(w * h);
+  for (let i = 0, p = 0; i < d.length; i += 4, p++) L[p] = (0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]) / 255;
+  const grain = noise(make, w, h, [[90, 112, 0.5], [220, 275, 0.5]], 5);
+  const wash = noise(make, w, h, [[6, 8, 0.6], [14, 18, 0.4]], 9);
+  const s = Math.max(1, Math.round(w / 600)); // sample distance for the edges, so a big plate draws the same lines
+  const period = Math.max(3, w / 120); // hatching spacing, the same on a small plate and a big one
+
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const p = y * w + x;
+      const xl = Math.max(0, x - s), xr = Math.min(w - 1, x + s), yt = Math.max(0, y - s), yb = Math.min(h - 1, y + s);
+      const tl = L[yt * w + xl], t = L[yt * w + x], tr = L[yt * w + xr];
+      const l = L[y * w + xl], r = L[y * w + xr];
+      const bl = L[yb * w + xl], b = L[yb * w + x], br = L[yb * w + xr];
+      const gx = -tl - 2 * l - bl + tr + 2 * r + br, gy = -tl - 2 * t - tr + bl + 2 * b + br;
+      const edge = smooth(0.14, 0.5, Math.hypot(gx, gy) + (grain[p] - 0.5) * 0.06);
+      const shade = 1 - L[p];
+      // Linen: a warm ground with a faint weave and the unevenness of a hand-laid priming.
+      const weave = 0.965 + 0.035 * Math.sin(x * 1.7) * Math.sin(y * 1.7) - (wash[p] - 0.5) * 0.06;
+      const lr = 232 * weave, lg = 219 * weave, lb = 196 * weave;
+      // A light hatching in the shadows, the way a draughtsman models form.
+      const hv = (x - y * 0.6) / period;
+      const hatch = smooth(0.55, 0.66, hv - Math.floor(hv)) * smooth(0.7, 0.97, shade) * smooth(0.35, 0.65, wash[p]) * 0.13;
+      const a = Math.min(1, edge * 0.8 + hatch + smooth(0.35, 1, shade) * 0.15);
+      // Red chalk (sanguine).
+      d[(p << 2)] = lr + (153 - lr) * a;
+      d[(p << 2) + 1] = lg + (64 - lg) * a;
+      d[(p << 2) + 2] = lb + (41 - lb) * a;
+    }
   }
   c.putImageData(img, 0, 0);
   return out;

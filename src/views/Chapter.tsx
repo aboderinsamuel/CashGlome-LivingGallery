@@ -75,7 +75,7 @@ export function Chapter({ state, dispatch, onOpenCategory, onEdition, onWrite, o
 
   return (
     <div className="page" ref={pageRef}>
-      {/* ——— Opening: the month's painting, cleaned as you write ——— */}
+      {/* ——— Opening: the month's painting, painted as you write ——— */}
       <header className="hero">
         <div className="hero-text">
           <motion.div className="kicker" initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ display: 'flex', gap: '6px 12px', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -102,10 +102,10 @@ export function Chapter({ state, dispatch, onOpenCategory, onEdition, onWrite, o
           <button onClick={onGallery} aria-label="Open the gallery" style={{ display: 'block', width: '100%', cursor: 'pointer' }}>
             <RestorationPlate painting={painting} r={r} seen={shownSeen} calm={calm} />
           </button>
-          <PlateLabel painting={painting} r={r} reason={r.complete ? 'Fully restored. It hangs in your gallery.' : s.isCurrent ? 'Cleaned a patch at a time as you write.' : undefined} />
+          <PlateLabel painting={painting} r={r} reason={r.complete ? 'Fully painted. It hangs in your gallery.' : s.isCurrent ? 'Painted a stroke at a time as you write.' : undefined} />
           {!empty && (
             <button className="btn" onClick={onShare} style={{ marginTop: 14 }}>
-              <Icon.share size={15} /> {r.complete ? 'Share the restored painting' : 'Share this chapter'}
+              <Icon.share size={15} /> {r.complete ? 'Share the finished painting' : 'Share this chapter'}
             </button>
           )}
         </motion.figure>
@@ -252,18 +252,18 @@ function Today({ state, r, calm, onWrite }: { state: State; r: Restoration; calm
       </div>
 
       <div className="tcard" style={{ display: 'flex', flexDirection: 'column' }}>
-        <div className="kicker">Today's cleaning</div>
+        <div className="kicker">Today's strokes</div>
         <div style={{ display: 'flex', gap: 6, marginTop: 16 }}>
           {Array.from({ length: r.todayCap }, (_, i) => (
             <span key={i} style={{ flex: 1, height: 44, borderRadius: 6, background: i < r.today ? 'linear-gradient(135deg, #F3D98B, #B08A3A)' : 'var(--fill)', boxShadow: i < r.today ? 'inset 0 0 0 1px rgba(255,255,255,.4)' : 'inset 0 0 0 1px var(--line)' }} />
           ))}
         </div>
         <div style={{ font: '360 22px/1.2 var(--serif)', marginTop: 16, letterSpacing: '-0.015em' }}>
-          {r.complete ? 'This month is fully restored.' : left ? <>{left} more {left === 1 ? 'line cleans' : 'lines clean'} a patch today</> : 'Today’s patches are clean.'}
+          {r.complete ? 'This month is fully painted.' : left ? <>{left} more {left === 1 ? 'line paints' : 'lines paint'} a stroke today</> : 'Today’s strokes are painted.'}
         </div>
         <div className="small" style={{ marginTop: 8, lineHeight: 1.45 }}>
-          {r.gilded.length ? `${r.gilded.length} gilded ${r.gilded.length === 1 ? 'entry' : 'entries'} this month cleaned an extra patch. ` : 'Now and then an entry is gilded and cleans an extra patch. '}
-          {PATCHES - r.restored > 0 && `${PATCHES - r.restored} patches left.`}
+          {r.gilded.length ? `${r.gilded.length} gilded ${r.gilded.length === 1 ? 'entry' : 'entries'} this month painted an extra stroke. ` : 'Now and then an entry is gilded and paints an extra stroke. '}
+          {PATCHES - r.restored > 0 && `${PATCHES - r.restored} strokes left.`}
         </div>
         {left > 0 && !r.complete && <button className="pillbtn" style={{ marginTop: 'auto', alignSelf: 'flex-start' }} onClick={() => onWrite()}>Write a line</button>}
       </div>

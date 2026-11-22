@@ -155,12 +155,12 @@ export function Play({ state }: { state: State }) {
               <div className="pl-spots">
                 {spots.filter((s) => s.b === b).map((s) => (
                   <button key={s.i} className={'pl-spot ' + s.state} disabled={s.state === 'locked'} onClick={() => (s.state === 'found' ? setLens(s) : setHunt(s))}
-                    aria-label={s.state === 'found' ? `Found: ${s.d.title}` : s.state === 'ready' ? `Find ${s.d.title}` : `Opens at ${AT[s.i]} cleaned patches`}>
+                    aria-label={s.state === 'found' ? `Found: ${s.d.title}` : s.state === 'ready' ? `Find ${s.d.title}` : `Opens at ${AT[s.i]} painted strokes`}>
                     <span className="pl-glass" style={s.state === 'found' ? { backgroundImage: `url(${artSrc(b.painting.id, 'md')})`, backgroundSize: `${s.d.zoom * 100}% auto`, backgroundPosition: `${aim(s.d.x, s.d.zoom)}% ${aim(s.d.y, s.d.zoom)}%` } : s.state === 'ready' ? { backgroundImage: `url(${artSrc(b.painting.id, 'sm')})` } : undefined}>
                       {s.state === 'ready' && <span className="disc-q">Find</span>}
                       {s.state === 'locked' && <span className="disc-lock">{AT[s.i]}</span>}
                     </span>
-                    <span className="pl-spot-t">{s.state === 'locked' ? `Opens at ${AT[s.i]} of ${PATCHES} patches` : s.d.title}</span>
+                    <span className="pl-spot-t">{s.state === 'locked' ? `Opens at ${AT[s.i]} of ${PATCHES} strokes` : s.d.title}</span>
                     <span className="pl-spot-s">{s.state === 'found' ? 'Found' : s.state === 'ready' ? 'Ready to find' : `${Math.max(0, AT[s.i] - b.restored)} more to go`}</span>
                   </button>
                 ))}

@@ -1,5 +1,5 @@
 // The evening sitting: once a day, by candlelight, the month's painting asks what the day cost.
-// One line is enough; "Nothing today" is kept the same way and cleans a patch too. Missing a day costs nothing.
+// One line is enough; "Nothing today" is kept the same way and paints a stroke too. Missing a day costs nothing.
 import { motion } from 'framer-motion';
 import { useMemo } from 'react';
 import type { Painting } from '../lib/art';
@@ -34,7 +34,7 @@ export function Sitting({ painting, todays, quiet, calm, first, onWrite, onQuiet
         {quiet ? (
           <>
             <h2><Chalk kind="tick" calm={calm} style={{ position: 'relative', display: 'inline-block', width: 30, height: 24, marginRight: 10, verticalAlign: '-2px' }} />A quiet day, <em>kept</em>.</h2>
-            <p>Nothing spent is a line too. It cleaned a patch of {painting.title}.</p>
+            <p>Nothing spent is a line too. It painted a stroke of {painting.title}.</p>
             <div className="sit-acts"><button className="sit-undo" onClick={() => onQuiet(false)}>I did spend something</button></div>
           </>
         ) : (

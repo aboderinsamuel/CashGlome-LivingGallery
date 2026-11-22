@@ -1,4 +1,4 @@
-// Discoveries: three details of the month's painting, each found by a curator's lens as the varnish comes off.
+// Discoveries: three details of the month's painting, each found by a curator's lens as the painting fills in.
 // Locked ones show where they'll be found; an open one zooms in from the whole picture to the detail.
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useRef, useState } from 'react';
@@ -45,12 +45,12 @@ export function Discoveries({ painting, restored, month, calm, onPlay }: { paint
           const got = on && hunted.includes(i);
           return (
             <button key={i} className={'disc-lens' + (on ? ' on' : '') + (on && !got ? ' hunt' : '')} disabled={!on} onClick={() => (got ? setOpen({ d, i, fresh: false }) : setHunt({ d, i }))}
-              aria-label={got ? `Discovery: ${d.title}` : on ? `Find ${d.title} in the painting` : `Opens at ${AT[i]} cleaned patches`}>
+              aria-label={got ? `Discovery: ${d.title}` : on ? `Find ${d.title} in the painting` : `Opens at ${AT[i]} painted strokes`}>
               <span className="disc-glass" style={got ? { backgroundImage: `url(${artSrc(painting.id, 'md')})`, backgroundSize: `${d.zoom * 100}% auto`, backgroundPosition: `${aim(d.x, d.zoom)}% ${aim(d.y, d.zoom)}%` } : on ? { backgroundImage: `url(${artSrc(painting.id, 'sm')})` } : undefined}>
                 {!on && <span className="disc-lock">{AT[i]}</span>}
                 {on && !got && <span className="disc-q">Find</span>}
               </span>
-              <span className="disc-t">{got ? d.title : on ? <><em>Find:</em> {d.title}</> : `At ${AT[i]} patches`}</span>
+              <span className="disc-t">{got ? d.title : on ? <><em>Find:</em> {d.title}</> : `At ${AT[i]} strokes`}</span>
             </button>
           );
         })}

@@ -2,11 +2,11 @@
 // title and a few plain numbers. Drawn on a canvas on this device and handed to the share sheet.
 // Amounts are left off unless the person turns them on.
 import { chapterOf, computeStats, spaceSegs, type Seg } from './analytics';
-import { artSrc, COLS, PATCHES, paintingOf, restorationOf, ROWS } from './art';
+import { artSrc, PATCHES, paintingOf, restorationOf } from './art';
 import { cat } from './categories';
 import { money, monthLabel } from './format';
 import type { State } from './types';
-import { varnish } from './varnish';
+import { sketchMask, varnish } from './varnish';
 
 /** Where the card sends people. One place to change it before launch. */
 export const SHARE_HOST = 'cashglome.app';
@@ -144,23 +144,22 @@ export async function drawCard({ state, month = state.month, title, amounts, for
   g.fillStyle = GOLD; g.font = `italic 400 32px ${SERIF}`; g.textAlign = 'right';
   g.fillText(`Chapter ${F.numeral} · ${F.month}`, RX, top);
 
-  // The painting, with its varnish still on the patches not yet earned.
+  // The painting: in colour where entries have painted it, its underdrawing elsewhere.
   g.save();
   g.shadowColor = 'rgba(0, 0, 0, 0.6)'; g.shadowBlur = 70; g.shadowOffsetY = 26;
   g.fillStyle = '#000'; g.fillRect(PX, PY, PW, PH);
   g.restore();
   cover(g, clean, PX, PY, PW, PH, ax, ay);
   if (grime && dirtyCells.length) {
-    const m = Object.assign(document.createElement('canvas'), { width: COLS * 4, height: ROWS * 4 });
-    const mg = m.getContext('2d')!; mg.fillStyle = '#fff';
-    for (const i of dirtyCells) mg.fillRect((i % COLS) * 4, Math.floor(i / COLS) * 4, 4, 4);
+    // The underdrawing, wherever no stroke has been painted yet: the same strokes the app shows.
+    const m = sketchMask(F.r.order.slice(0, F.r.restored), 80);
     const v = Object.assign(document.createElement('canvas'), { width: PW, height: PH });
     const vg = v.getContext('2d')!;
     vg.imageSmoothingQuality = 'high';
     vg.drawImage(grime, 0, 0, PW, PH);
     vg.globalCompositeOperation = 'destination-in';
     vg.imageSmoothingEnabled = true;
-    vg.drawImage(m, 0, 0, PW, PH); // smoothing feathers the patch edges, as in the app
+    vg.drawImage(m, 0, 0, PW, PH); // smoothing softens the stroke edges, as in the app
     g.drawImage(v, PX, PY);
   }
   g.strokeStyle = 'rgba(212, 174, 94, 0.55)'; g.lineWidth = 2;
@@ -176,7 +175,7 @@ export async function drawCard({ state, month = state.month, title, amounts, for
   }
   g.fillText(name, LX, nameY);
   g.textAlign = 'right'; g.font = `600 ${story ? 24 : 21}px ${GROT}`; g.fillStyle = F.r.complete ? GOLD2 : MUTED;
-  g.fillText(F.r.complete ? 'Fully restored' : `${F.r.restored} of ${PATCHES} restored`, RX, nameY);
+  g.fillText(F.r.complete ? 'Fully painted' : `${F.r.restored} of ${PATCHES} strokes painted`, RX, nameY);
   g.textAlign = 'left'; g.fillStyle = MUTED; g.font = `400 ${story ? 24 : 21}px ${GROT}`;
   g.fillText(`${F.painting.artist}, ${F.painting.year}`, LX, artistY);
   const bw = (RX - LX) / PATCHES;
@@ -238,5 +237,5 @@ export const toBlob = (c: HTMLCanvasElement) => new Promise<Blob>((ok, fail) => 
 export function shareText(state: State, month = state.month, title?: Seg[]) {
   const F = cardFacts(state, month, title);
   const t = F.title.map((x) => x.t).join('');
-  return `My ${F.month.split(' ')[0]} in CashGlome: ${t} ${F.r.complete ? `I restored ${F.painting.artist}'s ${F.painting.title}.` : ''}`.trim();
+  return `My ${F.month.split(' ')[0]} in CashGlome: ${t} ${F.r.complete ? `I painted ${F.painting.artist}'s ${F.painting.title}, one line at a time.` : ''}`.trim();
 }

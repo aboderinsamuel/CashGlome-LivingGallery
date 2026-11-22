@@ -70,7 +70,7 @@ export function ShareSheet({ state, title, onClose }: { state: State; title?: Se
           <div>
             <div style={{ font: 'italic 400 17px var(--serif)', color: 'var(--gold)' }}>The exhibition card</div>
             <div className="h3" style={{ marginTop: 6 }}>Show the month, not the money.</div>
-            <p className="small" style={{ marginTop: 10, color: 'var(--ink-3)', lineHeight: 1.45 }}>The painting as far as you’ve restored it, your chapter’s title and a few counts. It’s drawn on this device; nothing is uploaded.</p>
+            <p className="small" style={{ marginTop: 10, color: 'var(--ink-3)', lineHeight: 1.45 }}>The painting as far as you’ve painted it, your chapter’s title and a few counts. It’s drawn on this device; nothing is uploaded.</p>
           </div>
           <div className="share-row">
             <span className="label">Size</span>

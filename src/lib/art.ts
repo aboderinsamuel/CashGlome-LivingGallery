@@ -114,36 +114,41 @@ function rng(seed: number) {
   return () => { seed = (seed + 0x6d2b79f5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
 }
 
-/* ——— Restoration: every month a varnished painting, cleaned patch by patch as you write ——— */
+/* ——— The month's painting: an underdrawing, painted stroke by stroke as you write ———
+   (The names say "restoration" and "restored"; they mean the strokes painted so far.) */
 export const COLS = 6, ROWS = 5, PATCHES = COLS * ROWS;
-export const ENDOWED = 2; // two corners clean on day one, so nobody starts from zero
-export interface Restoration { restored: number; order: number[]; gilded: Entry[]; complete: boolean; today: number; todayCap: number; remaining: number }
+export const ENDOWED = 2; // two strokes painted on day one, so nobody starts from a bare canvas
+export interface Restoration { restored: number; order: number[]; gilded: Entry[]; complete: boolean; today: number; todayCap: number; remaining: number;
+  /** For each stroke in the order it was painted: the category of the entry that painted it (null: given, or a quiet day). */
+  earned: (string | null)[] }
 
 export const isGilded = (e: Entry) => hash(e.id) % 7 === 0;
 
-/** quiet: days marked "nothing today"; each cleans one patch, the same as a first line. */
+/** quiet: days marked "nothing today"; each paints one stroke, the same as a first line. */
 export function restorationOf(entries: Entry[], month: string, quiet: string[] = []): Restoration {
   const list = entries.filter((e) => monthOf(e.date) === month).sort((a, b) => a.date.localeCompare(b.date) || a.createdAt - b.createdAt);
   const byDay = new Map<string, Entry[]>();
   for (const e of list) byDay.set(e.date, [...(byDay.get(e.date) ?? []), e]);
   let restored = ENDOWED, today = 0;
   const gilded: Entry[] = [];
+  const earned: (string | null)[] = Array.from({ length: ENDOWED }, () => null);
   const now = todayISO();
   for (const [day, items] of byDay) {
-    // First line of a day cleans one patch, the next two clean one each: showing up daily beats bulk entry.
+    // Each of the first three lines of a day paints one stroke: showing up daily beats bulk entry.
     let n = Math.min(3, items.length);
-    for (const e of items) if (isGilded(e)) { n++; gilded.push(e); }
+    for (const e of items.slice(0, n)) earned.push(e.category);
+    for (const e of items) if (isGilded(e)) { n++; gilded.push(e); earned.push(e.category); }
     restored += n;
     if (day === now) today = n;
   }
-  for (const day of quiet) if (monthOf(day) === month && !byDay.has(day)) { restored += 1; if (day === now) today = 1; }
+  for (const day of quiet) if (monthOf(day) === month && !byDay.has(day)) { restored += 1; earned.push(null); if (day === now) today = 1; }
   restored = Math.min(PATCHES, restored);
-  // Edges lift first, the heart of the painting last.
+  // The edges are painted first, the heart of the painting last.
   const r = rng(hash(month));
   const order = Array.from({ length: PATCHES }, (_, i) => i)
     .map((i) => { const x = (i % COLS) - (COLS - 1) / 2, y = Math.floor(i / COLS) - (ROWS - 1) / 2; return { i, k: -Math.hypot(x / COLS, y / ROWS) + r() * 0.35 }; })
     .sort((a, b) => a.k - b.k).map((o) => o.i);
-  return { restored, order, gilded, complete: restored >= PATCHES, today, todayCap: 3, remaining: PATCHES - restored };
+  return { restored, order, gilded, complete: restored >= PATCHES, today, todayCap: 3, remaining: PATCHES - restored, earned: earned.slice(0, PATCHES) };
 }
 
 /* ——— Today's card: one observation a day, drawn from your own entries ——— */

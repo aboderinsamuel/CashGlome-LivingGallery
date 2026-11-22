@@ -269,7 +269,7 @@ function Widgets({ state, calm, onOpen, top = 48 }: { state: State; calm: boolea
         <div style={{ ['--card' as string]: 'rgba(0,0,0,0)' }}><RestorationPlate painting={painting} r={r} seen={r.restored} drift={false} ratio={16 / 11} calm /></div>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10, gap: 8, alignItems: 'baseline' }}>
           <span style={{ font: 'italic 400 13.5px/1.2 var(--serif)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{painting.title}</span>
-          <span style={{ font: '500 11px var(--ui)', opacity: 0.8, whiteSpace: 'nowrap' }}>{r.complete ? 'Restored' : `${r.restored} of 30 cleaned`}</span>
+          <span style={{ font: '500 11px var(--ui)', opacity: 0.8, whiteSpace: 'nowrap' }}>{r.complete ? 'Finished' : `${r.restored} of 30 painted`}</span>
         </div>
       </W>
       <W d={2} go="Open the ledger" onClick={() => onOpen('ledger')}>

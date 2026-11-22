@@ -95,10 +95,10 @@ export function Today({ state, dispatch, voice, onVoiceDone, onFill, onLedger, o
           <figcaption className="td-label-card">
             <i>{painting.title}</i>
             <span>{painting.artist}, {painting.year}</span>
-            <span className="td-patches" aria-label={r.complete ? 'Restored' : `${r.restored} of ${PATCHES} patches cleaned`}>
+            <span className="td-patches" aria-label={r.complete ? 'Finished' : `${r.restored} of ${PATCHES} strokes painted`}>
               {Array.from({ length: PATCHES }, (_, i) => <b key={i} className={i < r.restored ? 'on' : ''} />)}
             </span>
-            <span className="td-count">{r.complete ? (phone ? 'Restored' : 'Restored. It hangs in your Gallery.') : phone ? `${r.restored} of ${PATCHES} cleaned` : `${r.restored} of ${PATCHES} cleaned · one per line`}</span>
+            <span className="td-count">{r.complete ? (phone ? 'Finished' : 'Finished. It hangs in your Gallery.') : phone ? `${r.restored} of ${PATCHES} painted` : `${r.restored} of ${PATCHES} painted · one per line`}</span>
             <button className="td-link" onClick={onPainting}>Open the chapter<Icon.right size={12} /></button>
           </figcaption>
           <AnimatePresence>
@@ -116,7 +116,7 @@ export function Today({ state, dispatch, voice, onVoiceDone, onFill, onLedger, o
           <header className="td-head">
             <div className="td-kicker">{dateInWords(now)}</div>
             <h1>{fresh ? <>Your money, <i>painted</i>.</> : <>Good <i>{greeting}</i>{first ? `, ${first}` : ''}.</>}</h1>
-            {fresh && <p className="td-lede">Write what you spent or earned, the way you’d say it. Every line cleans a patch of the painting.</p>}
+            {fresh && <p className="td-lede">Write what you spent or earned, the way you’d say it. Every line paints a stroke of the painting.</p>}
           </header>
 
           {safe ? (
@@ -265,7 +265,7 @@ function FirstWeek({ state }: { state: State }) {
       <ol className="fw-cards">
         <li><b>Write it as you’d say it.</b><span>“lunch {ex(14, state.profile.currency)}, taxi {ex(12, state.profile.currency)}, got paid {ex(2400, state.profile.currency)}” in the bar below.</span></li>
         <li><b>The big number.</b><span>What you can spend each day and still cover what’s due.</span></li>
-        <li><b>The painting.</b><span>Each line cleans a patch. Finished months hang in your Gallery.</span></li>
+        <li><b>The painting.</b><span>Each line paints a stroke. Finished months hang in your Gallery.</span></li>
       </ol>
     </section>
   );

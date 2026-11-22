@@ -239,7 +239,7 @@ export default function App() {
         <span className="num" style={{ color: 'var(--ink-3)' }}> {[inSum ? `+${money(inSum, cur)}` : '', outSum ? `−${money(outSum, cur)}` : ''].filter(Boolean).join(' ')}</span>
         {elsewhere && <> in {monthLabel(elsewhere)}</>}
         {opts.hung && <>, painted and hung in the Gallery</>}
-        {gained > 0 && <>. {gilded ? 'Gilded, so it cleaned' : 'Cleaned'} {gained === 1 ? 'a patch' : `${gained} patches`} of <i>{painting.title}</i></>}
+        {gained > 0 && <>. {gilded ? 'Gilded, so it painted' : 'Painted'} {gained === 1 ? 'a stroke' : `${gained} strokes`} of <i>{painting.title}</i></>}
         {opts.error && <span style={{ color: 'var(--rust)' }}>. Florin unavailable, read on this device</span>}
       </>,
       undo: () => { ids.forEach((id) => dispatch({ type: 'remove', id })); setNotice(null); },
@@ -631,7 +631,7 @@ export default function App() {
       { label: 'Open the Edition', kbd: kbd('E'), action: () => setEdition(true) },
     ] },
     { title: 'Help', items: [
-      { label: 'How restoration works', action: goView('chapter') },
+      { label: 'How the painting works', action: goView('chapter') },
       { label: 'About the paintings', action: () => openSettings('about') },
     ] },
   ];

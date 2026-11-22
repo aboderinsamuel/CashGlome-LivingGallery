@@ -1,10 +1,11 @@
-// A painting under old varnish, drawn on a canvas over the clean picture. A finger or a mouse lifts the varnish
-// for a moment, like solvent on a swab, and it clouds back; only a written line takes it off for good, in
-// broad brush strokes. The varnish is the picture itself, darkened to amber, dulled, and crazed with fine cracks.
+// The month's painting as its underdrawing (red chalk on bare linen), drawn on a canvas over the finished picture.
+// A finger or a mouse brushes the colour in for a moment and it fades back to the drawing; only a written line
+// paints it for good, in broad brush strokes. (The component keeps its old name: it used to be varnish.)
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
+import { renderVarnish } from '../lib/varnish-render';
 
 export interface VarnishHandle {
-  /** Lift one broad stroke of varnish for good (the i-th of the cover's strokes). Resolves when it's done. */
+  /** Paint one broad stroke for good (the i-th of the cover's strokes). Resolves when it's done. */
   stroke: (i: number, ms?: number) => Promise<void>;
 }
 
@@ -15,7 +16,7 @@ interface Props {
   /** Where the picture sits in its frame, as CSS object-position ("45% 72%"). */
   focus: string;
   calm?: boolean;
-  /** A swab across the middle on its own, once, so the first second already moves. */
+  /** A brush across the middle on its own, once, so the first second already moves. */
   demo?: boolean;
   onRub?: () => void;
   onReady?: () => void;
@@ -47,7 +48,7 @@ export const Varnish = forwardRef<VarnishHandle, Props>(function Varnish({ src, 
     varnish: document.createElement('canvas'),
     perm: document.createElement('canvas'),
     temp: document.createElement('canvas'),
-    done: [] as number[], // permanent strokes already lifted (redrawn on resize)
+    done: [] as number[], // permanent strokes already painted (redrawn on resize)
     lastRub: 0, raf: 0, rubbed: false,
   });
   const onRubRef = useRef(onRub); onRubRef.current = onRub;
@@ -65,29 +66,11 @@ export const Varnish = forwardRef<VarnishHandle, Props>(function Varnish({ src, 
     if (!img || !w || !h) return;
     const v = s.varnish; v.width = w; v.height = h;
     const c = v.getContext('2d')!;
-    const p = place(img.naturalWidth, img.naturalHeight, w, h);
-    c.drawImage(img, p.x, p.y, p.dw, p.dh);
-    // Dulled: much of the colour gone grey.
-    c.globalCompositeOperation = 'saturation'; c.globalAlpha = 0.62; c.fillStyle = 'hsl(0, 0%, 50%)'; c.fillRect(0, 0, w, h);
-    // Darkened to amber, the way old varnish yellows.
-    c.globalCompositeOperation = 'multiply'; c.globalAlpha = 0.9; c.fillStyle = '#8C6125'; c.fillRect(0, 0, w, h);
-    c.globalCompositeOperation = 'soft-light'; c.globalAlpha = 0.5; c.fillStyle = '#D2A253'; c.fillRect(0, 0, w, h);
-    // Deeper at the edges, where the grime gathers.
-    c.globalCompositeOperation = 'multiply'; c.globalAlpha = 1;
-    const g = c.createRadialGradient(w * 0.5, h * 0.45, Math.min(w, h) * 0.2, w * 0.5, h * 0.5, Math.max(w, h) * 0.75);
-    g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(120,84,40,1)');
-    c.fillStyle = g; c.fillRect(0, 0, w, h);
-    // Craquelure: a net of fine cracks.
-    c.globalCompositeOperation = 'source-over';
-    const r = seeded(11);
-    c.strokeStyle = 'rgba(30, 18, 6, 0.32)'; c.lineWidth = Math.max(0.6, w / 900);
-    for (let i = 0; i < 140; i++) {
-      let x = r() * w, y = r() * h, a = r() * Math.PI * 2;
-      c.beginPath(); c.moveTo(x, y);
-      for (let j = 0; j < 7; j++) { a += (r() - 0.5) * 1.3; x += Math.cos(a) * w * 0.025; y += Math.sin(a) * w * 0.025; c.lineTo(x, y); }
-      c.stroke();
-    }
-    c.globalAlpha = 1;
+    // Drawn at half size (one CSS pixel on most phones) and set in place: quick enough for the first second.
+    const hw = Math.max(2, Math.round(w / 2)), hh = Math.max(2, Math.round(h / 2));
+    const half = renderVarnish((cw, ch) => Object.assign(document.createElement('canvas'), { width: cw, height: ch }), img, { w: hw, h: hh, ax: fx, ay: fy }) as HTMLCanvasElement;
+    c.imageSmoothingQuality = 'high';
+    c.drawImage(half, 0, 0, w, h);
     box.current?.setAttribute('data-on', '');
   };
 
@@ -103,7 +86,7 @@ export const Varnish = forwardRef<VarnishHandle, Props>(function Varnish({ src, 
     c.globalCompositeOperation = 'source-over';
   };
 
-  /** One dab of solvent: soft at the rim, firm in the middle. */
+  /** One dab of paint: soft at the rim, firm in the middle. */
   const dab = (c: CanvasRenderingContext2D, x: number, y: number, r: number, a = 1, core = 0.55) => {
     const g = c.createRadialGradient(x, y, 0, x, y, r);
     g.addColorStop(0, `rgba(0,0,0,${a})`); g.addColorStop(core, `rgba(0,0,0,${a * 0.9})`); g.addColorStop(1, 'rgba(0,0,0,0)');
@@ -138,7 +121,7 @@ export const Varnish = forwardRef<VarnishHandle, Props>(function Varnish({ src, 
     const tc = s.temp.getContext('2d')!;
     const idle = performance.now() - s.lastRub;
     if (idle > 700) {
-      // The solvent dries and the varnish clouds back over.
+      // Brushed colour fades back to the drawing.
       tc.globalCompositeOperation = 'destination-out'; tc.fillStyle = 'rgba(0,0,0,0.05)'; tc.fillRect(0, 0, s.w, s.h);
       tc.globalCompositeOperation = 'source-over';
     }
@@ -175,7 +158,7 @@ export const Varnish = forwardRef<VarnishHandle, Props>(function Varnish({ src, 
     return () => { live = false; ro.disconnect(); cancelAnimationFrame(st.current.raf); st.current.raf = 0; };
   }, [src, low]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // The first second moves: an unseen hand swabs across the middle, and the colour shows through.
+  // The first second moves: an unseen hand brushes across the middle, and the colour shows through.
   useEffect(() => {
     if (!demo || calm) return;
     let start = 0, prev = 0, raf = 0;
@@ -219,7 +202,7 @@ export const Varnish = forwardRef<VarnishHandle, Props>(function Varnish({ src, 
     }),
   }));
 
-  // Rubbing: solvent on a swab. It lifts the varnish under the finger (or, on a computer, under the pointer), for a moment.
+  // Brushing: colour under the finger (or, on a computer, under the pointer), for a moment.
   const last = useRef<[number, number] | null>(null);
   const at = (e: React.PointerEvent): [number, number] => {
     const b = cv.current!.getBoundingClientRect(); const k = st.current.w / b.width;

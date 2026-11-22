@@ -32,7 +32,7 @@ export function Collection({ state, onOpen, onCamera, onPlay }: { state: State; 
         <div className="kicker"><span style={{ font: 'italic 400 17px var(--serif)', color: 'var(--gold)' }}>The gallery</span></div>
         <h1 className="display" style={{ marginTop: 10 }}>{months.length === 1 ? 'One painting' : `${months.length} paintings`}, <em>yours</em>.</h1>
         <p className="lede" style={{ marginTop: 14 }}>
-          {done ? `${done} restored · ` : ''}{state.entries.length} {state.entries.length === 1 ? 'line' : 'lines'} over {daysWritten} {daysWritten === 1 ? 'day' : 'days'}. One painting a month, cleaned by writing.
+          {done ? `${done} finished · ` : ''}{state.entries.length} {state.entries.length === 1 ? 'line' : 'lines'} over {daysWritten} {daysWritten === 1 ? 'day' : 'days'}. One painting a month, painted by writing.
         </p>
       </div>
 
@@ -46,7 +46,7 @@ export function Collection({ state, onOpen, onCamera, onPlay }: { state: State; 
                 <div className="frame"><div className="frame-inner"><RestorationPlate painting={painting} r={r} seen={PATCHES} drift={false} ratio={4 / 5} calm /></div></div>
                 <div className="salon-label">
                   <span style={{ font: 'italic 400 15px/1.2 var(--serif)' }}>{painting.title}</span>
-                  <span style={{ font: '500 12px var(--grot)', opacity: 0.7 }}>{monthLabel(m)} · {r.complete ? 'Restored' : `${r.restored} of ${PATCHES}`}</span>
+                  <span style={{ font: '500 12px var(--grot)', opacity: 0.7 }}>{monthLabel(m)} · {r.complete ? 'Finished' : `${r.restored} of ${PATCHES}`}</span>
                 </div>
               </motion.button>
             ))}

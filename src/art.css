@@ -25,9 +25,24 @@
 .plate-img, .plate-layer { position: absolute; inset: 0; width: 100%; height: 100%; }
 .plate-img { object-fit: cover; display: block; user-select: none; -webkit-user-drag: none;
   -webkit-mask-size: 100% 100%; mask-size: 100% 100%; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; }
-/* Until the varnished copy is drawn (a moment, once per painting), a cheap look-alike. */
-.plate-standin { filter: sepia(0.75) saturate(0.7) brightness(0.48) contrast(0.95); }
-.plate-shine { position: absolute; background: linear-gradient(135deg, rgba(255, 242, 200, 0) 0%, rgba(255, 242, 200, 0.55) 50%, rgba(255, 242, 200, 0) 100%); pointer-events: none; }
+/* Until the underdrawing is drawn (a moment, once per painting), a cheap look-alike: pale chalk on linen. */
+.plate-standin { filter: grayscale(1) contrast(.6) brightness(1.4) sepia(1) hue-rotate(-14deg) saturate(1.5); }
+/* A stroke being painted: the underdrawing under it is wiped away left to right as the brush crosses,
+   and the brush's wet edge, in the pigment of what the line was for, runs along the front. */
+.plate-wipe {
+  -webkit-mask-image: var(--shape), linear-gradient(90deg, transparent 0 33%, #000 37% 100%); mask-image: var(--shape), linear-gradient(90deg, transparent 0 33%, #000 37% 100%);
+  -webkit-mask-size: 100% 100%, 300% 100%; mask-size: 100% 100%, 300% 100%; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+  -webkit-mask-composite: source-in; mask-composite: intersect;
+  animation: plate-wipe 1.1s cubic-bezier(.45, .05, .35, 1) both; }
+@keyframes plate-wipe { from { -webkit-mask-position: 0 0, 100% 0; mask-position: 0 0, 100% 0; } to { -webkit-mask-position: 0 0, 0 0; mask-position: 0 0, 0 0; } }
+.plate-wet { position: absolute; inset: 0; pointer-events: none; opacity: 0;
+  background: linear-gradient(90deg, transparent 23%, var(--pigment) 29%, var(--pigment) 33%, color-mix(in srgb, var(--pigment) 55%, #fff6e0) 34.6%, transparent 36.6%) no-repeat; background-size: 300% 100%;
+  -webkit-mask-image: var(--shape); mask-image: var(--shape); -webkit-mask-size: 100% 100%; mask-size: 100% 100%; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+  animation: plate-wet 1.1s cubic-bezier(.45, .05, .35, 1) both; }
+@keyframes plate-wet { 0% { background-position: 100% 0; opacity: 0; } 10% { opacity: 1; } 80% { opacity: 1; } 100% { background-position: 0 0; opacity: 0; } }
+.plate-layer.calm .plate-wipe { animation: none; display: none; }
+.plate-layer.calm .plate-wet { display: none; }
+@media (prefers-reduced-motion: reduce) { .plate-wipe { animation: none; display: none; } .plate-wet { display: none; } }
 .plate-label { margin-top: 30px; }
 .plate-meter { display: grid; grid-template-columns: repeat(30, 1fr); gap: 2px; margin-top: 12px; }
 .plate-meter span { height: 4px; border-radius: 1px; background: var(--fill-2); transition: background 0.6s; }

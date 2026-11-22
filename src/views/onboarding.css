@@ -20,21 +20,21 @@
 .vn-varnish { touch-action: none; cursor: crosshair; }
 
 .ob2-brand { position: absolute; top: calc(14px + env(safe-area-inset-top)); left: 18px; z-index: 2; pointer-events: none;
-  font: 400 21px/1 var(--serif); letter-spacing: -.01em; color: var(--bone); text-shadow: 0 1px 12px rgba(20,12,4,.7); }
+  font: 400 21px/1 var(--serif); letter-spacing: -.01em; color: #2A2016; text-shadow: 0 0 14px rgba(244,236,220,.95), 0 0 4px rgba(244,236,220,.9); }
 .ob2-label { position: absolute; top: calc(12px + env(safe-area-inset-top)); right: 18px; z-index: 2; max-width: 58%; pointer-events: none;
-  display: grid; text-align: right; font: 400 11.5px/1.35 var(--grot); color: rgba(246,238,220,.82); text-shadow: 0 1px 10px rgba(20,12,4,.8); }
-.ob2-label i { font: italic 400 14px/1.25 var(--serif); color: var(--bone); }
+  display: grid; text-align: right; font: 400 11.5px/1.35 var(--grot); color: rgba(42,32,22,.78); text-shadow: 0 0 10px rgba(244,236,220,.95), 0 0 3px rgba(244,236,220,.9); }
+.ob2-label i { font: italic 400 14px/1.25 var(--serif); color: #2A2016; }
 
-/* What the painting says: a hint, then why it clouds back, then what the line did. */
+/* What the painting says: a hint, then why it fades back, then what the line did. */
 .ob2-say { position: absolute; left: 16px; right: 16px; bottom: 20px; z-index: 2; margin: 0;
-  pointer-events: none; text-align: center; font: italic 400 18px/1.35 var(--serif); color: var(--bone);
-  text-shadow: 0 1px 2px rgba(20,12,4,.9), 0 0 18px rgba(20,12,4,.9); }
-.ob2-say b { font-weight: 400; color: #F3D99B; }
+  pointer-events: none; text-align: center; font: italic 400 18px/1.35 var(--serif); color: #2A2016;
+  text-shadow: 0 0 2px rgba(244,236,220,.95), 0 0 16px rgba(244,236,220,.95), 0 0 28px rgba(244,236,220,.7); }
+.ob2-say b { font-weight: 400; color: #8E3B24; }
 .ob2-say.done { font-size: 19px; }
 .ob2-swipe { position: relative; display: inline-block; width: 30px; height: 12px; margin-right: 6px; vertical-align: -1px; }
-.ob2-swipe::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: rgba(246,238,220,.6); }
-.ob2-swipe::after { content: ''; position: absolute; top: 1px; left: 0; width: 10px; height: 10px; border-radius: 50%; background: #F3D99B;
-  box-shadow: 0 0 10px #F3D99B; animation: ob2-swab 1.6s ease-in-out infinite; }
+.ob2-swipe::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: rgba(42,32,22,.45); }
+.ob2-swipe::after { content: ''; position: absolute; top: 1px; left: 0; width: 10px; height: 10px; border-radius: 50%; background: #A8452B;
+  box-shadow: 0 0 8px rgba(168,69,43,.6); animation: ob2-swab 1.6s ease-in-out infinite; }
 @keyframes ob2-swab { 0% { transform: translateX(0); opacity: 0; } 15% { opacity: 1; } 70% { transform: translateX(20px); opacity: 1; } 100% { transform: translateX(20px); opacity: 0; } }
 
 /* ——— The page ——— */

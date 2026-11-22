@@ -39,7 +39,7 @@ export function Shelf({ state, months, onOpen }: { state: State; months: string[
                 </div>
               </div>
               <div style={{ marginTop: 12, display: 'flex', justifyContent: 'space-between', font: '500 12px var(--grot)', color: 'var(--ink-3)' }}>
-                <span>{ch.character.name}</span><span className="num">{r.complete ? 'Restored' : `${r.restored} of 30 clean`}</span>
+                <span>{ch.character.name}</span><span className="num">{r.complete ? 'Finished' : `${r.restored} of 30 painted`}</span>
               </div>
             </motion.button>
           );

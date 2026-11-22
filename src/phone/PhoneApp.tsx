@@ -167,7 +167,7 @@ function PhoneHome({ state, dispatch, isNow, onRead, onLedger, onShare, onLiving
         </button>
         <figcaption className="ph-label">
           <span className="ph-label-work"><i>{painting.title}</i>{painting.artist}, {painting.year}</span>
-          <span className="ph-label-count num">{r.complete ? 'Restored' : `${r.restored} of ${PATCHES} cleaned`}</span>
+          <span className="ph-label-count num">{r.complete ? 'Finished' : `${r.restored} of ${PATCHES} painted`}</span>
         </figcaption>
       </figure>
 

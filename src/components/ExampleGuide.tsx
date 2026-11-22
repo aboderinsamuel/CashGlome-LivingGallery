@@ -24,7 +24,7 @@ interface Props {
 
 const STEPS = [
   { act: 'Write', title: <>Say it the way you’d <em>say</em> it</>, body: 'One line can hold several things. CashGlome reads amounts, shorthand like 4k and 1.5m, and whether money came in or went out.' },
-  { act: 'See', title: <>Every line cleans a <em>patch</em></>, body: 'Each month has a painting under old varnish. What you write lifts it, patch by patch; a finished month hangs in your gallery for good.' },
+  { act: 'See', title: <>Every line paints a <em>stroke</em></>, body: 'Each month begins as the sketch of a masterpiece. Every line you write lays down a stroke of its colour; a finished month hangs in your gallery for good.' },
 ] as const;
 
 const NUM = ['I', 'II', 'III', 'fin'];

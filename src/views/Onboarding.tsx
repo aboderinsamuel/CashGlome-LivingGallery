@@ -1,6 +1,6 @@
-// First run, in one moment. This month's painting, under old varnish, fills the top of the screen; an unseen hand
-// swabs across it in the first second, and the colour shows through. Rub it and it lifts, then clouds back:
-// only writing takes it off for good. One line, written or tapped, lifts it in broad strokes, and you're in
+// First run, in one moment. This month's painting, still its red-chalk sketch, fills the top of the screen; an
+// unseen brush sweeps across it in the first second and lays down colour. Brush it and the colour comes, then
+// fades back: only writing paints it for good. One line, written or tapped, paints its first strokes, and you're in
 // your book. No sign-up, no form, no tour, no name to give (the house and the name wait inside, for later).
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -31,7 +31,7 @@ interface Props {
 
 const buzz = (ms: number | number[]) => { try { navigator.vibrate?.(ms); } catch { /* not on this device */ } };
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
-const WORDS = ['', 'One patch', 'Two patches', 'Three patches'];
+const WORDS = ['', 'One stroke', 'Two strokes', 'Three strokes'];
 
 export function Onboarding({ initialCurrency, calm, onDone }: Props) {
   const [act, setAct] = useState<Act>('cover');
@@ -96,11 +96,11 @@ export function Onboarding({ initialCurrency, calm, onDone }: Props) {
         <AnimatePresence mode="wait">
           {cleaned > 0 ? (
             <motion.p key="done" className="ob2-say done" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-              <b>{WORDS[cleaned]} cleaned.</b> Your first chapter has begun.
+              <b>{WORDS[cleaned]} painted.</b> Your first chapter has begun.
             </motion.p>
           ) : !sent && (
             <motion.p key={rubbed ? 'rubbed' : 'rub'} className="ob2-say" initial={{ opacity: 0 }} animate={{ opacity: 1, transition: { delay: rubbed ? 0.2 : 1.1 } }} exit={{ opacity: 0, transition: { duration: 0.2 } }}>
-              {rubbed ? <>It clouds back over. <b>Only writing lifts it for good.</b></> : <><span className="ob2-swipe" aria-hidden /> Rub the old varnish</>}
+              {rubbed ? <>It fades back to the sketch. <b>Only writing paints it for good.</b></> : <><span className="ob2-swipe" aria-hidden /> Brush the sketch</>}
             </motion.p>
           )}
         </AnimatePresence>
@@ -111,7 +111,7 @@ export function Onboarding({ initialCurrency, calm, onDone }: Props) {
         {act === 'cover' ? (
           <>
             <h1>Your money, <em>painted</em>.</h1>
-            <p className="ob2-lede">Write what you spend, the way you’d say it. Every line lifts the varnish off a masterpiece.</p>
+            <p className="ob2-lede">Write what you spend, the way you’d say it. Every line paints a stroke of a masterpiece.</p>
 
             <div className="ob2-slip-wrap">
               <form className={'ob2-slip' + (voice ? ' rec' : '') + (read.length ? ' ready' : '')} onSubmit={(e) => { e.preventDefault(); tapped.current = null; void send(); }}>
