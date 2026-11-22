@@ -1,71 +1,125 @@
-/* First run, on one living painting: chalk underdrawing on a dark ground, bone ink, one stamp to press,
-   sealing wax to keep a line. The painting is the whole screen; words sit on a veil at the bottom. */
-.ob { --bone: #F6EEDC; --bone-2: rgba(246, 238, 220, .8); --bone-3: rgba(246, 238, 220, .56); --gilt: #E2C27A; --chalk: #E39A7E;
-  position: fixed; inset: 0; z-index: 120; overflow: hidden; background: #1A130C; color: var(--bone); }
-.ob-art { position: absolute; inset: 0; }
-.ob-still { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: sepia(.6) saturate(.6) brightness(.8); }
-.ob-veil { position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(0deg, rgba(14,10,6,.94) 0%, rgba(14,10,6,.78) 34%, rgba(14,10,6,.12) 64%, rgba(14,10,6,0) 76%), linear-gradient(rgba(14,10,6,.55), transparent 18%); transition: opacity 1.2s; }
-.ob .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+/* First run: this month's painting under old varnish above, a page of parchment below. The painting is the
+   hook (it moves in the first second and answers a finger); the page holds one slip to write on. No boxes but
+   the slip. The cover keeps its own palette, parchment and ink, whatever the hour. */
+.ob2 { --ink: #2A2016; --ink-2: rgba(42,32,22,.78); --ink-3: rgba(42,32,22,.6); --gilt: #B8892E; --verm: #A8432A; --bone: #F6EEDC;
+  position: fixed; left: 0; right: 0; top: var(--vvt, 0px); height: var(--vvh, 100dvh); z-index: 120; overflow: hidden;
+  display: flex; flex-direction: column; color: var(--ink);
+  background-color: #EEE6D6;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .26 0 0 0 0 .14 0 0 0 .1 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E"); }
 
-/* The top: wordmark, museum label, sound */
-.ob-top { position: absolute; top: 0; left: 0; right: 0; z-index: 3; display: flex; align-items: center; gap: 16px; padding: 18px clamp(18px, 4vw, 48px); }
-.ob-brand { font: 400 22px/1 var(--serif); letter-spacing: -.01em; }
-.ob-label { margin-left: auto; display: grid; text-align: right; font: 400 12px/1.35 var(--grot); color: var(--bone-3); }
-.ob-label i { font: italic 400 14px var(--serif); color: var(--bone-2); }
-@keyframes ob-eq { from { height: 3px; } to { height: 12px; } }
+/* ——— The painting ——— */
+.ob2-art { position: relative; flex: 1 1 auto; min-height: 150px; margin: 0; overflow: hidden; background: #2B1D0E;
+  box-shadow: inset 0 -1px 0 rgba(0,0,0,.25); }
+/* a strip of gold leaf where the painting meets the page */
+.ob2-art::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 4px; pointer-events: none;
+  background: linear-gradient(90deg, #8A6420, #E2C27A 30%, #B8892E 55%, #F0D89A 75%, #8A6420); }
+.vn { position: absolute; inset: 0; }
+.vn-clean, .vn-varnish { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.vn-clean { object-fit: cover; opacity: 0; transition: opacity .25s; -webkit-user-drag: none; user-select: none; }
+.vn[data-on] .vn-clean { opacity: 1; }
+.vn-varnish { touch-action: none; cursor: crosshair; }
 
-/* Every act sits at the bottom of the painting, in one column */
-.ob-act { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; display: flex; flex-direction: column; align-items: center; text-align: center;
-  padding: 0 clamp(16px, 5vw, 64px) calc(clamp(22px, 5vh, 56px) + env(safe-area-inset-bottom)); }
-.ob-act > * { width: min(680px, 100%); }
-.ob-cover h1 { margin: 0; width: auto; font: 330 clamp(52px, 8.4vw, 132px)/.92 var(--serif); letter-spacing: -.045em; text-wrap: balance; }
-.ob-cover h1 em, .ob-h em { color: var(--chalk); font-style: italic; }
-.ob-h { margin: 0; font: 330 clamp(36px, 4.8vw, 60px)/1.02 var(--serif); letter-spacing: -.035em; text-wrap: balance; }
-.ob-lede { margin: 12px auto 0; max-width: 520px; font: 400 clamp(16px, 1.4vw, 19px)/1.45 var(--serif); color: var(--bone-2); }
+.ob2-brand { position: absolute; top: calc(14px + env(safe-area-inset-top)); left: 18px; z-index: 2; pointer-events: none;
+  font: 400 21px/1 var(--serif); letter-spacing: -.01em; color: var(--bone); text-shadow: 0 1px 12px rgba(20,12,4,.7); }
+.ob2-label { position: absolute; top: calc(12px + env(safe-area-inset-top)); right: 18px; z-index: 2; max-width: 58%; pointer-events: none;
+  display: grid; text-align: right; font: 400 11.5px/1.35 var(--grot); color: rgba(246,238,220,.82); text-shadow: 0 1px 10px rgba(20,12,4,.8); }
+.ob2-label i { font: italic 400 14px/1.25 var(--serif); color: var(--bone); }
 
-/* The slip: a strip of parchment the line is written on */
-.ob-slip-wrap { position: relative; margin-top: 24px; }
-.ob-slip { display: flex; align-items: center; gap: 8px; min-height: 60px; margin-top: 24px; padding: 6px 6px 6px 10px; border-radius: 16px; text-align: left;
-  background: #EEE6D6; color: #2A2016; box-shadow: 0 3px 0 #B9A887, 0 24px 50px -18px rgba(0,0,0,.8); transition: box-shadow .25s, transform .25s; }
-.ob-slip-wrap .ob-slip { margin-top: 0; }
-.ob-slip:focus-within { box-shadow: 0 3px 0 #B9A887, 0 0 0 4px rgba(227,154,126,.35), 0 24px 50px -18px rgba(0,0,0,.8); }
-.ob-slip input { flex: 1; min-width: 0; height: 48px; border: 0; outline: 0; background: transparent; padding: 0 6px; font: 400 21px var(--serif); letter-spacing: -.01em; color: #2A2016; caret-color: #A8432A; }
-.ob-slip input::placeholder { color: rgba(42,32,22,.38); font-style: italic; }
-.ob-slip.sent { transform: translateY(-4px); box-shadow: 0 7px 0 #B9A887, 0 30px 60px -18px rgba(0,0,0,.85); }
-.ob-slip.rec { box-shadow: 0 3px 0 #B9A887, 0 0 0 4px rgba(181,65,43,.45), 0 24px 50px -18px rgba(0,0,0,.8); }
-.ob-slip.demo { width: min(560px, 100%); padding: 6px 18px 6px 12px; }
-@keyframes ob-blink { 50% { opacity: 0; } }
-.ob-coin { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; flex: none; transition: transform .15s; }
-.ob-coin:hover { transform: rotate(-12deg); }
-.ob-mic { width: 44px; height: 44px; flex: none; border-radius: 50%; display: grid; place-items: center; color: rgba(42,32,22,.6); }
-.ob-mic.on { color: #B5412B; animation: ob-pulse 1.2s ease-in-out infinite; }
-@keyframes ob-pulse { 50% { box-shadow: 0 0 0 6px rgba(181,65,43,.18); } }
-.ob-send { width: 48px; height: 48px; flex: none; display: grid; place-items: center; }
+/* What the painting says: a hint, then why it clouds back, then what the line did. */
+.ob2-say { position: absolute; left: 16px; right: 16px; bottom: 20px; z-index: 2; margin: 0;
+  pointer-events: none; text-align: center; font: italic 400 18px/1.35 var(--serif); color: var(--bone);
+  text-shadow: 0 1px 2px rgba(20,12,4,.9), 0 0 18px rgba(20,12,4,.9); }
+.ob2-say b { font-weight: 400; color: #F3D99B; }
+.ob2-say.done { font-size: 19px; }
+.ob2-swipe { position: relative; display: inline-block; width: 30px; height: 12px; margin-right: 6px; vertical-align: -1px; }
+.ob2-swipe::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: rgba(246,238,220,.6); }
+.ob2-swipe::after { content: ''; position: absolute; top: 1px; left: 0; width: 10px; height: 10px; border-radius: 50%; background: #F3D99B;
+  box-shadow: 0 0 10px #F3D99B; animation: ob2-swab 1.6s ease-in-out infinite; }
+@keyframes ob2-swab { 0% { transform: translateX(0); opacity: 0; } 15% { opacity: 1; } 70% { transform: translateX(20px); opacity: 1; } 100% { transform: translateX(20px); opacity: 0; } }
 
-/* What the line says, read as you type */
-.ob-reads { min-height: 44px; margin-top: 14px; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
-.ob-read { display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 12px 0 10px; border-radius: 10px; background: rgba(14,10,6,.55); border: 1px solid rgba(246,238,220,.16); font: 400 15px var(--serif); color: var(--bone); }
-.ob-read i { width: 7px; height: 18px; border-radius: 2px; }
-.ob-read b { font: 600 13.5px var(--grot); color: var(--bone-2); font-variant-numeric: lining-nums; }
-.ob-read.in b { color: var(--gilt); }
-.ob-note { font: italic 400 15px/1.4 var(--serif); color: var(--chalk); padding-top: 6px; }
+/* ——— The page ——— */
+.ob2-page { flex: none; position: relative; display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center;
+  padding: 18px 20px calc(14px + env(safe-area-inset-bottom)); transition: opacity .4s; }
+.ob2.sent .ob2-page > :not(.ob2-slip-wrap):not(.ob2-under):not(h1) { opacity: .35; transition: opacity .4s; }
+.ob2-page h1 { margin: 0; font: 330 clamp(38px, 11.4vw, 54px)/.96 var(--serif); letter-spacing: -.04em; text-wrap: balance; }
+.ob2-page h1 em { font-style: italic; color: var(--verm); }
+.ob2-lede { max-width: 30em; margin: 8px 0 0; font: 400 16px/1.4 var(--serif); color: var(--ink-2); text-wrap: pretty; }
+
+/* The slip: the one thing on the page to touch. */
+.ob2-slip-wrap { position: relative; width: min(560px, 100%); margin-top: 16px; }
+.ob2-slip { display: flex; align-items: center; gap: 6px; height: 58px; padding: 0 6px 0 8px; border-radius: 16px; text-align: left;
+  background: #FBF7EE; border: 1px solid rgba(42,32,22,.16);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.7), 0 14px 28px -20px rgba(70,46,12,.7); transition: box-shadow .2s, border-color .2s; }
+.ob2-slip:focus-within { border-color: rgba(184,137,46,.7); box-shadow: inset 0 1px 0 rgba(255,255,255,.7), 0 0 0 4px rgba(184,137,46,.16), 0 14px 28px -20px rgba(70,46,12,.7); }
+.ob2-slip.rec { border-color: rgba(168,67,42,.6); box-shadow: 0 0 0 4px rgba(168,67,42,.14); }
+.ob2-slip input { flex: 1; min-width: 0; height: 100%; border: 0; outline: 0; background: transparent; padding: 0 4px;
+  font: 400 19px var(--serif); letter-spacing: -.01em; color: var(--ink); caret-color: var(--verm); }
+.ob2-slip input::placeholder { color: rgba(42,32,22,.42); font-style: italic; }
+.ob2-coin { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; flex: none; transition: transform .15s; }
+.ob2-coin:hover { transform: rotate(-12deg); }
+.ob2-mic { width: 40px; height: 40px; flex: none; border-radius: 50%; display: grid; place-items: center; color: var(--ink-3); }
+.ob2-mic.on { color: var(--verm); }
+.ob2-send { width: 46px; height: 46px; flex: none; display: grid; place-items: center; }
+.ob2-slip.ready .ob2-send:not(:disabled) { animation: ob2-beat 1.3s ease-in-out infinite; }
+@keyframes ob2-beat { 50% { transform: scale(1.08); } }
+
+/* Under the slip: an example to tap, or what the line says, read as you type. */
+.ob2-under { min-height: 30px; margin-top: 10px; display: grid; place-items: center; }
+.ob2-under p { margin: 0; }
+.ob2-try { font: italic 400 15.5px/1.4 var(--serif); color: var(--ink-3); }
+.ob2-try button { margin-left: 4px; padding: 3px 0; font: italic 400 15.5px/1.4 var(--serif); color: var(--ink);
+  text-decoration: underline; text-decoration-color: var(--gilt); text-decoration-thickness: 1px; text-underline-offset: 5px; }
+.ob2-try button:hover { color: var(--verm); }
+.ob2-reads { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px 16px; }
+.ob2-read { display: inline-flex; align-items: center; gap: 6px; font: 400 16px/1.4 var(--serif); }
+.ob2-read i { width: 6px; height: 6px; border-radius: 50%; }
+.ob2-read b { font: 600 13.5px var(--grot); color: var(--ink-2); font-variant-numeric: lining-nums tabular-nums; }
+.ob2-read.in b { color: #7A5A12; }
+.ob2-note { font: italic 400 15px/1.35 var(--serif); color: var(--verm); }
+
+/* The foot: the example month, the quieter ways in, the promises. */
+.ob2-foot { display: grid; justify-items: center; gap: 4px; margin-top: 10px; }
+.ob2-example { display: inline-flex; align-items: center; gap: 6px; padding: 6px 2px; font: italic 400 18px/1.2 var(--serif); color: var(--ink);
+  text-decoration: underline; text-decoration-color: rgba(184,137,46,.7); text-decoration-thickness: 1px; text-underline-offset: 5px; }
+.ob2-example svg { color: var(--gilt); transition: transform .2s; }
+.ob2-example:hover svg { transform: translateX(3px); }
+.ob2-quiet { display: inline-flex; gap: 8px; align-items: baseline; font: 400 13px/1.3 var(--grot); color: var(--ink-3); }
+.ob2-quiet button { padding: 4px 0; color: var(--ink-2); text-decoration: underline; text-decoration-color: rgba(42,32,22,.25); text-underline-offset: 3px; }
+.ob2-quiet i { font-style: normal; color: var(--gilt); }
+.ob2-promise { text-wrap: balance; margin: 4px 0 0; font: 600 10px/1.4 var(--grot); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); }
+.ob2 button:focus-visible { outline: 2px solid var(--gilt); outline-offset: 3px; border-radius: 4px; }
+.ob2 button:disabled { opacity: .5; }
+.ob2 .ob2-send:disabled { opacity: 1; }
+
+/* Returning (cloud accounts only) */
+.ob-acct { width: min(420px, 100%); margin-top: 18px; padding-top: 16px; border-top: 1px solid rgba(42,32,22,.14); }
+.ob-acct p { margin: 0 0 10px; font: 400 15px var(--serif); color: var(--ink-2); }
 .ob-picker { position: absolute; left: 0; top: calc(100% + 8px); z-index: 10; text-align: left; }
 .ob-picker .cpick-panel { position: static; }
 
-/* The cover's foot */
-.ob-cover-foot { display: grid; justify-items: center; gap: 18px; margin-top: 6px; }
-.ob .stamp { background: #F6EEDC !important; color: #1A140D !important; box-shadow: 0 3px 0 #9C8A66, 0 14px 30px -12px rgba(0,0,0,.8) !important; }
-.ob .stamp:not(:disabled):active { box-shadow: 0 0 0 #9C8A66 !important; }
-.ob .ob-slip .stamp { background: #2A2016 !important; color: #F6EEDC !important; box-shadow: 0 3px 0 #0F0B06 !important; }
- .ob-quiet:focus-visible { outline: 2px solid var(--chalk); outline-offset: 3px; }
-.ob-promise { list-style: none; display: flex; justify-content: center; flex-wrap: wrap; gap: 6px 18px; margin: 22px 0 0; padding: 0; font: 600 11px/1 var(--grot); letter-spacing: .16em; text-transform: uppercase; color: var(--bone-3); }
-.ob-quiet { font: 500 14px var(--grot); color: var(--bone-3); padding: 8px 4px; background: linear-gradient(rgba(246,238,220,.3), rgba(246,238,220,.3)) 0 calc(100% - 6px) / 100% 1px no-repeat; }
-.ob-quiet:hover { color: var(--bone); }
-.ob-acts { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 14px; flex-wrap: wrap; color: var(--bone-3); }
-.ob-acct { margin-top: 22px; padding-top: 18px; border-top: 1px solid rgba(246,238,220,.16); }
-.ob-acct p { margin: 0 0 10px; font: 400 15px var(--serif); color: var(--bone-2); }
-.ob-acct .field { background: rgba(246,238,220,.1); color: var(--bone); }
+/* A short phone, or the keyboard up: the painting keeps a band, the page keeps the slip. */
+@media (max-height: 700px) { .ob2-lede { display: none; } }
+:root[data-kb] .ob2-lede, :root[data-kb] .ob2-foot, :root[data-kb] .ob2-label { display: none; }
+:root[data-kb] .ob2-art { min-height: 110px; }
+:root[data-kb] .ob2-page h1 { font-size: 30px; }
+
+/* A computer: the painting on the left, the page beside it. */
+@media (min-width: 900px) {
+  .ob2 { flex-direction: row; }
+  .ob2-art { flex: 1 1 auto; }
+  .ob2-art::after { left: auto; top: 0; width: 4px; height: auto; background: linear-gradient(180deg, #8A6420, #E2C27A 30%, #B8892E 55%, #F0D89A 75%, #8A6420); }
+  .ob2-page { flex: 0 0 clamp(440px, 40vw, 600px); align-content: center; justify-items: start; text-align: left; padding: 48px clamp(36px, 4vw, 72px); }
+  .ob2-page h1 { font-size: clamp(56px, 5.6vw, 88px); }
+  .ob2-lede { font-size: 18px; margin-top: 14px; }
+  .ob2-slip-wrap { margin-top: 26px; }
+  .ob2-under, .ob2-foot { justify-items: start; place-items: start; }
+  .ob2-reads { justify-content: flex-start; }
+  .ob2-foot { margin-top: 26px; }
+  .ob2-say { bottom: 28px; font-size: 19px; }
+  .ob2-label { top: auto; bottom: 18px; right: auto; left: 20px; text-align: left; }
+  .ob2-say { left: 40%; right: 24px; text-align: right; }
+}
+@media (prefers-reduced-motion: reduce) { .ob2-swipe::after, .ob2-slip.ready .ob2-send { animation: none !important; } }
 
 /* The currency: a coin and a name, then a searchable list (also used in Your book) */
 .cpick { position: relative; }
@@ -90,15 +144,6 @@
 .cpick-empty { padding: 18px 12px; font: italic 400 15px var(--serif); color: rgba(42,32,22,.6); }
 
 @media (max-width: 640px) {
-  .ob-top { padding: 14px 16px; gap: 10px; }
-  .ob-label { display: none; }
-  .ob-cover h1 { font-size: clamp(46px, 14vw, 64px); }
-  .ob-slip { min-height: 56px; }
-  .ob-slip input{ font-size: 18px; }
-  .ob-slip.demo { padding: 6px 14px 6px 10px; }
-  .ob-h { font-size: 33px; }
-  .ob-promise { gap: 6px 12px; font-size: 10px; letter-spacing: .12em; margin-top: 18px; }
-  .ob-reads { min-height: 40px; }
   /* The currency list rises from the bottom, big enough for a thumb */
   .cpick-scrim { display: block; position: fixed; inset: 0; z-index: 130; background: rgba(8,6,3,.55); }
   .cpick-sheet .cpick-panel, .cpick.up .cpick-panel { position: fixed; left: 0; right: 0; top: auto; bottom: 0; width: auto; z-index: 131; border-radius: 22px 22px 0 0; padding-bottom: env(safe-area-inset-bottom); flex-direction: column; }
@@ -106,77 +151,4 @@
   .cpick-grab { display: block; width: 38px; height: 4px; border-radius: 2px; background: rgba(42,32,22,.25); margin: 8px auto 2px; }
   .cpick-done { display: block; }
   .cpick-list { max-height: 58vh; }
-}
-@media (prefers-reduced-motion: reduce) {  .ob-mic.on{ animation: none; } }
-
-/* The promises sit where the read line will appear, so there's no empty gap and nothing jumps. */
-.ob-reads { align-items: center; }
-.ob-reads .ob-promise { margin: 0; }
-/* While the shader warms up, the painting itself, drawn faint in chalk, instead of a black screen. */
-.ob-still.wait { filter: grayscale(1) sepia(1) hue-rotate(-25deg) saturate(2.2) contrast(1.4) brightness(1.15); opacity: .7; }
-
-
-/* ——— The cover, quietened: one object (the slip) and words around it, like a museum label. No boxes but the slip. ——— */
-.ob-at-cover { --bone-2: rgba(246, 238, 220, .94); --bone-3: rgba(246, 238, 220, .74); }
-.ob-at-cover .ob-veil { background:
-  linear-gradient(0deg, rgba(14,10,6,.97) 0%, rgba(14,10,6,.94) 56%, rgba(14,10,6,.78) 70%, rgba(14,10,6,.3) 86%, rgba(14,10,6,.05) 96%),
-  linear-gradient(rgba(14,10,6,.55), transparent 18%); }
-.ob-cover h1 { text-shadow: 0 2px 24px rgba(14,10,6,.7); }
-.ob-lede { color: var(--bone-2); }
-
-/* The step: a gilt numeral, a hairline, the instruction. */
-.ob-step { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 22px auto -10px; font: italic 400 17px/1.2 var(--serif); color: var(--bone); }
-.ob-step b { font: italic 400 22px/1 var(--serif); color: var(--gilt); }
-.ob-step b::after { content: ''; display: inline-block; vertical-align: middle; width: 28px; height: 1px; margin-left: 12px; background: var(--gilt); opacity: .7; }
-
-/* What the line says, read as you type: a line of ledger, not a row of chips. */
-.ob-reads { min-height: 30px; margin-top: 14px; gap: 4px 18px; }
-.ob-read { height: auto; padding: 0; border: 0; border-radius: 0; background: none; gap: 7px; font: 400 17px/1.3 var(--serif); }
-.ob-read i { width: 6px; height: 6px; border-radius: 50%; }
-.ob-read b { font: 600 14px var(--grot); }
-.ob-again { width: 100%; margin-top: 4px; font: italic 400 15px/1.3 var(--serif); color: var(--bone-3); }
-
-/* The examples: written in the margin, underlined in gilt; a tap writes one on the slip. */
-.ob-try { margin: 0; display: flex; flex-wrap: wrap; justify-content: center; align-items: baseline; gap: 4px 0; font: italic 400 16px/1.5 var(--serif); color: var(--bone-3); animation: ob-in .6s ease .85s both; }
-.ob-try-hint { margin-right: 10px; }
-.ob-try-item { display: inline-flex; align-items: baseline; }
-.ob-try-item i { margin: 0 10px; font-style: normal; color: var(--gilt); }
-.ob-try-line { padding: 4px 0; font: italic 400 16px/1.4 var(--serif); color: var(--bone); white-space: nowrap;
-  text-decoration: underline; text-decoration-color: rgba(226,194,122,.55); text-decoration-thickness: 1px; text-underline-offset: 5px; transition: color .2s, text-decoration-color .2s; }
-.ob-try-line:hover, .ob-try-line:focus-visible { color: var(--gilt); text-decoration-color: var(--gilt); outline: none; }
-.ob-try-line.nudge { animation: ob-gild 1.4s ease-in-out 3; }
-@keyframes ob-gild { 50% { color: var(--gilt); text-decoration-color: var(--gilt); } }
-@keyframes ob-in { from { opacity: 0; transform: translateY(6px); } }
-
-/* The foot: a gilt hairline, the way into the example, the smaller ways in, the promises. */
-.ob-cover-foot { display: grid; justify-items: center; gap: 8px; margin-top: 10px; }
-.ob-rule { width: 64px; height: 1px; margin: 6px 0 2px; background: linear-gradient(90deg, transparent, var(--gilt), transparent); }
-.ob-example { display: inline-flex; align-items: center; gap: 8px; padding: 6px 2px; font: italic 400 21px/1.2 var(--serif); color: var(--bone);
-  text-decoration: underline; text-decoration-color: rgba(226,194,122,.6); text-decoration-thickness: 1px; text-underline-offset: 6px; }
-.ob-example svg { color: var(--gilt); transition: transform .2s; }
-.ob-example:hover svg { transform: translateX(3px); }
-.ob-example:focus-visible { outline: 2px solid var(--chalk); outline-offset: 3px; }
-.ob-cover-foot .ob-acts { margin-top: 0; }
-.ob-quiet { font-size: 14px; color: var(--bone-3); }
-.ob-cover-foot .ob-promise { margin-top: 6px; gap: 4px 0; font-size: 10.5px; letter-spacing: .14em; color: var(--bone-3); }
-.ob-cover-foot .ob-promise li + li::before { content: '·'; margin: 0 9px; color: var(--gilt); }
-
-@media (max-width: 640px) {
-  .ob-cover h1 { font-size: clamp(40px, 12.4vw, 56px); }
-  .ob-lede { font-size: 16px; margin-top: 8px; }
-  .ob-step { margin: 16px auto -12px; font-size: 16px; }
-  .ob-try, .ob-try-line { font-size: 15px; }
-  .ob-try-hint { width: 100%; margin: 0; }
-  .ob-example { font-size: 19px; }
-  .ob-cover-foot .ob-promise { font-size: 9.5px; letter-spacing: .1em; }
-  .ob-cover-foot .ob-promise li + li::before { margin: 0 6px; }
-}
-@media (max-height: 700px) and (max-width: 640px) { .ob-lede { display: none; } }
-@media (prefers-reduced-motion: reduce) { .ob-try, .ob-try-line.nudge { animation: none; } }
-@media (max-width: 640px) {
-  /* Stacked on a phone, so no separator starts a line. */
-  .ob-try-item { width: 100%; justify-content: center; }
-  .ob-try-item i { display: none; }
-  .ob-cover-foot .ob-promise { gap: 4px 16px; }
-  .ob-cover-foot .ob-promise li + li::before { display: none; }
 }
