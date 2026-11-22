@@ -104,7 +104,7 @@ function General({ state, dispatch }: { state: State; dispatch: (a: Action) => v
   return (
     <>
       <Group note="Your name appears on your chapters and cards. Your entries live on this device.">
-        <Row label="Name"><input className="field" style={{ width: 220 }} value={state.profile.name} onChange={(e) => dispatch({ type: 'profile', patch: { name: e.target.value } })} /></Row>
+        <Row label="Name"><input className="field" style={{ width: 220 }} placeholder="What should the book call you?" autoComplete="given-name" value={state.profile.name} onChange={(e) => dispatch({ type: 'profile', patch: { name: e.target.value } })} /></Row>
         <Row label="Currency" sub="Changing it doesn't convert amounts you've already written.">
           <select className="field" style={{ width: 220 }} value={state.profile.currency} onChange={(e) => dispatch({ type: 'profile', patch: { currency: e.target.value } })}>
             {CURRENCIES.map((c) => <option key={c.code} value={c.code}>{currencySymbol(c.code)}  {c.name}</option>)}

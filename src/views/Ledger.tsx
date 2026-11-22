@@ -60,7 +60,7 @@ export function Ledger({ state, dispatch, filter, setFilter, query, onAttach, on
             <div className="card" style={{ padding: '60px 30px', textAlign: 'center', display: 'grid', placeItems: 'center', gap: 14 }}>
               <Sticker name="box" size={110} rotate={-6} />
               <div className="h3">Nothing here yet</div>
-              <div className="body-serif" style={{ fontSize: 16 }}>{document.documentElement.dataset.phone !== undefined ? 'Write on the Chapter page, in your own words. It lands here.' : 'Write below, in your own words. “Lunch 14, Uber 9” works.'}</div>
+              <div className="body-serif" style={{ fontSize: 16 }}>{document.documentElement.dataset.phone !== undefined ? 'Write in the bar below, in your own words. It lands here.' : 'Write below, in your own words. “Lunch 14, Uber 9” works.'}</div>
               {onImport && <button className="btn stm-chip" onClick={onImport} style={{ height: 38, padding: '0 16px', marginTop: 4 }}><Icon.upload size={14} /> Or import a bank statement</button>}
             </div>
           )}

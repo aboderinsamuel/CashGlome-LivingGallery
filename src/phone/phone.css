@@ -279,3 +279,70 @@
 :root[data-phone] .panel .btn { height: 44px; border-radius: 22px; font-size: 14px; }
 :root[data-phone] .panel .btn.primary, :root[data-phone] .sheet .btn.primary, :root[data-phone] .checkin .btn.primary { background: var(--leaf); color: var(--leaf-ink); border-color: transparent; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45); }
 :root[data-phone] .panel .field { height: 44px; font-size: 16px; border-radius: 12px; }
+
+/* ——— The app frame, as an installed app has it ———
+   The bar's small title stays out of the way while the page's own big title is on screen, and fades in
+   (with a hairline under the bar) once you scroll past it. Today keeps the name of the app. */
+.ph-top { height: 52px; padding: 0 4px 0 6px; position: relative; z-index: 3; border-bottom: 1px solid transparent; transition: border-color .2s ease, background-color .2s ease; }
+.ph-app[data-scrolled] .ph-top { border-bottom-color: var(--line); background-color: color-mix(in srgb, var(--paper) 92%, transparent); }
+.ph-place { font-size: 21px; transition: opacity .2s ease, transform .2s ease; }
+.ph-app:is([data-place='ask'], [data-place='people']):not([data-scrolled]) .ph-place { opacity: 0; transform: translateY(4px); }
+.ph-book { height: 34px; margin-right: 8px; padding-right: 11px; font-size: 12.5px; }
+.ph-book-face { width: 26px; height: 26px; font-size: 13px; }
+
+/* Chrome is not text: no selecting, no callouts, a pressed state on everything you can tap. */
+.ph-top, .ph-tabs, .ph-chips, .ch-tabs, .sheet-nav { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.ph-app button:not(:disabled):active { transition: transform .08s ease; }
+.ph-main { scroll-padding-top: 52px; -webkit-overflow-scrolling: touch; }
+
+/* The tab bar: the place you're in sits in a soft gold pill, as Material 3 marks it. */
+.ph-tabs { height: calc(62px + env(safe-area-inset-bottom)); background: var(--paper); }
+.ph-tabs button { gap: 4px; font-size: 11.5px; letter-spacing: .01em; }
+.ph-tabs button svg { width: 56px; height: 30px; padding: 5px 18px; border-radius: 15px; box-sizing: border-box; transition: background-color .2s ease, color .2s ease; overflow: visible; }
+.ph-tabs button.on svg { background: color-mix(in srgb, var(--gold) 18%, transparent); color: var(--ink); }
+.ph-tabs button.on::before { display: none; }
+.ph-tabs button:not(:disabled):active { background: none; }
+.ph-tabs button:not(:disabled):active svg { background: var(--fill-2); }
+
+/* The writing bar: the quick lines belong to Today; elsewhere the bar alone. */
+.ph-app:not([data-place='today']) .composer-wrap .ph-chips { display: none; }
+:root[data-phone] .composer-wrap { padding-top: 6px; }
+.ph-chips { scrollbar-width: none; padding-bottom: 6px; }
+.ph-chips::-webkit-scrollbar { display: none; }
+
+/* Paintings: the four rooms as one even segmented row, the month in review beside nothing. */
+.ph-main .ch-tabs { padding: 4px 16px 6px; gap: 8px; }
+.ph-main .ch-seg { display: flex; width: 100%; }
+.ph-main .ch-seg button { flex: 1; min-width: 0; height: 36px; padding: 0 4px; font-size: 12.5px; white-space: nowrap; }
+.ph-main .ch-acts { width: 100%; }
+.ph-main .ch-acts button { width: 100%; justify-content: center; height: 38px; }
+.ph-home { overflow-y: auto; }
+.ph-art { min-height: 220px; }
+
+/* Ledger: each day's heading stays at the top while its lines scroll under it. */
+.ph-page .day-group > div:first-child { position: sticky; top: 0; z-index: 2; padding-top: 10px !important; background: var(--paper); }
+.ph-page .day-group { margin-bottom: 14px !important; }
+
+/* Ask: a smaller portrait and title, and the ideas in one row you swipe. */
+.ph-page .ask-room { padding-top: 0; }
+.ph-page .ar-head { gap: 12px; margin-bottom: 14px; align-items: flex-start; }
+.ph-page .ar-face { width: 52px !important; height: 52px !important; flex: none; }
+.ph-page .ar-head h1 { font-size: 30px; }
+.ph-page .ar-head p { font-size: 14.5px; }
+.ph-page .ar-ideas { flex-wrap: nowrap; overflow-x: auto; margin: 0 -16px; padding: 2px 16px 4px; scrollbar-width: none; scroll-snap-type: x proximity; }
+.ph-page .ar-ideas::-webkit-scrollbar { display: none; }
+.ph-page .ar-ideas button { flex: none; max-width: 78%; white-space: normal; scroll-snap-align: start; }
+.ph-page .ar-box { bottom: 8px; border-radius: 26px; min-height: 54px; padding: 6px 6px 6px 16px; }
+.ph-page .ar-box button { width: 42px; height: 42px; }
+
+/* Your book: the row of pages fades at its edge, so it reads as one you can swipe. */
+:root[data-phone] .sheet-panes { -webkit-mask-image: linear-gradient(90deg, #000 82%, transparent); mask-image: linear-gradient(90deg, #000 82%, transparent); padding-right: 40px; }
+:root[data-phone] .sheet .field { width: 100% !important; max-width: 100%; }
+.ph-app .ph-tabs button.on::after { display: none !important; }
+.ph-app .ph-tabs button.on svg { background: color-mix(in srgb, var(--gold) 20%, transparent); }
+.ph-page .ar-ideas button { max-width: none; white-space: nowrap; min-height: 40px; padding: 0 14px; border-radius: 20px; }
+.ph-page .ar-ideas.again { margin-bottom: 10px; }
+.ph-page .ar-box { box-shadow: 0 -10px 16px 4px var(--paper), 0 8px 20px -14px rgba(60, 40, 10, .55); }
+.ph-page .ar-ideas { scroll-padding-inline: 16px; }
+.ph-main .ch-tabs { margin: 0; width: 100%; box-sizing: border-box; flex: none; }
+.ph-main .ch-seg button { flex: 1 1 auto; padding: 0 8px; letter-spacing: -.005em; }

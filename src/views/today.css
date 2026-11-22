@@ -106,26 +106,42 @@
   .td-book { grid-template-columns: minmax(0, 1fr); gap: 0; }
 }
 
-/* ——— Phones: the money first, the painting a small plate at its side ——— */
+/* ——— Phones: the greeting, the painting across the screen in its gilt frame, then the money, big and calm ——— */
 @container (max-width: 520px) {
-  .td-light { inset: -40px -20px auto; height: 520px; }
-  .td-wall { grid-template-columns: minmax(0, 1fr) 96px; gap: 14px; padding-bottom: 18px; }
-  .td-art { grid-column: 2; grid-row: 1; }
-  .td-money { grid-column: 1; grid-row: 1; padding-top: 0; }
-  .td-plate { padding: 4px; }
-  .td-label-card { margin-top: 8px; gap: 2px; }
-  .td-label-card i { display: none; }
-  .td-patches { grid-template-columns: repeat(10, 1fr); margin: 0 0 4px; }
+  .td-light { inset: -40px -20px auto; height: 620px; }
+  .td-wall { display: flex; flex-direction: column; align-items: stretch; gap: 0; padding-bottom: 8px; }
+  .td-money { display: contents; }
+  .td-head { order: 0; margin-bottom: 16px; }
+  .td-art { order: 1; margin: 0 0 22px; }
+  .td-hero { order: 2; }
+  .td-house { order: 3; margin-top: 18px; }
+  .td-plate { padding: 5px; box-shadow: inset 0 0 0 1px rgba(60, 40, 10, .35), 0 18px 32px -20px rgba(60, 40, 10, .75); }
+  .td-plate:hover { transform: none; }
+  /* While the painting is on its way, warm old varnish, never a black hole. */
+  .td-plate .plate { background: linear-gradient(120deg, #6B5233, #4A3822 45%, #6E5636 60%, #4A3822); background-size: 300% 100%; animation: td-varnish 2.4s ease-in-out infinite; }
+  .td-label-card { grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; column-gap: 12px; row-gap: 2px; margin-top: 10px; }
+  .td-label-card i { grid-column: 1; font-size: 16px; }
+  .td-label-card > span:nth-child(2) { grid-column: 1; display: block; font-size: 13px; }
+  .td-label-card .td-count { grid-column: 2; grid-row: 1; font-weight: 600; color: var(--gold) !important; white-space: nowrap; }
+  .td-patches { grid-column: 1 / -1; grid-template-columns: repeat(30, 1fr); max-width: none; margin: 8px 0 0; }
   .td-patches b { height: 4px; }
-  .td-count { font-size: 10.5px; line-height: 1.3; }
-  .td-head { margin-bottom: 18px; }
-  .td-head h1 { font-size: 30px; }
+  .td-label-card .td-link { display: none; }
+  .td-head h1 { font-size: 34px; margin-top: 8px; }
+  .td-kicker { font-size: 11px; line-height: 1.35; }
   .td-lede { font-size: 16px; }
-  .td-big { font-size: 60px; margin: 10px 0 6px; }
-  .td-per { font-size: 16px; margin-bottom: 14px; }
-  .td-work dt { font-size: 13px; }
-  .td-work dd { font-size: 16px; }
-  .td-house { margin-top: 20px; }
+  .td-big { font-size: 68px; margin: 10px 0 4px; }
+  .td-per { font-size: 16px; margin-bottom: 16px; }
+  .td-work { max-width: none; }
+  .td-work dt { font-size: 13.5px; }
+  .td-work dd { font-size: 17px; }
+  .td-book { border-top: 0; padding-top: 0; }
+  .td-section { padding-top: 18px; }
+  .td-h { border-bottom: 1px solid var(--ink); padding-bottom: 8px; margin-bottom: 0; }
+  .td-empty-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; }
+  .td-empty-row .td-empty { margin: 0; }
+  .td-quiet { flex: none; font: 600 13px/1 var(--grot) !important; height: 36px; }
   /* Under the money, clear of the "Added" notice that rises above the writing box. */
-  .td-voice { position: fixed; left: 12px; right: 12px; top: calc(env(safe-area-inset-top) + 340px); bottom: auto; z-index: 30; margin: 0; }
+  .td-voice { position: fixed; left: 12px; right: 12px; top: calc(env(safe-area-inset-top) + 300px); bottom: auto; z-index: 30; margin: 0; }
 }
+@keyframes td-varnish { 0%, 100% { background-position: 0 0; } 50% { background-position: 100% 0; } }
+@media (prefers-reduced-motion: reduce) { .td-plate .plate { animation: none; } }

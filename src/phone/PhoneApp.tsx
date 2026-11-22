@@ -51,9 +51,14 @@ export function PhoneApp(p: Props) {
   useEffect(() => { setPage(null); }, [state.month]);
   const months = place === 'ledger' || (place === 'chapter' && view === 'chapter');
   const first = state.profile.name?.split(' ')[0];
+  // Like a native app: the page's own big title scrolls away, and the bar's small title fades in once it has.
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => { setScrolled(false); }, [view, pushed]);
+  // The writing bar stays where you write: Today, the Ledger, People and this month's painting. Gallery, Past chapters and Play read only.
+  const writes = !pushed && place !== 'ask' && !(place === 'chapter' && view !== 'chapter');
 
   return (
-    <div className="ph-app">
+    <div className="ph-app" data-place={pushed ? 'page' : place} data-scrolled={scrolled ? '' : undefined}>
       <header className="ph-top">
         {pushed ? (
           <>
@@ -83,7 +88,7 @@ export function PhoneApp(p: Props) {
         )}
       </header>
 
-      <main className="ph-main" key={pushed ?? view}>
+      <main className="ph-main" key={pushed ?? view} onScroll={(e) => { const y = e.currentTarget.scrollTop > 56; if (y !== scrolled) setScrolled(y); }}>
         {pushed ? <div className="ph-page">{pushed === 'read' ? p.pages.read : p.pages[pushed]}</div>
           : place === 'chapter' ? (
             <>
@@ -95,7 +100,7 @@ export function PhoneApp(p: Props) {
           : <div className="ph-page">{p.pages[place === 'people' ? 'people' : place]}</div>}
       </main>
 
-      {!pushed && place !== 'ask' && p.composer}
+      {writes && p.composer}
 
       {!pushed && <TabBar view={view} setView={go} className="ph-tabs" />}
     </div>

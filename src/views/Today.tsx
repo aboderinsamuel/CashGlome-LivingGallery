@@ -16,6 +16,7 @@ import { HousePlate } from '../components/HousePlate';
 import { safeToSpend } from '../stage/askPainting';
 import { circleStatus, peopleOf } from '../stage/books';
 import { dateInWords } from '../stage/words';
+import { usePhone } from '../phone/device';
 import './today.css';
 
 /** What a sitter just said about a line, shown beside the miniature. */
@@ -43,6 +44,7 @@ const part = (h: number) => (h >= 5 && h < 12 ? 'morning' : h >= 12 && h < 17 ? 
 
 export function Today({ state, dispatch, voice, onVoiceDone, onFill, onLedger, onPeople, onAsk, onPainting, onEdit, onPlay }: Props) {
   const cur = state.profile.currency;
+  const phone = usePhone();
   const m = (n: number) => money(n, cur);
   const [now, setNow] = useState(() => new Date());
   useEffect(() => { const t = setInterval(() => setNow(new Date()), 60_000); return () => clearInterval(t); }, []);
@@ -88,7 +90,7 @@ export function Today({ state, dispatch, voice, onVoiceDone, onFill, onLedger, o
         {/* The painting is the hero; the money hangs beside it like its label. */}
         <figure className="td-art">
           <button className="td-plate" onClick={onPainting} aria-label={`${painting.title}. Open this month's chapter`}>
-            <RestorationPlate painting={painting} r={r} seen={shownSeen} ratio={4 / 5} drift={false} calm={state.settings.calm} lead={0.3} />
+            <RestorationPlate painting={painting} r={r} seen={shownSeen} ratio={phone ? 3 / 2 : 4 / 5} drift={false} calm={state.settings.calm} lead={0.3} />
           </button>
           <figcaption className="td-label-card">
             <i>{painting.title}</i>
@@ -96,7 +98,7 @@ export function Today({ state, dispatch, voice, onVoiceDone, onFill, onLedger, o
             <span className="td-patches" aria-label={r.complete ? 'Restored' : `${r.restored} of ${PATCHES} patches cleaned`}>
               {Array.from({ length: PATCHES }, (_, i) => <b key={i} className={i < r.restored ? 'on' : ''} />)}
             </span>
-            <span className="td-count">{r.complete ? 'Restored. It hangs in your Gallery.' : `${r.restored} of ${PATCHES} cleaned · one per line`}</span>
+            <span className="td-count">{r.complete ? (phone ? 'Restored' : 'Restored. It hangs in your Gallery.') : phone ? `${r.restored} of ${PATCHES} cleaned` : `${r.restored} of ${PATCHES} cleaned · one per line`}</span>
             <button className="td-link" onClick={onPainting}>Open the chapter<Icon.right size={12} /></button>
           </figcaption>
           <AnimatePresence>
@@ -173,7 +175,7 @@ export function Today({ state, dispatch, voice, onVoiceDone, onFill, onLedger, o
           ) : (
             <div className="td-empty-row">
               <p className="td-empty">{fresh ? 'Try a line below, or write your own.' : quietToday ? 'A quiet day, kept.' : 'Nothing yet today.'}</p>
-              {!fresh && !quietToday && !evening && <button className="chip td-quiet" onClick={() => setQuiet(true)}>Nothing today</button>}
+              {!fresh && !quietToday && !evening && <button className="chip td-quiet" onClick={() => setQuiet(true)}>Mark a quiet day</button>}
             </div>
           )}
           {todays.length > 0 && <button className="td-link" onClick={onLedger}>{todays.length > 6 ? `All ${todays.length} lines today` : 'Open the ledger'}<Icon.right size={12} /></button>}
