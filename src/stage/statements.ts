@@ -2,9 +2,8 @@
 // the figures; without Florin (offline, or no AI in this build) the device says it itself.
 import type { Figure } from '../lib/ask';
 import { cat } from '../lib/categories';
-import { money } from '../lib/format';
+import { money, spanInWords } from '../lib/format';
 import type { Entry, State } from '../lib/types';
-import { ORD } from './words';
 
 export const STATEMENT_Q = /\b(statements?|imported|bank (?:lines|export)|my bank)\b/i;
 
@@ -45,12 +44,6 @@ export function statementsIn(entries: Entry[]): Reading[] {
 }
 
 const day = (iso: string) => { const d = new Date(iso + 'T12:00'); return `${d.getDate()} ${d.toLocaleDateString('en', { month: 'long' })}`; };
-function span(from: string, to: string) {
-  const d = (iso: string) => new Date(iso + 'T12:00');
-  const mon = (iso: string) => d(iso).toLocaleDateString('en', { month: 'long' });
-  if (from.slice(0, 7) === to.slice(0, 7)) return `the ${ORD[d(from).getDate()]} to the ${ORD[d(to).getDate()]} of ${mon(to)} ${to.slice(0, 4)}`;
-  return `the ${ORD[d(from).getDate()]} of ${mon(from)} to the ${ORD[d(to).getDate()]} of ${mon(to)} ${to.slice(0, 4)}`;
-}
 const pct = (part: number, whole: number) => (whole ? Math.round((part / whole) * 100) : 0);
 
 /** Lines for Florin's summary of the book: every figure already counted. */
@@ -85,7 +78,7 @@ export function statementAnswer(state: State): { text: string; figures: Figure[]
   const f = (n: number) => money(n, state.profile.currency);
   const top = r.byCat.slice(0, 3);
   const parts = [
-    `Your ${r.source} statement runs from ${span(r.from, r.to)}: ${r.lines.length} lines.`,
+    `Your ${r.source} statement runs from ${spanInWords(r.from, r.to)}: ${r.lines.length} lines.`,
     r.came ? `${f(r.came)} came in${r.incomes[0] ? `, mostly ${cat(r.incomes[0].id).name.toLowerCase()} (${f(r.incomes[0].total)})` : ''}.` : 'Nothing came in on it.',
     `${f(r.spent)} was spent${r.saved ? ` and ${f(r.saved)} put aside, which is a habit worth keeping` : ''}.`,
     top.length ? `The biggest share of your spending went to ${cat(top[0].id).name.toLowerCase()} (${f(top[0].total)}, ${pct(top[0].total, r.spent)}%)${top.length > 1 ? `, then ${top.slice(1).map((c) => `${cat(c.id).name.toLowerCase()} (${f(c.total)})`).join(' and ')}` : ''}.` : '',

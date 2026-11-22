@@ -1,11 +1,10 @@
 import { useMemo, useState, type Dispatch } from 'react';
 import { artSrc, PAINTINGS } from '../lib/art';
-import { ex, money, monthLabel, todayISO } from '../lib/format';
+import { dateInWords, ex, money, monthLabel, todayISO } from '../lib/format';
 import { relDay } from '../lib/memory';
 import type { Action } from '../lib/store';
 import type { State } from '../lib/types';
 import { circleStatus, incomeRecord, peopleOf, pricesOf, readCircle } from './books';
-import { dateInWords } from './words';
 import './accounts.css';
 
 /** A painting at the head of each folio, labelled like a museum wall. */

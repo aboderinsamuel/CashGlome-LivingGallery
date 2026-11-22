@@ -3,10 +3,9 @@
 import { motion } from 'framer-motion';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { cat, choosable } from '../lib/categories';
-import { CURRENCIES, money, monthLabel, monthOf } from '../lib/format';
+import { CURRENCIES, money, monthLabel, monthOf, spanInWords } from '../lib/format';
 import { readStatement, StatementError, toEntries, type Statement, type StatementLine, type StatementProblem } from '../lib/statement';
 import type { Entry } from '../lib/types';
-import { ORD } from '../stage/words';
 import { Icon } from './Icons';
 import './statement.css';
 
@@ -36,18 +35,9 @@ const NUM = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eig
 const TENS = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
 const inWords = (n: number) => (n < 20 ? NUM[n] : n < 100 ? TENS[Math.floor(n / 10)] + (n % 10 ? '-' + NUM[n % 10] : '') : String(n));
 const cap = (s: string) => s[0].toUpperCase() + s.slice(1);
-const d = (iso: string) => new Date(iso + 'T12:00');
-const mon = (iso: string) => d(iso).toLocaleDateString('en', { month: 'long' });
-/** "the first to the thirty-first of October 2026" */
-function spanInWords(from: string, to: string) {
-  const y = to.slice(0, 4);
-  if (from === to) return `the ${ORD[d(from).getDate()]} of ${mon(from)} ${y}`;
-  if (from.slice(0, 7) === to.slice(0, 7)) return `the ${ORD[d(from).getDate()]} to the ${ORD[d(to).getDate()]} of ${mon(to)} ${y}`;
-  return `the ${ORD[d(from).getDate()]} of ${mon(from)}${from.slice(0, 4) !== y ? ' ' + from.slice(0, 4) : ''} to the ${ORD[d(to).getDate()]} of ${mon(to)} ${y}`;
-}
 /** "COMPASS MUTUAL BANK" reads "Compass Mutual Bank". */
 const bankTitle = (b: string) => (b === b.toUpperCase() ? b.toLowerCase().replace(/(^|\s)(\p{L})/gu, (_, a: string, c: string) => a + c.toUpperCase()) : b);
-const short = (iso: string) => d(iso).toLocaleDateString('en', { day: 'numeric', month: 'short' });
+const short = (iso: string) => new Date(iso + 'T12:00').toLocaleDateString('en', { day: 'numeric', month: 'short' });
 
 const PROBLEMS: Record<StatementProblem, { head: [string, string]; body: string }> = {
   scanned: { head: ['This one is a ', 'picture'], body: 'Its pages are images, like a scan or a photo saved as a PDF, so there are no words on them for this device to read. Most banks also offer a CSV or a “download as PDF” from the app, and those work. For a single receipt, the camera reads it.' },

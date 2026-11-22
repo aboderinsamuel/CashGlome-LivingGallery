@@ -89,6 +89,29 @@ export function monthLabel(month: string, style: 'long' | 'short' = 'long') {
   const [y, m] = month.split('-').map(Number);
   return new Date(y, m - 1, 1).toLocaleDateString(undefined, { month: style, year: 'numeric' });
 }
+/* ——— Dates in words, the way a letter writes them. English for now, like the rest of the app's own voice. ——— */
+export const ORD = ['', 'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth', 'eleventh', 'twelfth', 'thirteenth', 'fourteenth', 'fifteenth', 'sixteenth', 'seventeenth', 'eighteenth', 'nineteenth', 'twentieth', 'twenty-first', 'twenty-second', 'twenty-third', 'twenty-fourth', 'twenty-fifth', 'twenty-sixth', 'twenty-seventh', 'twenty-eighth', 'twenty-ninth', 'thirtieth', 'thirty-first'];
+const WEEKDAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const atNoon = (iso: string) => new Date(iso + 'T12:00');
+
+/** "Tuesday, the tenth of November" */
+export function dateInWords(d = new Date()) {
+  return `${WEEKDAY_NAMES[d.getDay()]}, the ${ORD[d.getDate()]} of ${MONTH_NAMES[d.getMonth()]}`;
+}
+/** "2026-11" reads "November". With the year, use monthLabel. */
+export const monthName = (month: string) => MONTH_NAMES[Number(month.slice(5, 7)) - 1];
+
+/** "the first to the thirty-first of October 2026" */
+export function spanInWords(from: string, to: string) {
+  const y = to.slice(0, 4);
+  const day = (iso: string) => ORD[atNoon(iso).getDate()];
+  const mon = (iso: string) => MONTH_NAMES[atNoon(iso).getMonth()];
+  if (from === to) return `the ${day(from)} of ${mon(from)} ${y}`;
+  if (from.slice(0, 7) === to.slice(0, 7)) return `the ${day(from)} to the ${day(to)} of ${mon(to)} ${y}`;
+  return `the ${day(from)} of ${mon(from)}${from.slice(0, 4) !== y ? ' ' + from.slice(0, 4) : ''} to the ${day(to)} of ${mon(to)} ${y}`;
+}
+
 export function dayLabel(iso: string) {
   const today = todayISO();
   const y = new Date(); y.setDate(y.getDate() - 1);

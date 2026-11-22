@@ -5,16 +5,6 @@ import { todayISO, uid } from '../lib/format';
 import { addDays, routinesOf } from '../lib/memory';
 import type { Entry, Memory, State } from '../lib/types';
 
-const ORDINALS = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth', 'eleventh', 'twelfth', 'thirteenth', 'fourteenth', 'fifteenth', 'sixteenth', 'seventeenth', 'eighteenth', 'nineteenth', 'twentieth', 'twenty-first', 'twenty-second', 'twenty-third', 'twenty-fourth', 'twenty-fifth', 'twenty-sixth', 'twenty-seventh', 'twenty-eighth', 'twenty-ninth', 'thirtieth', 'thirty-first'];
-const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-
-/** "Tuesday, the tenth of November" */
-export function dateInWords(d = new Date()) {
-  return `${WEEKDAYS[d.getDay()]}, the ${ORDINALS[d.getDate() - 1]} of ${MONTHS[d.getMonth()]}`;
-}
-export const monthName = (month: string) => MONTHS[Number(month.slice(5, 7)) - 1];
-
 export type Part = 'night' | 'morning' | 'midday' | 'afternoon' | 'evening';
 export const partOfDay = (h: number): Part => (h < 5 ? 'night' : h < 11 ? 'morning' : h < 15 ? 'midday' : h < 18 ? 'afternoon' : 'evening');
 

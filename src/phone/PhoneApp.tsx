@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { chapterOf, computeStats } from '../lib/analytics';
 import { paintingOf, PATCHES, restorationOf } from '../lib/art';
-import { money, monthOf, shiftMonth, todayISO } from '../lib/format';
+import { dateInWords, money, monthName, monthOf, shiftMonth, todayISO } from '../lib/format';
 import { findAmounts } from '../lib/parser';
 import { onDay } from '../lib/memory';
 import type { Action } from '../lib/store';
@@ -12,7 +12,7 @@ import type { Entry, State } from '../lib/types';
 import { Icon } from '../components/Icons';
 import { RestorationPlate, revealTime } from '../components/Restoration';
 import { ChapterTabs, TabBar, tabOf, type Tab, type View } from '../components/Shell';
-import { cardSeason, chipsFor, closeDay, dateInWords, dayClosed, monthName, partOfDay, type CashPocket, type Chip } from './moments';
+import { cardSeason, chipsFor, closeDay, dayClosed, partOfDay, type CashPocket, type Chip } from './moments';
 import { haptic } from './device';
 import { NowPlaying } from '../components/Music';
 

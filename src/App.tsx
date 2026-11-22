@@ -476,6 +476,22 @@ export default function App() {
   const subtitle = view === 'chapter' || view === 'ledger' ? monthLabel(state.month) : view === 'shelf' ? `${months.length} months` : '';
   const goView = (v: View) => () => setView(v);
 
+  // Every page, written once. The computer's window and the phone's both show them from here.
+  const fill = (t: string) => composer.current?.fill(t);
+  const page: Record<Exclude<View, 'accounts'>, ReactNode> = {
+    today: <Today state={state} dispatch={dispatch} voice={voice} onVoiceDone={clearVoice} onFill={fill} onLedger={goView('ledger')} onPeople={goView('people')} onAsk={askAbout} onPainting={goView('chapter')} onEdit={() => setView('ledger')} onPlay={goView('play')} />,
+    chapter: <Chapter state={state} dispatch={dispatch} onOpenCategory={(id) => { setFilter(id); setView('ledger'); }} onEdition={() => setEdition(true)} onWrite={(h) => fill(h ?? '')} onPlans={goView('plans')} onGallery={goView('collection')} onSay={() => composer.current?.speak()} onSnap={() => setCapture({ file: null })} onShare={() => setSharing(true)} />,
+    shelf: <Shelf state={state} months={months} onOpen={(m) => { setMonth(m); setView('chapter'); }} />,
+    ledger: <><Ledger state={state} dispatch={dispatch} filter={filter} setFilter={setFilter} query={query} onAttach={(e) => setCapture({ file: null, attach: e })} onImport={openStatement} /><LedgerReports state={state} /></>,
+    ask: <AskRoom state={state} turns={askTurns} setTurns={setAskTurns} first={askFirst} onFirstDone={() => setAskFirst(null)} />,
+    plans: <Plans state={state} dispatch={dispatch} />,
+    people: <PeoplePage state={state} dispatch={dispatch} onFill={fill} />,
+    memory: <MemoryView state={state} dispatch={dispatch} notify={(text, undo) => setNotice({ text, undo: undo ? () => { undo(); setNotice(null); } : undefined })} />,
+    play: <Play state={state} />,
+    collection: <Collection state={state} onOpen={(m) => { setMonth(m); setView('chapter'); }} onCamera={() => setCapture({ file: null })} onPlay={goView('play')} />,
+  };
+  const composerProps = { currency: cur, aiOn: brainConfigured, busy, notice, onSubmit: submit, onCamera: (file?: Blob) => setCapture({ file: file ?? null }), onAsk: askAbout, onRemember: remember };
+
   const appWindow = (
     <div className="app">
       <Sidebar
@@ -488,17 +504,8 @@ export default function App() {
       <main className="main" ref={main}>
         {/* The new page is on screen in the same frame as the tap; it only settles in, like iOS. No waiting for the old one to leave. */}
         <motion.div key={`${view}:${state.month}`} initial={{ opacity: 0.4, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18, ease: [0.2, 0.8, 0.2, 1] }}>
-            {view === 'today' && <Today state={state} dispatch={dispatch} voice={voice} onVoiceDone={clearVoice} onFill={(t) => composer.current?.fill(t)} onLedger={goView('ledger')} onPeople={goView('people')} onAsk={askAbout} onPainting={goView('chapter')} onEdit={() => setView('ledger')} onPlay={goView('play')} />}
             {(view === 'chapter' || view === 'shelf') && <ChapterTabs view={view} setView={setView} onEdition={() => setEdition(true)} />}
-            {view === 'chapter' && <Chapter state={state} dispatch={dispatch} onOpenCategory={(id) => { setFilter(id); setView('ledger'); }} onEdition={() => setEdition(true)} onWrite={(h) => composer.current?.fill(h ?? '')} onPlans={goView('plans')} onGallery={goView('collection')} onSay={() => composer.current?.speak()} onSnap={() => setCapture({ file: null })} onShare={() => setSharing(true)} />}
-            {view === 'shelf' && <Shelf state={state} months={months} onOpen={(m) => { setMonth(m); setView('chapter'); }} />}
-            {view === 'ledger' && <><Ledger state={state} dispatch={dispatch} filter={filter} setFilter={setFilter} query={query} onAttach={(e) => setCapture({ file: null, attach: e })} onImport={openStatement} /><LedgerReports state={state} /></>}
-            {view === 'ask' && <AskRoom state={state} turns={askTurns} setTurns={setAskTurns} first={askFirst} onFirstDone={() => setAskFirst(null)} />}
-            {view === 'plans' && <Plans state={state} dispatch={dispatch} />}
-            {(view === 'people' || view === 'accounts') && <PeoplePage state={state} dispatch={dispatch} onFill={(t) => composer.current?.fill(t)} />}
-            {view === 'memory' && <MemoryView state={state} dispatch={dispatch} notify={(text, undo) => setNotice({ text, undo: undo ? () => { undo(); setNotice(null); } : undefined })} />}
-            {view === 'play' && <Play state={state} />}
-            {view === 'collection' && <Collection state={state} onOpen={(m) => { setMonth(m); setView('chapter'); }} onCamera={() => setCapture({ file: null })} onPlay={goView('play')} />}
+            {page[view === 'accounts' ? 'people' : view]}
         </motion.div>
       </main>
 
@@ -526,8 +533,8 @@ export default function App() {
       </TitleBar>
 
       <MusicDock state={state} dispatch={dispatch} open={music} onClose={closeMusic} />
-      {view !== 'ask' && <Composer ref={composer} currency={cur} aiOn={brainConfigured} busy={busy} notice={notice} onSubmit={submit} onCamera={(file) => setCapture({ file: file ?? null })} onAsk={askAbout} usuals={usual} onRepeat={repeat} onRemember={remember}
-        idle={state.entries.length === 0 ? <FirstLines cur={cur} onFill={(t) => composer.current?.fill(t)} lead={<ImportChip onClick={openStatement} />} /> : undefined /* once the book has lines, statements come in from the Ledger, the File menu or a dropped file: a chip here floated over every page */}
+      {view !== 'ask' && <Composer ref={composer} {...composerProps} usuals={usual} onRepeat={repeat}
+        idle={state.entries.length === 0 ? <FirstLines cur={cur} onFill={fill} lead={<ImportChip onClick={openStatement} />} /> : undefined /* once the book has lines, statements come in from the Ledger, the File menu or a dropped file: a chip here floated over every page */}
         above={<CheckIns list={checkins} cur={cur} onYes={(c, a) => answerCheckIn(c, true, a)} onNo={(c) => answerCheckIn(c, false)} onAllYes={allYes} />} />}
       <TabBar view={view} setView={setView} />
     </div>
@@ -541,25 +548,14 @@ export default function App() {
       musicDock={<MusicDock phone state={state} dispatch={dispatch} open={music} onClose={closeMusic} />}
       onEdition={() => setEdition(true)} onShare={() => setSharing(true)} onLiving={goView('collection')}
       composer={
-        <Composer ref={composer} currency={cur} aiOn={brainConfigured} busy={busy} notice={notice} onSubmit={submit} onCamera={(file) => setCapture({ file: file ?? null })} onAsk={askAbout} onRemember={remember}
-          idle={state.entries.length === 0 ? <FirstLines cur={cur} onFill={(t) => composer.current?.fill(t)} lead={<ImportChip onClick={openStatement} />} /> : <Chips state={state} onRepeat={repeat} onFill={(t) => composer.current?.fill(t)} after={<ImportChip onClick={openStatement} />} />}
+        <Composer ref={composer} {...composerProps}
+          idle={state.entries.length === 0 ? <FirstLines cur={cur} onFill={fill} lead={<ImportChip onClick={openStatement} />} /> : <Chips state={state} onRepeat={repeat} onFill={fill} after={<ImportChip onClick={openStatement} />} />}
           above={<>
             <AnimatePresence>{cashDue && <CashCard key={cashDue.id} pocket={cashDue} cur={cur} onAnswer={answerCash} onLater={() => dispatch({ type: 'cash', pocket: { ...cashDue, askedOn: todayISO() } })} />}</AnimatePresence>
             {!cashDue && <CheckIns list={checkins} cur={cur} onYes={(c, a) => answerCheckIn(c, true, a)} onNo={(c) => answerCheckIn(c, false)} onAllYes={allYes} />}
           </>} />
       }
-      pages={{
-        today: <Today state={state} dispatch={dispatch} voice={voice} onVoiceDone={clearVoice} onFill={(t) => composer.current?.fill(t)} onLedger={goView('ledger')} onPeople={goView('people')} onAsk={askAbout} onPainting={goView('chapter')} onEdit={() => setView('ledger')} onPlay={goView('play')} />,
-        ledger: <><Ledger state={state} dispatch={dispatch} filter={filter} setFilter={setFilter} query={query} onAttach={(e) => setCapture({ file: null, attach: e })} onImport={openStatement} /><LedgerReports state={state} /></>,
-        ask: <AskRoom state={state} turns={askTurns} setTurns={setAskTurns} first={askFirst} onFirstDone={() => setAskFirst(null)} />,
-        people: <PeoplePage state={state} dispatch={dispatch} onFill={(t) => composer.current?.fill(t)} />,
-        play: <Play state={state} />,
-        collection: <Collection state={state} onOpen={(m) => { setMonth(m); setView('chapter'); }} onCamera={() => setCapture({ file: null })} onPlay={goView('play')} />,
-        read: <Chapter state={state} dispatch={dispatch} onOpenCategory={(id) => { setFilter(id); setView('ledger'); }} onEdition={() => setEdition(true)} onWrite={(h) => composer.current?.fill(h ?? '')} onPlans={goView('plans')} onGallery={goView('collection')} onSay={() => composer.current?.speak()} onSnap={() => setCapture({ file: null })} onShare={() => setSharing(true)} />,
-        plans: <Plans state={state} dispatch={dispatch} />,
-        memory: <MemoryView state={state} dispatch={dispatch} notify={(text, undo) => setNotice({ text, undo: undo ? () => { undo(); setNotice(null); } : undefined })} />,
-        shelf: <Shelf state={state} months={months} onOpen={(m) => { setMonth(m); setView('chapter'); }} />,
-      }}
+      pages={{ ...page, read: page.chapter }}
     />
   );
 

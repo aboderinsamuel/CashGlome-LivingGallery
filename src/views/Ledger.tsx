@@ -3,14 +3,13 @@ import { useMemo, useState } from 'react';
 import { CATEGORIES, cat } from '../lib/categories';
 import { learn } from '../lib/learn';
 import { computeStats } from '../lib/analytics';
-import { dayLabel, money, monthLabel } from '../lib/format';
+import { dateInWords, dayLabel, money, monthLabel } from '../lib/format';
 import type { Entry, Feeling, State } from '../lib/types';
 import type { Action } from '../lib/store';
 import { Icon } from '../components/Icons';
 import { Sticker } from '../components/Stickers';
 import { Photo } from '../components/Photo';
 import { Pigment } from '../components/Mark';
-import { dateInWords } from '../stage/words';
 
 interface Props { state: State; dispatch: (a: Action) => void; filter: string | null; setFilter: (f: string | null) => void; query: string; onAttach: (e: Entry) => void; /** Opens the statement sheet. */ onImport?: () => void }
 
