@@ -158,3 +158,25 @@
   .ob-reads:has(.ob-read) { flex-direction: row; align-items: center; }
 }
 @media (prefers-reduced-motion: reduce) { .ob-try-wrap { animation: none; } }
+
+/* ——— Legibility: the words sit on a dark, quiet ground, not on the busy drawing ——— */
+.ob-at-cover { --bone-2: rgba(246, 238, 220, .94); --bone-3: rgba(246, 238, 220, .8); }
+.ob-at-cover .ob-veil { background:
+  linear-gradient(0deg, rgba(14,10,6,.97) 0%, rgba(14,10,6,.94) 56%, rgba(14,10,6,.78) 70%, rgba(14,10,6,.3) 86%, rgba(14,10,6,.05) 96%),
+  linear-gradient(rgba(14,10,6,.55), transparent 18%); }
+.ob-cover h1 { text-shadow: 0 2px 24px rgba(14,10,6,.7); }
+.ob-lede { color: var(--bone-2); }
+.ob-step { font-size: 15px; color: var(--bone); }
+.ob-step b { font-size: 11.5px; }
+.ob-try-hint { font-size: 15px; color: var(--bone-2); }
+.ob-try-line { background: rgba(246,238,220,.1); border-color: rgba(246,238,220,.38); font-size: 16px; }
+.ob-again { font-size: 15px; color: var(--bone-2); }
+.ob-example small { font-size: 13.5px; color: var(--bone-2); }
+.ob-quiet { font-size: 15px; color: var(--bone-2); }
+.ob-promise { font-size: 11.5px; letter-spacing: .12em; color: var(--bone-3); }
+@media (max-width: 640px) {
+  .ob-lede { font-size: 16px; }
+  .ob-step { font-size: 14.5px; }
+  .ob-try-line { font-size: 15px; height: 36px; }
+  .ob-promise { font-size: 11px; letter-spacing: .1em; }
+}

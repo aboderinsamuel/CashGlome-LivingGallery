@@ -44,3 +44,8 @@
 .xg-say b, .xg-say span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 @media (max-width: 380px) { .xg-bar { gap: 6px; padding-left: 12px; } .xg-out { padding: 0 11px; } }
 .xg-say { min-width: 108px; }
+/* Legibility: a little larger, a little darker. */
+.xg-say { font-size: 13.5px; color: var(--ink); }
+.xg-card p { font-size: 15px; color: var(--ink); }
+.xg-card.slim p { font-size: 14px; }
+.xg-skip { font-size: 13px; color: var(--ink-2); }
