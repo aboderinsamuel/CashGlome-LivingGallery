@@ -610,3 +610,30 @@
 
 /* The salon wall needs no heading of its own: the page title names it. */
 .salon > .salon-wall:first-child { margin-top: 0; }
+
+/* Music: one way to connect Spotify, quiet picks when nothing plays, the account's playlists when shared. */
+.music-pop { max-height: min(640px, calc(100vh - 80px)); overflow-y: auto; overscroll-behavior: contain; }
+.sp-connect { display: flex; align-items: center; gap: 10px; margin-top: 12px; padding: 10px 12px; border-radius: 14px; background: rgba(184,137,46,.08); border: 1px solid rgba(184,137,46,.22); }
+.sp-connect.on { background: transparent; border-color: var(--line, rgba(0,0,0,.12)); }
+.sp-say { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.sp-say b { font: 600 13.5px var(--grot, inherit); color: var(--ink, inherit); }
+.sp-say span { font: 500 12px/1.4 var(--grot, inherit); opacity: .72; }
+.sp-connect .btn { flex: none; }
+.sp-face { width: 32px; height: 32px; flex: none; border-radius: 50%; object-fit: cover; display: grid; place-items: center; background: rgba(184,137,46,.16); color: var(--gold, #B8892E); }
+.sp-dot { width: 12px; height: 12px; flex: none; border-radius: 50%; background: var(--gold, #B8892E); animation: sp-breathe 1.4s ease-in-out infinite; }
+@keyframes sp-breathe { 0%, 100% { opacity: .35; transform: scale(.8); } 50% { opacity: 1; transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .sp-dot { animation: none; } }
+.sp-mine { margin-top: 12px; display: grid; gap: 6px; }
+.sp-label { font: 650 11px var(--grot, inherit); letter-spacing: .14em; text-transform: uppercase; color: var(--gold, #B8892E); margin: 0 2px; }
+.sp-list { max-height: 232px; }
+.ms-hits button[aria-pressed="true"] { background: rgba(184,137,46,.12); }
+.sp-under { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+.sp-under .small { flex: 1; }
+.side-music-t { display: grid; min-width: 0; text-align: left; }
+.side-music-t small { font: 500 11px var(--grot, inherit); opacity: .65; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 150px; }
+@media (max-width: 480px) {
+  .sp-connect { flex-wrap: wrap; }
+  .sp-connect .btn { width: 100%; justify-content: center; }
+}
+.side-music:has(small) { height: auto; min-height: 34px; padding-block: 5px; }
+.music-head .link-btn { white-space: nowrap; }

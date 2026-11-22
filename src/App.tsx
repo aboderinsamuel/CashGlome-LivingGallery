@@ -512,7 +512,7 @@ export default function App() {
         view={view} setView={setView} month={state.month} setMonth={setMonth} chapters={chapters}
         counts={{ ledger: monthCount, play: toFind }}
         name={state.profile.name}
-        onEdition={() => setEdition(true)} onBook={() => openSettings()} onRoutines={() => openSettings('routines')} onMusic={() => setMusic((x) => !x)} musicOn={!!state.settings.music?.on || music} wall={wall}
+        onEdition={() => setEdition(true)} onBook={() => openSettings()} onRoutines={() => openSettings('routines')} onMusic={() => setMusic((x) => !x)} musicOn={!!state.settings.music?.on || music} musicName={state.settings.music?.on ? state.settings.music.name : undefined} wall={wall}
       />
 
       <main className="main" ref={main}>

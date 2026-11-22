@@ -76,7 +76,7 @@ export interface Settings {
   /** Questions the app can't count itself may go to Florin: undefined until the person decides. */
   askMuse?: boolean;
   /** Background music: a Spotify playlist, album or track link, and whether it plays. */
-  music?: { url: string; on: boolean };
+  music?: { url: string; on: boolean; name?: string };
 }
 
 export interface Profile {

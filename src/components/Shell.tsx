@@ -70,6 +70,8 @@ interface SidebarProps {
   /** Routines & memory, in Your book. */
   onRoutines: () => void;
   musicOn: boolean;
+  /** What's playing, when something is (its name, for the line under Music). */
+  musicName?: string;
   /** The painting hung in the sidebar (the wallpaper setting): a painting id. */
   wall?: string;
 }
@@ -129,7 +131,7 @@ export function Sidebar(p: SidebarProps) {
       </div>
       <div className="side-book nodrag">
         <button className="side-music" onClick={p.onRoutines}><Icon.repeat size={15} />Routines &amp; memory</button>
-        <button className={'side-music' + (p.musicOn ? ' on' : '')} onClick={p.onMusic}><Icon.music size={15} />Music{p.musicOn && <span className="music-live" aria-hidden />}</button>
+        <button className={'side-music' + (p.musicOn ? ' on' : '')} onClick={p.onMusic} data-music><Icon.music size={15} /><span className="side-music-t">Music{p.musicName && <small title={p.musicName}>{p.musicName}</small>}</span>{p.musicOn && <span className="music-live" aria-hidden />}</button>
       </div>
       <button className="me nodrag" onClick={p.onBook} aria-label="Your book: settings, categories, routines and backup">
         <span className="avatar">{(p.name || 'Y').charAt(0).toUpperCase()}</span>

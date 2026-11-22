@@ -12,7 +12,8 @@ import { Icon } from '../components/Icons';
 import { Account } from '../components/Account';
 import { AppIcon } from '../components/Logo';
 import { artSrc, PAINTINGS, seasonalWallpaper, WALLPAPERS } from '../lib/art';
-import { canLinkSpotify, forgetSpotifySignIn, linkSpotify, MUSIC_PICKS, myPlaylists, parseSpotify, RELOAD_PLAYER, signInToSpotify, spotifyLinked, spotifySignedIn, unlinkSpotify, type MyPlaylist } from '../lib/spotify';
+import { MUSIC_PICKS, parseSpotify } from '../lib/spotify';
+import { SpotifyConnect } from '../components/Music';
 
 export type Pane = 'general' | 'categories' | 'routines' | 'account' | 'appearance' | 'music' | 'muse' | 'data' | 'about';
 // Tints are pigments from the paintings: umber, ochre, lapis, verdigris, vermilion, madder, gold.
@@ -200,69 +201,32 @@ function Music({ state, dispatch }: { state: State; dispatch: (a: Action) => voi
   const m = state.settings.music ?? { url: '', on: false };
   const [text, setText] = useState(m.url);
   const [err, setErr] = useState<string | null>(null);
-  const [linked, setLinked] = useState(spotifyLinked);
-  const [mine, setMine] = useState<MyPlaylist[] | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [signed, setSigned] = useState(spotifySignedIn);
-  const [waiting, setWaiting] = useState(false);
-  useEffect(() => { const r = () => setSigned(spotifySignedIn()); window.addEventListener(RELOAD_PLAYER, r); return () => window.removeEventListener(RELOAD_PLAYER, r); }, []);
-  const signIn = async () => {
-    setErr(null); setWaiting(true);
-    const r = await signInToSpotify();
-    setWaiting(false);
-    if (r === 'blocked') setErr('Your browser blocked the Spotify window. Allow pop-ups for this site and try again.');
-  };
   const valid = !!parseSpotify(m.url);
-  const set = (patch: Partial<{ url: string; on: boolean }>) => dispatch({ type: 'settings', patch: { music: { ...m, ...patch } } });
-  const use = (url: string) => {
+  const set = (patch: Partial<{ url: string; on: boolean; name: string }>) => dispatch({ type: 'settings', patch: { music: { ...m, ...patch } } });
+  const use = (url: string, name?: string) => {
     if (!parseSpotify(url)) { setErr('That isn’t a Spotify link. In Spotify, choose Share, then Copy link.'); return; }
-    setErr(null); setText(url); set({ url, on: true });
+    setErr(null); setText(url); set({ url, on: true, name });
   };
-  useEffect(() => {
-    if (!linked) return;
-    myPlaylists().then(setMine).catch((e) => { setErr((e as Error).message); setLinked(spotifyLinked()); });
-  }, [linked]);
-  const link = async () => {
-    setBusy(true); setErr(null);
-    try { if (await linkSpotify()) setLinked(true); } catch (e) { setErr((e as Error).message); } finally { setBusy(false); }
-  };
-  const Pick = ({ url, name, sub, image }: { url: string; name: string; sub: string; image?: string }) => (
-    <button onClick={() => use(url)} style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', minHeight: 50, padding: '8px 14px', borderTop: '1px solid var(--line)', marginTop: -1, textAlign: 'left' }}>
-      {image ? <img src={image} alt="" style={{ width: 34, height: 34, borderRadius: 6, objectFit: 'cover', flex: 'none' }} />
-        : <span style={{ width: 34, height: 34, borderRadius: 6, background: 'linear-gradient(135deg, #1DB954, #127a37)', color: '#fff', display: 'grid', placeItems: 'center', flex: 'none' }}><Icon.music size={16} /></span>}
+  const Pick = ({ url, name, sub, swatch }: { url: string; name: string; sub: string; swatch: string }) => (
+    <button onClick={() => use(url, name)} style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', minHeight: 50, padding: '8px 14px', borderTop: '1px solid var(--line)', marginTop: -1, textAlign: 'left' }}>
+      <span style={{ width: 34, height: 34, borderRadius: 6, background: swatch, color: '#F6EFE2', display: 'grid', placeItems: 'center', flex: 'none' }}><Icon.music size={16} /></span>
       <span style={{ flex: 1, minWidth: 0 }}><span style={{ display: 'block', fontSize: 13 }}>{name}</span><span className="small">{sub}</span></span>
       {m.url === url && m.on && <Icon.check size={16} />}
     </button>
   );
   return (
     <>
-      <div className="label" style={{ margin: '0 4px 8px' }}>Your Spotify account</div>
-      <Group note="You sign in on Spotify's own page, in its own window. CashGlome never sees your password and keeps nothing from Spotify. Some browsers block Spotify inside other sites; if songs stay short, Open in Spotify plays everything in the Spotify app.">
-        {signed ? (
-          <Row label="Signed in to Spotify" sub="Whole songs play in this browser. Signed in with another account? Sign in again.">
-            <span style={{ display: 'flex', gap: 8 }}>
-              <button className="btn" onClick={signIn} disabled={waiting}>{waiting ? 'Waiting for Spotify…' : 'Sign in again'}</button>
-              <button className="btn" onClick={() => forgetSpotifySignIn()}>Forget</button>
-            </span>
-          </Row>
-        ) : (
-          <Row label="Sign in to Spotify" sub={waiting ? 'Finish signing in in the Spotify window, then close it.' : 'Whole songs instead of 30-second previews. Free and Premium accounts both work.'}>
-            <button className="btn primary" onClick={signIn} disabled={waiting}>{waiting ? 'Waiting for Spotify…' : 'Sign in to Spotify'}</button>
-          </Row>
-        )}
-        {canLinkSpotify() && !linked && (
-          <Row label="Choose from your playlists" sub="Lets CashGlome read your playlist names, nothing else.">
-            <button className="btn" onClick={link} disabled={busy}>{busy ? 'Waiting for Spotify…' : 'Show my playlists'}</button>
-          </Row>
-        )}
+      <div className="label" style={{ margin: '0 4px 8px' }}>Spotify</div>
+      <Group note="You sign in on Spotify's own page, in its own window. CashGlome never sees your password, keeps nothing from Spotify beyond your playlist names, and the connection stays on this device. Some browsers block Spotify inside other sites; if songs stay short, Open in Spotify plays everything in the Spotify app.">
+        <div style={{ padding: '12px 14px' }}><SpotifyConnect current={m.on ? m.url : undefined} onPick={(url, name) => use(url, name)} /></div>
       </Group>
       <div className="label" style={{ margin: '0 4px 8px' }}>What plays</div>
       <Group note="Music plays in Spotify's own player, from Music in the sidebar. Search for anything on Spotify, or paste a link from the Spotify app.">
         <Row label="Play music while you write" sub={valid ? 'Turn it off any time.' : 'Search for something below, or pick a quiet one.'}>
-          <Toggle label="Play music" on={!!m.on && valid} set={(v) => (valid ? set({ on: v }) : setErr('Paste a Spotify link or pick one below first.'))} />
+          <Toggle label="Play music" on={!!m.on && valid} set={(v) => (valid ? set({ on: v }) : setErr('Search for something or pick one below first.'))} />
         </Row>
         <div style={{ padding: '10px 14px', borderTop: '1px solid var(--line)', marginTop: -1 }}>
-          <MusicSearch current={m.on ? m.url : undefined} onPick={(url) => use(url)} />
+          <MusicSearch current={m.on ? m.url : undefined} onPick={(url, name) => use(url, name)} />
         </div>
         <form onSubmit={(e) => { e.preventDefault(); use(text); }} style={{ display: 'flex', gap: 8, padding: '8px 14px', borderTop: '1px solid var(--line)', marginTop: -1 }}>
           <input className="field" style={{ flex: 1, minWidth: 0 }} placeholder="Or paste a Spotify link" value={text} onChange={(e) => setText(e.target.value)} spellCheck={false} />
@@ -271,21 +235,7 @@ function Music({ state, dispatch }: { state: State; dispatch: (a: Action) => voi
         {err && <div className="small" style={{ color: 'var(--rust)', padding: '0 14px 10px' }}>{err}</div>}
       </Group>
       <div className="label" style={{ margin: '0 4px 8px' }}>Quiet picks</div>
-      <Group>{MUSIC_PICKS.map((p) => <Pick key={p.url} url={p.url} name={p.name} sub={p.note} />)}</Group>
-      {canLinkSpotify() && linked && (
-        <>
-          <div className="label" style={{ margin: '0 4px 8px' }}>Your playlists</div>
-          <Group note="CashGlome only reads your playlist names. It can't play, change or post anything, and the link stays on this device.">
-            {(
-              <>
-                {!mine && <Row label={<span className="small">Loading your playlists…</span>} />}
-                {mine?.map((p) => <Pick key={p.id} url={p.url} name={p.name} sub={`${p.tracks} songs`} image={p.image} />)}
-                <Row label="Linked on this device"><button className="btn" onClick={() => { unlinkSpotify(); setLinked(false); setMine(null); }}>Unlink</button></Row>
-              </>
-            )}
-          </Group>
-        </>
-      )}
+      <Group>{MUSIC_PICKS.map((p, i) => <Pick key={p.url} url={p.url} name={p.name} sub={p.note} swatch={['#B8892E', '#2F4F7F', '#A8402E'][i % 3]} />)}</Group>
     </>
   );
 }
