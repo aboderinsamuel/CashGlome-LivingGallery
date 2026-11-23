@@ -54,7 +54,6 @@ import { examplesFor } from './stage/words';
 
 const TITLES: Record<View, string> = { today: 'Today', ask: 'Ask', people: 'People', chapter: 'Chapter', shelf: 'Past chapters', ledger: 'Ledger', plans: 'Plans', memory: 'Routines & memory', collection: 'Gallery', accounts: 'People', play: 'Play' };
 // Lines the rules were not written for: other scripts go to the model.
-const OTHER_SCRIPT = /[Ͱ-῿　-鿿가-힯]/;
 const isMac = /Mac|iPhone|iPad/.test(navigator.platform) || window.glome?.platform === 'darwin';
 const kbd = (k: string) => (isMac ? `⌘${k}` : `Ctrl+${k}`);
 type Pane = import('./views/Settings').Pane;
@@ -303,11 +302,27 @@ export default function App() {
         return;
       }
     }
-    // Lines in other scripts, or ones the rules can't read, go to Gemini: on this device when it can, else the cloud.
-    if (brainConfigured && Object.keys(overrides).length === 0 && (OTHER_SCRIPT.test(text) || !parseStory(text, { home: cur }).length)) {
+    // Florin reads every line and decides what came in and what went out, by meaning: on this device when it
+    // can, else the cloud. The rules read it instead when Florin can't answer in time, or when you've already
+    // set a chip yourself (your own correction wins).
+    if (brainConfigured && Object.keys(overrides).length === 0) {
       setBusy(true);
       const r = await readLine(text, cur).catch(() => null).finally(() => setBusy(false));
-      if (r?.read.length) { commit(r.read.map(toEntry), { line: text, where: r.where }); return; }
+      if (r && (r.read.length || r.unmoved.length)) {
+        // What you taught it before still wins over its reading.
+        const items = r.read.map((p) => recall(p));
+        const isCash = (p: Parsed) => WITHDRAWAL.test(p.text) && !/\b(charge|fee)s?\b/i.test(p.text) && p.dir === 'out';
+        const pockets = items.length === 1 && isCash(items[0]) ? [newPocket(items[0].amount, items[0].date)] : [];
+        pockets.forEach((pocket) => dispatch({ type: 'cash', pocket }));
+        const kept = pockets.length ? [] : items;
+        if (kept.length) { commit(kept.map(toEntry), { line: text, where: r.where }); offerRoutine(toEntry(kept[0])); }
+        else if (pockets.length) setNotice({ text: <>Noted <b className="num">{money(pockets[0].amount, cur)}</b> in cash. I’ll ask what’s left in a day or two.</>, undo: () => { dispatch({ type: 'removeCash', id: pockets[0].id }); setNotice(null); } });
+        if (r.unmoved.length && !kept.length && !pockets.length) {
+          const u = r.unmoved[0];
+          setNotice({ text: <>No money changed hands, so your balance stays as it is. <b className="num">{money(u.amount, cur)}</b> less to owe is good news, though.</> });
+        }
+        return;
+      }
     }
     if (phone) { submitNow(text, overrides); return; }
     setBusy(true);
@@ -319,7 +334,7 @@ export default function App() {
       if (!items.length) { setNotice({ text: 'No amount in that. Try “Lunch 14” or “Got paid 3,200”.' }); return; }
       commit(items.map(toEntry), { error: res.error, line: text });
     } finally { setBusy(false); }
-  }, [state.settings, cur, commit, phone, submitNow, dispatch, setView]);
+  }, [state.settings, cur, commit, phone, submitNow, dispatch, setView, offerRoutine]);
 
   // The first line from onboarding is written once the book has its name and currency.
   // Taken from a ref, exactly once: clearing state alone isn't seen before this effect runs again.

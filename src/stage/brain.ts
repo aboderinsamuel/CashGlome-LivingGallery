@@ -62,8 +62,9 @@ function load(): Promise<Models | null> {
       items: Schema.object({
         properties: {
           label: Schema.string({ description: 'Two or three words naming what it was, in the writer’s own language and script.' }),
-          amount: Schema.number({ description: 'The sum as written, expanded: 4.5k is 4500, 2m is 2000000. Never add sums together.' }),
-          dir: Schema.enumString({ enum: ['in', 'out'] }),
+          amount: Schema.number({ description: 'The sum for this item, expanded: 4.5k is 4500, 2m is 2000000. If the line says it happened more than once ("twice", "x3", "three times"), multiply. Never add different items together.' }),
+          dir: Schema.enumString({ enum: ['in', 'out'], description: 'From the writer’s side: in = money came to them; out = money left them.' }),
+          moved: Schema.boolean({ description: 'false only when no money changed hands: a debt someone forgave, waived, cancelled or reduced; a price someone quoted; a plan for later. true otherwise.' }),
           category: Schema.enumString({ enum: ENTRY_SCHEMA_IDS }),
         },
       }),
@@ -238,24 +239,52 @@ function onDevice<T>(work: Promise<T>, onlyHere = false): Promise<T> {
  * Reads a line the rules couldn't: another language or script, unusual wording. Online, the cloud reads it,
  * with Nano alongside on a device quick enough (see `hybrid`); offline, Nano reads it alone.
  */
-export async function readLine(text: string, currency: string): Promise<{ read: Parsed[]; where: Where } | null> {
+export interface LineRead { read: Parsed[]; where: Where; /** Items where no money changed hands (a debt forgiven, a quote). */ unmoved: { label: string; amount: number }[] }
+/** Past this, the rules read the line instead, so sending never hangs. */
+const READ_LIMIT = 6000;
+
+export async function readLine(text: string, currency: string): Promise<LineRead | null> {
   const m = await load();
   if (!m) return null;
-  const prompt = `Read this money diary line into entries. Currency: ${currency}. Each sum stays as written, expanded (4.5k = 4500). Every item is "out" (spent, sent, paid for) unless the line says the money came to the writer: paid, salary, wages, received, refund, a gift to them, in any language. A thing with a price, like lunch or a taxi, is always "out". Write each label in the same language and script as the line.\n\nLine: ${text}`;
-  const tryModel = async (model: GenerativeModel) => {
+  const prompt = `Read this money diary line into entries, the way a careful friend would. Currency: ${currency}.
+Decide each item's direction from the writer's side, by meaning, not by keywords:
+- "in": money came to the writer (paid, salary, sold, received, a refund, a gift or transfer to them, someone paying them back).
+- "out": money left the writer (bought, paid for, sent, gave, lent, repaid, a fee). A thing with a price, like lunch or a taxi, is "out".
+- Repeats multiply: "gifted 160k twice" is one item of 320000.
+- If no money changed hands, set moved to false: "a friend reduced my debt by 60k" or "she forgave the 20k I owed" are moved=false (what is owed changed, not the cash).
+Write each label in the same language and script as the line.
+
+Line: ${text}`;
+  const tryModel = async (model: GenerativeModel): Promise<LineRead> => {
     const r = await model.generateContent(prompt);
-    const rows = JSON.parse(r.response.text()) as { label: string; amount: number; dir: 'in' | 'out'; category: string }[];
-    const read: Parsed[] = rows.filter((x) => x && x.amount > 0 && Number.isFinite(x.amount)).map((x) => ({
-      amount: Math.round(x.amount * 100) / 100, dir: x.dir === 'in' ? 'in' : 'out', category: ENTRY_SCHEMA_IDS.includes(x.category) ? x.category : (x.dir === 'in' ? 'windfall' : 'other'),
-      label: String(x.label || '').slice(0, 40) || 'Entry', date: todayISO(), confidence: 0.75, text, source: 'florin',
+    const raw = r.response.text();
+    if (isEcho(raw)) throw new Error('echo');
+    const rows = (JSON.parse(raw) as { label: string; amount: number; dir: 'in' | 'out'; moved?: boolean; category: string }[])
+      .filter((x) => x && x.amount > 0 && Number.isFinite(x.amount));
+    // A category that runs the other way ("debt repayment" on money that came back) gives way to one that fits.
+    const fit = (x: { dir: string; category: string; label: string }) => {
+      const dir = x.dir === 'in' ? 'in' : 'out';
+      const c = CATEGORIES.find((k) => k.id === x.category);
+      if (c && c.dir === dir) return c.id;
+      return dir === 'in' ? (/back|repaid|return|refund/i.test(`${x.label} ${text}`) ? 'refund' : 'windfall') : 'other';
+    };
+    const read: Parsed[] = rows.filter((x) => x.moved !== false).map((x) => ({
+      amount: Math.round(x.amount * 100) / 100, dir: x.dir === 'in' ? 'in' : 'out', category: fit(x),
+      label: String(x.label || '').slice(0, 40) || 'Entry', date: todayISO(), confidence: 0.85, text, source: 'florin',
     }));
-    return { read, where: whereOf(r.response.inferenceSource) };
+    const unmoved = rows.filter((x) => x.moved === false).map((x) => ({ label: String(x.label || '').slice(0, 40), amount: x.amount }));
+    return { read, unmoved, where: whereOf(r.response.inferenceSource) };
   };
-  if (quickOnline()) return hybrid(() => tryModel(m.json.device), () => tryModel(m.json.cloud));
-  try {
-    if (deviceFirst()) return await onDevice(tryModel(m.json.device));
-  } catch (e) { console.warn('[brain] device read', e); }
-  try { return await tryModel(m.json.cloud); } catch (e) { console.warn('[brain] cloud read', e); return null; }
+  const work = (async () => {
+    if (quickOnline()) return hybrid(() => tryModel(m.json.device), () => tryModel(m.json.cloud));
+    try {
+      if (deviceFirst()) return await onDevice(tryModel(m.json.device));
+    } catch (e) { console.warn('[brain] device read', e); }
+    try { return await tryModel(m.json.cloud); } catch (e) { console.warn('[brain] cloud read', e); return null; }
+  })();
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const late = new Promise<null>((ok) => { timer = setTimeout(() => ok(null), READ_LIMIT); });
+  return Promise.race([work, late]).finally(() => clearTimeout(timer));
 }
 
 export interface Persona { name: string; role: string; painting: string; artist: string; year: string }
