@@ -1,9 +1,9 @@
 // The hybrid brain: Firebase AI Logic, Gemini Nano on the device when the browser has it, Gemini in the
 // cloud when it doesn't. Two rules shape every call:
 //   1. No model ever does arithmetic. Models read and write words; the device counts.
-//   2. What may leave the device is decided here, not left to the SDK. A request that carries the
-//      person's own line goes to the on-device model first; the cloud gets it only when the device can't
-//      read it, and the seal on the result always says where it was read.
+//   2. What may leave the device is decided here, not left to the SDK. Online, the cloud answers, joined by
+//      Nano on a device that passed a one-time speed check; offline, Nano alone. The seal on every result
+//      says where it was read. Nano is never downloaded or loaded on a guess while online.
 import type { GenerativeModel } from 'firebase/ai';
 import { CATEGORIES } from '../lib/categories';
 import type { Parsed } from '../lib/types';
@@ -37,7 +37,7 @@ let progress = 0;
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((f) => f());
 export const onBrain = (f: () => void) => { listeners.add(f); return () => { listeners.delete(f); }; };
-export const brainStatus = () => ({ configured: brainConfigured, device: deviceState, progress });
+export const brainStatus = () => ({ configured: brainConfigured, device: deviceState, progress, quick: verdict?.v === 'quick' });
 
 /** Is there a model on this device at all? Chrome on desktop exposes LanguageModel when it can run Gemini Nano. */
 async function deviceAvailability(): Promise<string> {
@@ -120,9 +120,10 @@ export async function warmUp() {
   if (!m || deviceState === 'ready') return;
   const a = await deviceAvailability();
   if (a === 'unavailable') { deviceState = 'none'; emit(); return; }
-  // The cloud is the default; Nano is the offline fallback. Online, it is never loaded (on a small GPU loading
-  // it stalls the whole page). It loads when the person goes offline (see the 'offline' listener below).
-  if (!offline()) { if (a === 'available') { deviceState = 'ready'; emit(); } return; }
+  // Online, Nano is never downloaded and never loaded on a guess (on a small GPU loading it stalls the whole
+  // page). If it is already on this device, a one-time speed check runs while the page is idle; only a device
+  // that passes uses Nano online. Offline, it loads and takes over (see the 'offline' listener below).
+  if (!offline()) { if (a === 'available') { deviceState = 'ready'; emit(); if (!verdict) later(checkSpeed); } return; }
   deviceState = a === 'available' ? 'ready' : 'downloading'; emit();
   m.prefer.initializeDeviceModel((p) => { progress = p; emit(); })
     .then(() => { deviceState = 'ready'; progress = 1; emit(); })
@@ -133,8 +134,91 @@ if (typeof window !== 'undefined') window.addEventListener('offline', () => { vo
 const whereOf = (src?: string): Where => (src === 'on_device' ? 'device' : 'cloud');
 const deviceUsable = () => deviceState === 'ready';
 const offline = () => typeof navigator !== 'undefined' && navigator.onLine === false;
-/** Gemini in the cloud answers by default. Nano goes first only offline, or when the caller must stay on the device. */
+/** Offline, or when the caller must stay on the device: Nano alone. */
 const deviceFirst = (onlyHere = false) => deviceUsable() && (onlyHere || offline());
+/** Online on a device that passed the speed check: Nano and the cloud together, see `hybrid`. */
+const quickOnline = () => deviceUsable() && !offline() && verdict?.v === 'quick';
+
+/* ---- Is Nano quick on this device? Checked once, kept per Chrome version. ----
+   Nothing about this check may slow the app down: it never downloads the model, it is skipped outright on
+   graphics known to be too small (Intel's integrated GPUs took a minute or more per answer in our tests and
+   starved the page), it waits until the page has been idle, and it gives up after a few seconds. */
+const SPEED_KEY = 'cg.nano-speed.v1';
+const QUICK_MS = 1500; // a one-word reply, after loading, must come back this fast
+const CHECK_LIMIT = 8000; // loading plus the reply; past this the check is abandoned and the device counted slow
+interface Verdict { v: 'quick' | 'slow'; ms: number; chrome: string }
+const chromeVersion = () => (typeof navigator !== 'undefined' ? navigator.userAgent.match(/Chrome\/(\d+)/)?.[1] ?? '' : '');
+function readVerdict(): Verdict | null {
+  try { const x = JSON.parse(localStorage.getItem(SPEED_KEY) || 'null') as Verdict | null; return x && x.chrome === chromeVersion() ? x : null; } catch { return null; }
+}
+let verdict: Verdict | null = typeof window !== 'undefined' ? readVerdict() : null;
+function keepVerdict(v: Verdict['v'], ms: number) {
+  verdict = { v, ms: Math.round(ms), chrome: chromeVersion() };
+  try { localStorage.setItem(SPEED_KEY, JSON.stringify(verdict)); } catch { /* kept for this visit only */ }
+  emit();
+}
+/** Runs `f` once the page has had a few quiet seconds. */
+function later(f: () => void) {
+  setTimeout(() => ('requestIdleCallback' in window ? window.requestIdleCallback(() => f(), { timeout: 4000 }) : f()), 8000);
+}
+async function gpuCanCarryNano(): Promise<boolean> {
+  const gpu = (navigator as unknown as { gpu?: { requestAdapter: (o?: unknown) => Promise<{ info?: { vendor?: string; architecture?: string; isFallbackAdapter?: boolean } } | null> } }).gpu;
+  if (!gpu) return false;
+  try {
+    const a = await gpu.requestAdapter({ powerPreference: 'high-performance' });
+    if (!a || a.info?.isFallbackAdapter) return false;
+    return !(a.info?.vendor === 'intel' && /^gen-/.test(a.info?.architecture || ''));
+  } catch { return false; }
+}
+let checking = false;
+async function checkSpeed() {
+  if (checking || verdict || offline()) return;
+  if (document.visibilityState !== 'visible') { document.addEventListener('visibilitychange', () => later(checkSpeed), { once: true }); return; }
+  checking = true;
+  const LM = (globalThis as unknown as { LanguageModel?: { create: (o: unknown) => Promise<{ prompt: (t: string, o: unknown) => Promise<string>; destroy: () => void }> } }).LanguageModel;
+  const stop = new AbortController();
+  const timer = setTimeout(() => stop.abort(), CHECK_LIMIT);
+  const t0 = performance.now();
+  let s: { destroy: () => void } | undefined;
+  try {
+    if (!LM || !(await gpuCanCarryNano())) { keepVerdict('slow', 0); return; }
+    const session = await LM.create({ signal: stop.signal, expectedInputs: [{ type: 'text', languages: ['en'] }] });
+    s = session;
+    const t1 = performance.now();
+    await session.prompt('Reply with one word: ready', { signal: stop.signal });
+    const ms = performance.now() - t1;
+    keepVerdict(ms <= QUICK_MS ? 'quick' : 'slow', ms);
+  } catch {
+    keepVerdict('slow', performance.now() - t0);
+  } finally {
+    clearTimeout(timer); s?.destroy(); checking = false;
+  }
+}
+
+/* ---- Online on a quick device: Nano and the cloud start together. ----
+   Nano's answer is taken if it comes first, or within GRACE ms of the cloud's; otherwise the cloud's is. So an
+   answer is never later than the cloud alone by more than GRACE. If the cloud has to answer three times in a
+   row, Nano is counted slow on this device and the app goes back to the cloud alone. */
+const GRACE = 400;
+let misses = 0;
+function hybrid<T>(device: () => Promise<T | null>, cloud: () => Promise<T | null>): Promise<T | null> {
+  const safe = (f: () => Promise<T | null>, what: string) => f().then((v) => v, (e) => { console.warn('[brain]', what, e); return null; });
+  const d = safe(device, 'device'), c = safe(cloud, 'cloud');
+  return new Promise((resolve) => {
+    let dv: T | null | undefined, cv: T | null | undefined, wait: ReturnType<typeof setTimeout> | undefined, done = false;
+    const finish = (v: T | null, byDevice: boolean) => {
+      if (done) return; done = true; clearTimeout(wait);
+      if (byDevice) misses = 0; else if (++misses >= 3 && verdict?.v === 'quick') keepVerdict('slow', -1);
+      resolve(v);
+    };
+    void d.then((v) => { dv = v; if (v) finish(v, true); else if (cv !== undefined) finish(cv, false); });
+    void c.then((v) => {
+      cv = v;
+      if (dv !== undefined) finish(v, false);
+      else wait = setTimeout(() => finish(v, false), v ? GRACE : CHECK_LIMIT);
+    });
+  });
+}
 /** If a Nano call is under way when the connection comes back, the cloud waits this long before answering instead. */
 const NANO_BUDGET = 2500;
 /** Gives Nano NANO_BUDGET ms while online; past that the caller falls to the cloud. */
@@ -149,8 +233,8 @@ function onDevice<T>(work: Promise<T>, onlyHere = false): Promise<T> {
 }
 
 /**
- * Reads a line the rules couldn't: another language or script, unusual wording. The device model gets the
- * line first. Only if this device has no model does the line go to the cloud.
+ * Reads a line the rules couldn't: another language or script, unusual wording. Online, the cloud reads it,
+ * with Nano alongside on a device quick enough (see `hybrid`); offline, Nano reads it alone.
  */
 export async function readLine(text: string, currency: string): Promise<{ read: Parsed[]; where: Where } | null> {
   const m = await load();
@@ -165,6 +249,7 @@ export async function readLine(text: string, currency: string): Promise<{ read: 
     }));
     return { read, where: whereOf(r.response.inferenceSource) };
   };
+  if (quickOnline()) return hybrid(() => tryModel(m.json.device), () => tryModel(m.json.cloud));
   try {
     if (deviceFirst()) return await onDevice(tryModel(m.json.device));
   } catch (e) { console.warn('[brain] device read', e); }
@@ -182,6 +267,9 @@ export async function sitterSays(p: Persona, line: string, kinds: string[], hint
   if (!m) return null;
   const voice = `You are ${p.name}, ${p.role}, a figure in "${p.painting}" by ${p.artist} (${p.year}). The person in front of your painting keeps a money diary and just wrote a line. Answer with ONE short line, at most 18 words, in character: dry, warm and a little funny, the way a friend teases. Never scold, never give financial advice, never mention prices or sums, no emoji, no exclamation marks. Answer in the language the person wrote in. Mood of their week: ${hint}.`;
   const clean = (s: string) => s.replace(/^["“'\s]+|["”'\s]+$/g, '').replace(/!/g, '.').split('\n')[0].slice(0, 160);
+  const here = async () => { const t = clean((await m.device.generateContent(`${voice}\n\nThey wrote: "${line}"\nYour line:`)).response.text()); return t ? { text: t, where: 'device' as Where } : null; };
+  const there = async () => { const t = clean((await m.cloud.generateContent(`${voice}\n\nThey wrote about: ${kinds.join(', ')}.\nYour line:`)).response.text()); return t ? { text: t, where: 'cloud' as Where } : null; };
+  if (quickOnline()) return hybrid(here, there);
   try {
     if (deviceFirst()) {
       const r = await onDevice(m.device.generateContent(`${voice}\n\nThey wrote: "${line}"\nYour line:`));
@@ -214,6 +302,7 @@ Question: ${question}`;
     const r = await model.generateContent(prompt);
     return { plan: JSON.parse(r.response.text()) as Plan, where: whereOf(r.response.inferenceSource) };
   };
+  if (allowCloud && quickOnline()) return hybrid(() => run(m.plan.device), () => run(m.plan.cloud));
   try { if (deviceFirst(!allowCloud)) return await onDevice(run(m.plan.device), !allowCloud); } catch (e) { console.warn('[brain] device plan', e); }
   if (!allowCloud) return null;
   try { return await run(m.plan.cloud); } catch (e) { console.warn('[brain] cloud plan', e); return null; }
