@@ -132,6 +132,8 @@ export async function warmUp() {
 if (typeof window !== 'undefined') window.addEventListener('offline', () => { void warmUp(); });
 
 const whereOf = (src?: string): Where => (src === 'on_device' ? 'device' : 'cloud');
+/** Some Chromium builds expose LanguageModel with no model behind it and only echo the prompt back. */
+export const isEcho = (t: string) => /on-device model is not available|just echoing back/i.test(t);
 const deviceUsable = () => deviceState === 'ready';
 const offline = () => typeof navigator !== 'undefined' && navigator.onLine === false;
 /** Offline, or when the caller must stay on the device: Nano alone. */
@@ -185,9 +187,9 @@ async function checkSpeed() {
     const session = await LM.create({ signal: stop.signal, expectedInputs: [{ type: 'text', languages: ['en'] }] });
     s = session;
     const t1 = performance.now();
-    await session.prompt('Reply with one word: ready', { signal: stop.signal });
+    const reply = await session.prompt('Reply with one word: ready', { signal: stop.signal });
     const ms = performance.now() - t1;
-    keepVerdict(ms <= QUICK_MS ? 'quick' : 'slow', ms);
+    keepVerdict(ms <= QUICK_MS && !isEcho(reply) ? 'quick' : 'slow', ms);
   } catch {
     keepVerdict('slow', performance.now() - t0);
   } finally {
@@ -266,7 +268,7 @@ export async function sitterSays(p: Persona, line: string, kinds: string[], hint
   const m = await load();
   if (!m) return null;
   const voice = `You are ${p.name}, ${p.role}, a figure in "${p.painting}" by ${p.artist} (${p.year}). The person in front of your painting keeps a money diary and just wrote a line. Answer with ONE short line, at most 18 words, in character: dry, warm and a little funny, the way a friend teases. Never scold, never give financial advice, never mention prices or sums, no emoji, no exclamation marks. Answer in the language the person wrote in. Mood of their week: ${hint}.`;
-  const clean = (s: string) => s.replace(/^["“'\s]+|["”'\s]+$/g, '').replace(/!/g, '.').split('\n')[0].slice(0, 160);
+  const clean = (s: string) => isEcho(s) ? '' : s.replace(/^["“'\s]+|["”'\s]+$/g, '').replace(/!/g, '.').split('\n')[0].slice(0, 160);
   const here = async () => { const t = clean((await m.device.generateContent(`${voice}\n\nThey wrote: "${line}"\nYour line:`)).response.text()); return t ? { text: t, where: 'device' as Where } : null; };
   const there = async () => { const t = clean((await m.cloud.generateContent(`${voice}\n\nThey wrote about: ${kinds.join(', ')}.\nYour line:`)).response.text()); return t ? { text: t, where: 'cloud' as Where } : null; };
   if (quickOnline()) return hybrid(here, there);
@@ -316,6 +318,7 @@ export async function phraseOnDevice(p: Persona, question: string, facts: string
   try {
     const r = await onDevice(m.device.generateContent(`You are ${p.name}, ${p.role}, in "${p.painting}" by ${p.artist}. Answer the person's question in two short sentences, warmly and a little dry, in their language. Use ONLY these exact figures, copied as written; never add or change a number. No advice, no emoji.\nQuestion: ${question}\nFigures: ${facts}\nAnswer:`), onlyHere);
     const t = r.response.text().trim();
+    if (isEcho(t)) return null;
     return t || null;
   } catch (e) { console.warn('[brain] phrase', e); return null; }
 }

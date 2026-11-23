@@ -12,7 +12,7 @@ import { affordability, memoryDigest, relDay } from '../lib/memory';
 import type { Entry, State } from '../lib/types';
 import { askPainting, safeToSpend, type PaintingAnswer } from './askPainting';
 import { peopleOf } from './books';
-import { brainConfigured, cloudModelName, florinModels, type Persona } from './brain';
+import { brainConfigured, cloudModelName, florinModels, isEcho, type Persona } from './brain';
 import { STATEMENT_Q, statementAnswer, statementDigest, statementFigures } from './statements';
 
 export interface FlorinAnswer extends PaintingAnswer {
@@ -230,7 +230,7 @@ export async function askFlorin(state: State, question: string, history: FlorinH
       const counted = numbersIn(`${facts}
 ${summary}
 ${question}`);
-      const keep = (t: string) => onlyCounted(tidy(t), counted);
+      const keep = (t: string) => (isEcho(t) ? '' : onlyCounted(tidy(t), counted));
       for await (const chunk of res.stream) { text += chunk.text(); onText(keep(text)); }
       text = keep(text);
       if (!text) return { ...base, planned: 'rules' };
