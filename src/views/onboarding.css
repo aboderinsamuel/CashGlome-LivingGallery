@@ -97,9 +97,20 @@
 .ob-picker { position: absolute; left: 0; top: calc(100% + 8px); z-index: 10; text-align: left; }
 .ob-picker .cpick-panel { position: static; }
 
+/* The date, as the museum label would write it */
+.ob2-date { margin: 0 0 10px; font: 600 10.5px/1.3 var(--grot); letter-spacing: .16em; text-transform: uppercase; color: var(--gilt); }
+
+/* The money they count in: a line of words and a pane of glass, above the slip */
+.ob2-cur { position: relative; z-index: 6; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px 12px; margin-top: 18px; }
+.ob2-cur-k { font: italic 400 17px/1.2 var(--serif); color: var(--ink-2); }
+.ob2-cur-why { flex-basis: 100%; font: 400 12px/1.3 var(--grot); color: var(--ink-3); }
+.ob2-sym { flex: none; min-width: 34px; padding-left: 6px; text-align: center; font: 400 21px/1 var(--serif); color: var(--gilt); }
+.ob2-sym.long { font: 600 12.5px/1 var(--grot); letter-spacing: .06em; }
+.ob2-slip-wrap { margin-top: 10px; }
+
 /* A short phone, or the keyboard up: the painting keeps a band, the page keeps the slip. */
-@media (max-height: 700px) { .ob2-lede { display: none; } }
-:root[data-kb] .ob2-lede, :root[data-kb] .ob2-foot, :root[data-kb] .ob2-label { display: none; }
+@media (max-height: 700px) { .ob2-lede, .ob2-date { display: none; } .ob2-cur { margin-top: 12px; } }
+:root[data-kb] .ob2-lede, :root[data-kb] .ob2-date, :root[data-kb] .ob2-cur-why, :root[data-kb] .ob2-foot, :root[data-kb] .ob2-label { display: none; }
 :root[data-kb] .ob2-art { min-height: 110px; }
 :root[data-kb] .ob2-page h1 { font-size: 30px; }
 
@@ -111,7 +122,9 @@
   .ob2-page { flex: 0 0 clamp(440px, 40vw, 600px); align-content: center; justify-items: start; text-align: left; padding: 48px clamp(36px, 4vw, 72px); }
   .ob2-page h1 { font-size: clamp(56px, 5.6vw, 88px); }
   .ob2-lede { font-size: 18px; margin-top: 14px; }
-  .ob2-slip-wrap { margin-top: 26px; }
+  .ob2-cur { justify-content: flex-start; margin-top: 30px; }
+  .ob2-slip-wrap { margin-top: 12px; }
+  .ob2-date { margin-bottom: 18px; }
   .ob2-under, .ob2-foot { justify-items: start; place-items: start; }
   .ob2-reads { justify-content: flex-start; }
   .ob2-foot { margin-top: 26px; }
@@ -125,7 +138,11 @@
 .cpick { position: relative; }
 .cpick-scrim { display: none; }
 .cpick-panel { position: absolute; left: 0; top: calc(100% + 8px); z-index: 20; width: min(380px, 86vw); border-radius: 18px; overflow: hidden;
-  background: #EEE6D6; border: 1px solid rgba(42,32,22,.16); box-shadow: 0 3px 0 #B9A887, 0 30px 70px -20px rgba(0,0,0,.7); color: #2A2016; }
+  /* liquid glass: the page shows through, blurred and warmed; a bright lip on top, a gilt hairline round it */
+  background: linear-gradient(180deg, rgba(255,252,244,.78), rgba(244,235,216,.66));
+  -webkit-backdrop-filter: blur(26px) saturate(1.7); backdrop-filter: blur(26px) saturate(1.7);
+  border: 1px solid rgba(255,255,255,.72);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.95), inset 0 0 0 .5px rgba(184,137,46,.28), 0 2px 0 rgba(184,137,46,.18), 0 34px 70px -26px rgba(40,26,8,.6); color: #2A2016; }
 .cpick.up .cpick-panel { top: auto; bottom: calc(100% + 8px); display: flex; flex-direction: column-reverse; }
 .cpick.up .cpick-search { border-bottom: 0; border-top: 1px solid rgba(42,32,22,.12); }
 .cpick-grab { display: none; }
@@ -136,7 +153,8 @@
 .cpick-list { list-style: none; margin: 0; padding: 6px; max-height: min(340px, 46vh); overflow-y: auto; overscroll-behavior: contain; }
 .cpick-sec { padding: 10px 10px 6px; font: 600 10.5px var(--grot); letter-spacing: .14em; text-transform: uppercase; color: #A8432A; }
 .cpick-row { width: 100%; display: flex; align-items: center; gap: 12px; min-height: 50px; padding: 6px 10px; border-radius: 12px; text-align: left; color: #2A2016; }
-.cpick-row.at { background: rgba(42,32,22,.07); }
+.cpick-row { transition: background .12s; }
+.cpick-row.at { background: rgba(255,255,255,.55); box-shadow: inset 0 0 0 .5px rgba(184,137,46,.35); }
 .cpick-row .n { flex: 1; min-width: 0; font: 400 16.5px var(--serif); }
 .cpick-row .c { font: 600 12px var(--grot); letter-spacing: .04em; color: rgba(42,32,22,.45); }
 .cpick-row.on .n { font-style: italic; }
@@ -145,10 +163,36 @@
 
 @media (max-width: 640px) {
   /* The currency list rises from the bottom, big enough for a thumb */
-  .cpick-scrim { display: block; position: fixed; inset: 0; z-index: 130; background: rgba(8,6,3,.55); }
-  .cpick-sheet .cpick-panel, .cpick.up .cpick-panel { position: fixed; left: 0; right: 0; top: auto; bottom: 0; width: auto; z-index: 131; border-radius: 22px 22px 0 0; padding-bottom: env(safe-area-inset-bottom); flex-direction: column; }
+  .cpick-scrim { display: block; position: fixed; inset: 0; z-index: 300; background: rgba(8,6,3,.55); }
+  .cpick-sheet .cpick-panel, .cpick.up .cpick-panel { position: fixed; left: 0; right: 0; top: auto; bottom: 0; width: auto; z-index: 301; border-radius: 22px 22px 0 0; padding-bottom: env(safe-area-inset-bottom); flex-direction: column; }
   .cpick-sheet .cpick-search { border-top: 0; border-bottom: 1px solid rgba(42,32,22,.12); }
   .cpick-grab { display: block; width: 38px; height: 4px; border-radius: 2px; background: rgba(42,32,22,.25); margin: 8px auto 2px; }
   .cpick-done { display: block; }
   .cpick-list { max-height: 58vh; }
 }
+
+/* ——— The currency on glass (onboarding and Your book) ——— */
+.cmenu { position: relative; display: inline-block; }
+.cglass { position: relative; isolation: isolate; overflow: hidden; display: inline-flex; align-items: center; gap: 10px; height: 46px; padding: 0 14px 0 9px;
+  border-radius: 15px; text-align: left; color: #2A2016; cursor: pointer;
+  background: linear-gradient(180deg, rgba(255,253,247,.82), rgba(246,238,220,.5));
+  -webkit-backdrop-filter: blur(18px) saturate(1.6); backdrop-filter: blur(18px) saturate(1.6);
+  border: 1px solid rgba(255,255,255,.8);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,1), inset 0 -1px 0 rgba(120,90,40,.12), 0 0 0 .5px rgba(184,137,46,.4), 0 12px 26px -16px rgba(70,46,12,.6);
+  transition: transform .2s cubic-bezier(.2,.9,.3,1.3), box-shadow .2s; }
+/* the sheen: light caught on the upper edge of the glass, sliding a little on hover */
+.cglass::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: radial-gradient(120% 90% at 20% -30%, rgba(255,255,255,.95), transparent 55%), linear-gradient(100deg, transparent 40%, rgba(255,255,255,.45) 50%, transparent 60%);
+  background-size: 100% 100%, 260% 100%; background-position: 0 0, 120% 0; transition: background-position .8s ease; }
+.cglass:hover::before { background-position: 0 0, -40% 0; }
+.cglass:hover { transform: translateY(-1px); box-shadow: inset 0 1px 0 #fff, inset 0 -1px 0 rgba(120,90,40,.12), 0 0 0 .5px rgba(184,137,46,.6), 0 16px 30px -16px rgba(70,46,12,.65); }
+.cglass:active { transform: scale(.98); }
+.cglass.open { box-shadow: inset 0 1px 0 #fff, 0 0 0 1px rgba(184,137,46,.7), 0 0 0 5px rgba(184,137,46,.14), 0 12px 26px -16px rgba(70,46,12,.6); }
+.cglass-n { font: 400 17px/1 var(--serif); white-space: nowrap; }
+.cglass-c { font: 600 11px/1 var(--grot); letter-spacing: .08em; color: rgba(42,32,22,.5); }
+.cglass > svg:last-child { color: #B8892E; transition: transform .25s; }
+.cglass.open > svg:last-child { transform: rotate(180deg); }
+.cglass:disabled { opacity: .55; cursor: default; }
+.cmenu-pop { position: fixed; z-index: 300; text-align: left; }
+.cmenu-pop .cpick-panel, .cmenu-pop.up .cpick-panel { position: static; }
+@media (prefers-reduced-motion: reduce) { .cglass, .cglass::before, .cglass > svg:last-child { transition: none; } }

@@ -3,7 +3,7 @@ import { MemoryView } from './Memory';
 import { motion } from 'framer-motion';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { brainStatus, cloudModelName, onBrain } from '../stage/brain';
-import { CURRENCIES, currencySymbol } from '../lib/format';
+import { CurrencyMenu } from '../components/CurrencyPicker';
 import { demoEntries } from '../lib/demo';
 import { exportState, importState, type Action } from '../lib/store';
 import type { State } from '../lib/types';
@@ -158,10 +158,7 @@ function General({ state, dispatch }: { state: State; dispatch: (a: Action) => v
       <Group note="Your name appears on your chapters and cards. Your entries live on this device.">
         <Row label="Name"><input className="field" style={{ width: 220 }} placeholder="What should the book call you?" autoComplete="given-name" value={state.profile.name} onChange={(e) => dispatch({ type: 'profile', patch: { name: e.target.value } })} /></Row>
         <Row label="Currency" sub="Changing it doesn't convert amounts you've already written.">
-          <select className="field" style={{ width: 220 }} value={state.profile.currency} onChange={(e) => dispatch({ type: 'profile', patch: { currency: e.target.value } })}>
-            {CURRENCIES.map((c) => <option key={c.code} value={c.code}>{currencySymbol(c.code)}  {c.name}</option>)}
-          </select>
-        </Row>
+          <CurrencyMenu value={state.profile.currency} onChange={(c) => dispatch({ type: 'profile', patch: { currency: c } })} />        </Row>
       </Group>
       <Reminder state={state} dispatch={dispatch} />
       <Group><InstallRow Row={Row} /></Group>

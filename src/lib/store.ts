@@ -1,6 +1,6 @@
 import { useEffect, useReducer } from 'react';
 import { applyCategories } from './categories';
-import { guessCurrency, monthOf, todayISO, uid } from './format';
+import { monthOf, todayISO, uid } from './format';
 import type { Entry, Goal, Memory, Parsed, RoutineMark, Settings, State } from './types';
 
 const KEY = 'cashglome.v1';
@@ -17,7 +17,7 @@ export const defaultSettings: Settings = {
 
 export function initialState(): State {
   return {
-    profile: { name: '', currency: guessCurrency(), onboarded: false, createdAt: Date.now() },
+    profile: { name: '', currency: 'USD', onboarded: false, createdAt: Date.now() },
     entries: [], goals: [], settings: defaultSettings, seenBadges: [], month: monthOf(todayISO()), seenRestored: {},
     memories: [], routineLog: {}, gone: [],
   };

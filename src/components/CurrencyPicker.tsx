@@ -1,5 +1,5 @@
 // Choosing the money you count in: a coin, a name, and a search, instead of the browser's grey list.
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { CURRENCIES, currencySymbol, guessCurrency } from '../lib/format';
@@ -17,6 +17,47 @@ const ALSO: Record<string, string> = {
 
 export function Coin({ code, size = 30 }: { code: string; size?: number }) {
   return <Medallion code={code} size={size} />;
+}
+
+/** A pane of glass with the coin and the name on it; it opens the list below it (a sheet on a phone). */
+export function CurrencyMenu({ value, onChange, disabled, labelledBy, onOpen }: { value: string; onChange: (c: string) => void; disabled?: boolean; labelledBy?: string; onOpen?: (open: boolean) => void }) {
+  const [open, setOpen] = useState(false);
+  const [at, setAt] = useState<React.CSSProperties>({});
+  const [up, setUp] = useState(false);
+  const btn = useRef<HTMLButtonElement>(null);
+  const set = (o: boolean) => {
+    // The list floats on the page itself, placed by the button, so no card around the button can clip it.
+    const r = btn.current?.getBoundingClientRect();
+    if (o && r) {
+      const flip = r.bottom + 440 > innerHeight && r.top > innerHeight - r.bottom;
+      setUp(flip);
+      const left = Math.max(12, Math.min(r.left, innerWidth - 392));
+      setAt(flip ? { left, bottom: innerHeight - r.top + 8 } : { left, top: r.bottom + 8 });
+    }
+    setOpen(o); onOpen?.(o);
+  };
+  const cur = CURRENCIES.find((c) => c.code === value);
+  return (
+    <span className="cmenu">
+      <button ref={btn} type="button" className={'cglass' + (open ? ' open' : '')} onClick={() => set(!open)} aria-haspopup="dialog" aria-expanded={open}
+        aria-labelledby={labelledBy ? `${labelledBy} cglass-${value}` : undefined} disabled={disabled}>
+        <Medallion code={value} size={26} />
+        <span id={`cglass-${value}`} className="cglass-n">{cur?.name ?? value}</span>
+        <span className="cglass-c">{value}</span>
+        <Icon.chevronDown size={16} />
+      </button>
+      {createPortal(
+        <AnimatePresence>
+          {open && (
+            <motion.div className={'cmenu-pop cpick' + (up ? ' up' : '')} style={at} initial={{ opacity: 0, y: up ? 6 : -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: up ? 6 : -6 }}>
+              <CurrencyList value={value} onPick={(c) => { onChange(c); set(false); }} onClose={() => set(false)} />
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body,
+      )}
+    </span>
+  );
 }
 
 export function CurrencyList({ value, onPick, onClose }: { value: string; onPick: (c: string) => void; onClose: () => void }) {

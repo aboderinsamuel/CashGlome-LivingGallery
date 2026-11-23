@@ -6,15 +6,14 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { paintingOf } from '../lib/art';
 import { cat } from '../lib/categories';
-import { money, monthOf, todayISO } from '../lib/format';
+import { currencySymbol, dateInWords, ex, money, monthOf, todayISO } from '../lib/format';
 import { parseStory } from '../lib/parser';
 import { cloudConfigured } from '../lib/cloud';
 import { listen, voiceSupport, type Listening } from '../lib/speech';
 import { sfx } from '../lib/sound';
 import { examplesFor } from '../stage/words';
 import { Account } from '../components/Account';
-import { Medallion } from '../components/Mark';
-import { CurrencyList } from '../components/CurrencyPicker';
+import { CurrencyMenu } from '../components/CurrencyPicker';
 import { Varnish, type VarnishHandle } from '../components/Varnish';
 import { Icon } from '../components/Icons';
 import type { Calling as Call } from '../lib/houses';
@@ -39,7 +38,6 @@ export function Onboarding({ initialCurrency, calm, onDone }: Props) {
   const [text, setText] = useState('');
   const [note, setNote] = useState('');
   const [voice, setVoice] = useState(false);
-  const [picking, setPicking] = useState(false);
   const [sent, setSent] = useState(false);
   const [rubbed, setRubbed] = useState(false);
   const [cleaned, setCleaned] = useState(0);
@@ -51,6 +49,7 @@ export function Onboarding({ initialCurrency, calm, onDone }: Props) {
   const canSpeak = useMemo(() => voiceSupport() !== null, []);
   const read = useMemo(() => parseStory(text, { home: currency }), [text, currency]);
   const examples = useMemo(() => examplesFor(currency), [currency]);
+  const [chosen, setChosen] = useState(false);
 
   // On a computer the caret is already waiting in the slip; on a phone the keyboard would hide the painting.
   useEffect(() => { if (matchMedia('(pointer: fine)').matches) input.current?.focus({ preventScroll: true }); }, []);
@@ -64,9 +63,9 @@ export function Onboarding({ initialCurrency, calm, onDone }: Props) {
   const send = async (line = text) => {
     if (sent) return;
     const items = parseStory(line, { home: currency });
-    if (!items.length) { setNote(line.trim() ? 'Add an amount, like “lunch 2,500” or “got paid 350k”.' : 'Write one thing you paid for today, with what it cost.'); buzz(30); input.current?.focus(); return; }
+    if (!items.length) { setNote(line.trim() ? `Add an amount, like “lunch ${ex(8, currency)}” or “got paid ${ex(800, currency)}”.` : 'Write one thing you paid for today, with what it cost.'); buzz(30); input.current?.focus(); return; }
     session.current?.stop();
-    setSent(true); setPicking(false); setNote(''); input.current?.blur();
+    setSent(true); setNote(''); input.current?.blur();
     sfx.restore(); buzz([10, 60, 14]);
     // Up to three patches on a day, as in the book. Each one is a broad stroke across the painting.
     const n = Math.min(3, items.length);
@@ -110,26 +109,26 @@ export function Onboarding({ initialCurrency, calm, onDone }: Props) {
       <section className="ob2-page">
         {act === 'cover' ? (
           <>
+            <p className="ob2-date">{dateInWords()}</p>
             <h1>Your money, <em>painted</em>.</h1>
             <p className="ob2-lede">Write what you spend, the way you’d say it. Every line paints a stroke of a masterpiece.</p>
 
+            {/* The money they count in: chosen in plain sight, before the first line. */}
+            <div className="ob2-cur">
+              <span className="ob2-cur-k" id="ob2-cur-k">I count in</span>
+              <CurrencyMenu value={currency} labelledBy="ob2-cur-k" disabled={sent}
+                onChange={(c) => { setCurrency(c); setChosen(true); if (matchMedia('(pointer: fine)').matches) input.current?.focus({ preventScroll: true }); }} />
+              <span className="ob2-cur-why">{chosen ? 'You can change it any time in Your book.' : currency === 'USD' ? 'Every book starts in dollars. Tap to pick yours.' : 'Read from your line.'}</span>
+            </div>
+
             <div className="ob2-slip-wrap">
               <form className={'ob2-slip' + (voice ? ' rec' : '') + (read.length ? ' ready' : '')} onSubmit={(e) => { e.preventDefault(); tapped.current = null; void send(); }}>
-                <button type="button" className="ob2-coin" onClick={() => setPicking((p) => !p)} aria-label={`Counting in ${currency}. Change the currency`} aria-expanded={picking} disabled={sent}>
-                  <Medallion code={currency} size={28} />
-                </button>
+                <span className={'ob2-sym' + (currencySymbol(currency).length > 2 ? ' long' : '')} aria-hidden>{currencySymbol(currency)}</span>
                 <input ref={input} value={text} onChange={(e) => { setText(e.target.value); setNote(''); tapped.current = null; }}
                   placeholder="What did today cost?" aria-label="What did today cost?" enterKeyHint="send" disabled={sent} autoComplete="off" />
                 {canSpeak && !sent && <button type="button" className={'ob2-mic' + (voice ? ' on' : '')} onClick={speak} aria-label={voice ? 'Stop listening' : 'Say it instead'}><Icon.mic size={18} /></button>}
                 <button type="submit" className="wax ob2-send" aria-label="Keep this line" disabled={sent}><Icon.up size={18} /></button>
               </form>
-              <AnimatePresence>
-                {picking && (
-                  <motion.div className="ob-picker cpick" initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}>
-                    <CurrencyList value={currency} onPick={(c) => { setCurrency(c); setPicking(false); input.current?.focus(); }} onClose={() => setPicking(false)} />
-                  </motion.div>
-                )}
-              </AnimatePresence>
             </div>
 
             <div className="ob2-under" aria-live="polite">
