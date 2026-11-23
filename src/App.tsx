@@ -28,7 +28,7 @@ import { Plans } from './views/Plans';
 import { LedgerReports, PeoplePage } from './stage/Accounts';
 import { Today, type Voice } from './views/Today';
 import { AskRoom, loadTurns, type AskTurn } from './views/AskRoom';
-import { brainConfigured, readLine, sitterSays, warmUp } from './stage/brain';
+import { brainConfigured, readLineInTime, sitterSays, warmUp } from './stage/brain';
 import { sitterLine } from './stage/voices';
 import { mentionsCircle, readCircle } from './stage/books';
 import { PAINTINGS } from './lib/art';
@@ -292,7 +292,7 @@ export default function App() {
     }
   }, [cur, state.settings, commit, dispatch, offerRoutine]);
 
-  const submit = useCallback(async (text: string, overrides: Record<number, Partial<Parsed>>) => {
+  const submit = useCallback(async (text: string, overrides: Record<number, Partial<Parsed>>, basis?: 'florin' | 'rules') => {
     // A savings circle in one sentence: "Ajo of 10 people, 20k monthly, my turn is 4th".
     if (mentionsCircle(text) && /\b(people|members|of us|hands|turn|of \d+)\b/i.test(text)) {
       const c = readCircle(text, todayISO());
@@ -305,12 +305,16 @@ export default function App() {
     // Florin reads every line and decides what came in and what went out, by meaning: on this device when it
     // can, else the cloud. The rules read it instead when Florin can't answer in time, or when you've already
     // set a chip yourself (your own correction wins).
-    if (brainConfigured && Object.keys(overrides).length === 0) {
+    // Chips you changed on Florin's own reading apply to that reading.
+    const changed = Object.keys(overrides).length > 0;
+    if (brainConfigured && (!changed || basis === 'florin')) {
       setBusy(true);
-      const r = await readLine(text, cur).catch(() => null).finally(() => setBusy(false));
+      // Usually already read while you paused, so this answers at once.
+      const r = await readLineInTime(text, cur).catch(() => null).finally(() => setBusy(false));
       if (r && (r.read.length || r.unmoved.length)) {
-        // What you taught it before still wins over its reading.
-        const items = r.read.map((p) => recall(p));
+        // What you taught it before still wins over its reading, and what you changed just now wins over both.
+        const items = r.read.map((p, i) => ({ ...recall(p), ...overrides[i] }));
+        items.forEach((p, i) => { if (overrides[i]?.category) learn(p.label, p.category); });
         const isCash = (p: Parsed) => WITHDRAWAL.test(p.text) && !/\b(charge|fee)s?\b/i.test(p.text) && p.dir === 'out';
         const pockets = items.length === 1 && isCash(items[0]) ? [newPocket(items[0].amount, items[0].date)] : [];
         pockets.forEach((pocket) => dispatch({ type: 'cash', pocket }));

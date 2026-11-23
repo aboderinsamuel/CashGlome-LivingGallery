@@ -7,6 +7,7 @@ import { isQuestion } from '../lib/ask';
 import { listen, voiceSupport, type Listening } from '../lib/speech';
 import type { Entry, Parsed } from '../lib/types';
 import { Icon } from './Icons';
+import { readLineOnce, type LineRead } from '../stage/brain';
 
 export interface ComposerHandle { focus: () => void; fill: (t: string) => void; speak: () => void }
 export interface Notice { text: ReactNode; undo?: () => void; art?: string; /** one thing to do about it, e.g. "Yes, write it for me" */ action?: { label: string; run: () => void } }
@@ -15,7 +16,8 @@ interface Props {
   aiOn: boolean;
   busy: boolean;
   notice: Notice | null;
-  onSubmit: (text: string, overrides: Record<number, Partial<Parsed>>) => void;
+  /** basis: the chips the overrides were made on (Florin's reading, or the rules' while Florin was still reading). */
+  onSubmit: (text: string, overrides: Record<number, Partial<Parsed>>, basis?: 'florin' | 'rules') => void;
   onCamera: (file?: Blob) => void;
   /** A question typed or said here is answered instead of added. */
   onAsk: (q: string) => void;
@@ -67,11 +69,26 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer({ cu
 
   const memo = !!onRemember && /^(please\s+)?(remember|keep in mind|note that|fyi)\b/i.test(text.trim());
   const question = useMemo(() => !memo && isQuestion(text), [text, memo]);
-  const items = useMemo(() => question || memo ? [] : parseStory(text, { home: currency }).map((p, i) => ({ ...p, ...over[i] })), [text, over, question, memo, currency]);
+  // Florin reads the line once you pause; its chips replace the rules' first guess. Sending reuses the same reading.
+  const [florin, setFlorin] = useState<{ text: string; read: LineRead } | null>(null);
+  const [reading, setReading] = useState(false);
+  const wantsFlorin = aiOn && !question && !memo && /\d/.test(text) && text.trim().length >= 4;
+  useEffect(() => {
+    if (!wantsFlorin) { setReading(false); return; }
+    const line = text.trim(); let live = true;
+    setReading(true);
+    const t = setTimeout(() => {
+      void readLineOnce(line, currency).then((r) => { if (!live) return; setReading(false); if (r && (r.read.length || r.unmoved.length)) setFlorin({ text: line, read: r }); });
+    }, 600);
+    return () => { live = false; clearTimeout(t); };
+  }, [text, currency, wantsFlorin]);
+  const mine = florin && florin.text === text.trim() ? florin.read : null;
+  const items = useMemo(() => question || memo ? [] : (mine ? mine.read : parseStory(text, { home: currency })).map((p, i) => ({ ...p, ...over[i] })), [text, over, question, memo, currency, mine]);
+  const unmoved = mine && !mine.read.length ? mine.unmoved[0] : null;
   const submit = () => {
     if (!text.trim() || busy) return;
     if (memo) { session.current?.stop(); onRemember!(text.trim()); setText(''); return; }
-    if (question) { session.current?.stop(); onAsk(text.trim()); setText(''); return; } session.current?.stop(); onSubmit(text.trim(), over); setText(''); };
+    if (question) { session.current?.stop(); onAsk(text.trim()); setText(''); return; } session.current?.stop(); onSubmit(text.trim(), over, mine ? 'florin' : 'rules'); setText(''); };
   const camera = () => (touch ? fileIn.current?.click() : onCamera());
   const listening = voice !== 'off';
   const placeholder = busy ? (aiOn ? 'Florin is reading…' : 'Reading…') : voice === 'starting' ? 'Getting ready…' : voice === 'on' ? 'Listening…' : 'What did today cost?';
@@ -111,8 +128,13 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer({ cu
             <div className="pchip glass asking"><Icon.ask size={14} /> A question. Press Enter to get the answer</div>
           </motion.div>
         )}
+        {unmoved && (
+          <motion.div key="un" className="preview" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }}>
+            <div className="pchip glass asking"><Icon.quill size={14} /> No money changed hands: {money(unmoved.amount, currency)} less owed. Your balance stays as it is</div>
+          </motion.div>
+        )}
         {items.length > 0 && (
-          <motion.div key="p" className="preview" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }}>
+          <motion.div key="p" className={'preview' + (reading && !mine ? ' reading' : '')} title={mine ? 'Read by Florin' : undefined}initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }}>
             {items.slice(0, 5).map((p, i) => {
               const c = cat(p.category);
               return (

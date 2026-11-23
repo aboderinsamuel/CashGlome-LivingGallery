@@ -243,6 +243,20 @@ export interface LineRead { read: Parsed[]; where: Where; /** Items where no mon
 /** Past this, the rules read the line instead, so sending never hangs. */
 const READ_LIMIT = 6000;
 
+/** One reading per line: the chips ask while you pause, and sending reuses the same answer. */
+const reads = new Map<string, Promise<LineRead | null>>();
+export function readLineOnce(text: string, currency: string): Promise<LineRead | null> {
+  const key = `${currency}|${text.trim()}`;
+  let p = reads.get(key);
+  if (!p) {
+    p = readLine(text.trim(), currency);
+    reads.set(key, p);
+    void p.then((r) => { if (!r) reads.delete(key); });
+    if (reads.size > 40) reads.delete(reads.keys().next().value as string);
+  }
+  return p;
+}
+
 export async function readLine(text: string, currency: string): Promise<LineRead | null> {
   const m = await load();
   if (!m) return null;
@@ -251,7 +265,9 @@ Decide each item's direction from the writer's side, by meaning, not by keywords
 - "in": money came to the writer (paid, salary, sold, received, a refund, a gift or transfer to them, someone paying them back).
 - "out": money left the writer (bought, paid for, sent, gave, lent, repaid, a fee). A thing with a price, like lunch or a taxi, is "out".
 - Repeats multiply: "gifted 160k twice" is one item of 320000.
-- If no money changed hands, set moved to false: "a friend reduced my debt by 60k" or "she forgave the 20k I owed" are moved=false (what is owed changed, not the cash).
+- Bets: "won 20k on a bet" is in; "lost 20k betting" or "staked 5k" is out.
+- If no money changed hands, set moved to false: "a friend reduced my debt by 60k", "she forgave the 20k I owed", "he took 50k off what I owe him" are moved=false (what is owed changed, not the cash).
+- Read the whole sentence before deciding; a word like "bet", "debt" or "gift" alone decides nothing.
 Write each label in the same language and script as the line.
 
 Line: ${text}`;
@@ -275,16 +291,18 @@ Line: ${text}`;
     const unmoved = rows.filter((x) => x.moved === false).map((x) => ({ label: String(x.label || '').slice(0, 40), amount: x.amount }));
     return { read, unmoved, where: whereOf(r.response.inferenceSource) };
   };
-  const work = (async () => {
-    if (quickOnline()) return hybrid(() => tryModel(m.json.device), () => tryModel(m.json.cloud));
-    try {
-      if (deviceFirst()) return await onDevice(tryModel(m.json.device));
-    } catch (e) { console.warn('[brain] device read', e); }
-    try { return await tryModel(m.json.cloud); } catch (e) { console.warn('[brain] cloud read', e); return null; }
-  })();
+  if (quickOnline()) return hybrid(() => tryModel(m.json.device), () => tryModel(m.json.cloud));
+  try {
+    if (deviceFirst()) return await onDevice(tryModel(m.json.device));
+  } catch (e) { console.warn('[brain] device read', e); }
+  try { return await tryModel(m.json.cloud); } catch (e) { console.warn('[brain] cloud read', e); return null; }
+}
+
+/** Sending waits at most READ_LIMIT for Florin; the reading carries on for the chips and the next send. */
+export function readLineInTime(text: string, currency: string): Promise<LineRead | null> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   const late = new Promise<null>((ok) => { timer = setTimeout(() => ok(null), READ_LIMIT); });
-  return Promise.race([work, late]).finally(() => clearTimeout(timer));
+  return Promise.race([readLineOnce(text, currency), late]).finally(() => clearTimeout(timer));
 }
 
 export interface Persona { name: string; role: string; painting: string; artist: string; year: string }
