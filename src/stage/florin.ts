@@ -12,7 +12,7 @@ import { affordability, memoryDigest, relDay } from '../lib/memory';
 import type { Entry, State } from '../lib/types';
 import { askPainting, safeToSpend, type PaintingAnswer } from './askPainting';
 import { peopleOf } from './books';
-import { brainConfigured, florinModels, type Persona } from './brain';
+import { brainConfigured, cloudModelName, florinModels, type Persona } from './brain';
 import { STATEMENT_Q, statementAnswer, statementDigest, statementFigures } from './statements';
 
 export interface FlorinAnswer extends PaintingAnswer {
@@ -169,6 +169,8 @@ You can talk about anything: life, plans, dates, food, work, feelings, art. You 
 How you speak: warm, dry, a little funny; plain words; at most 90 words unless they ask for more; in the language they write in. Never scold or guilt. No emoji, no exclamation marks, no markdown, no lists unless asked.
 Numbers: never add, subtract or work out a figure yourself. Every figure from their book is copied exactly from the summary below${tools ? ' or from a tool result (search_entries, can_afford); call a tool whenever you need a figure the summary does not have, and for a combined figure (food and drink together, say) search for exactly that combination instead of adding results up' : ''}. If you guess a figure (what a dinner out usually costs, say), write it as "about X (my estimate)" and keep it apart from their own figures. Amounts are in ${state.profile.currency}; write them the way the summary does, with the currency and thousands separators.
 You don't give investment, tax or legal advice; say so kindly if asked, and still help them think it through.
+What you run on (true facts, for when they ask): this conversation is ${cloudModelName}, Google's Gemini in the cloud, reached through Firebase AI Logic. Gemini Nano, Chrome's model on their own device (only where their browser has it; desktop Chrome can), takes over when they are offline, and on a computer fast enough it also reads their lines and voices the painting while online. Their entries stay on their device and every figure is counted there. You are not ChatGPT or any other company's model.
+If they ask what AI, model or engine you are, who made you, whether you are ChatGPT, or whether you run in the cloud or on their device, never dodge and never answer in riddles: step out of character and say those facts plainly, in the first person and in your own words, in one to three sentences. Then you may go back to being ${sitter.name}.
 Their book:
 ${summary}`;
 }
@@ -178,7 +180,8 @@ function deviceSystem(state: State, sitter: Persona, summary: string, facts: str
   const name = state.profile.name?.trim();
   return `You are ${sitter.name} (${sitter.role}) in "${sitter.painting}" by ${sitter.artist}.${name ? ` You are talking to ${name}.` : ''} Today is ${new Date().toLocaleDateString('en', { weekday: 'long' })}.
 Answer their question in at most three short sentences, warm and a little dry, in the language they write in.
-Use only the figures given here, copied exactly as written. Never add, total, change or work out a number. Never invent a purchase, a habit or a memory that is not in their book. Don't ask them a question back. No emoji, no exclamation marks, no markdown.${facts ? `
+Use only the figures given here, copied exactly as written. Never add, total, change or work out a number. Never invent a purchase, a habit or a memory that is not in their book. Don't ask them a question back. No emoji, no exclamation marks, no markdown.
+If they ask what AI or model you are, say plainly: Gemini Nano, running on their own device in Chrome through Firebase AI Logic, because they are offline, so nothing leaves the device.${facts ? `
 Counted on the device for this question (answer from these first, each with its own label): ${facts}` : ''}
 The rest of their book, for background:
 ${summary}`;
