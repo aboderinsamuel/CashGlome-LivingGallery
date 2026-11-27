@@ -265,6 +265,7 @@ Decide each item's direction from the writer's side, by meaning, not by keywords
 - "in": money came to the writer (paid, salary, sold, received, a refund, a gift or transfer to them, someone paying them back).
 - "out": money left the writer (bought, paid for, sent, gave, lent, repaid, a fee). A thing with a price, like lunch or a taxi, is "out".
 - Repeats multiply: "gifted 160k twice" is one item of 320000.
+- Lending is category "lent", never "debt": "lent Sam 5k", "loaned my cousin 20k" and "I borrowed a friend 6k" (many people say "borrowed" for lending) are out, category lent. "debt" is only paying back what the writer owes.
 - Bets: "won 20k on a bet" is in; "lost 20k betting" or "staked 5k" is out.
 - If no money changed hands, set moved to false: "a friend reduced my debt by 60k", "she forgave the 20k I owed", "he took 50k off what I owe him" are moved=false (what is owed changed, not the cash).
 - Read the whole sentence before deciding; a word like "bet", "debt" or "gift" alone decides nothing.
