@@ -73,6 +73,46 @@ const GUARD: Cast = c('The gallery guard', 'keeping an eye on things', 'The visi
 export const castPair = (id: string): Cast => CASTS[id] ?? GUARD;
 export const castOf = (id: string): Sitter => castPair(id)[0];
 
+/** Where each sitter is in the full painting, as fractions of its width and height (A first, then B).
+ *  Read off each image by eye; null where the figure isn't in our crop of the work. */
+type Seat = [number, number] | null;
+const SEATS: Record<string, [Seat, Seat]> = {
+  moneylender: [[0.38, 0.36], [0.67, 0.41]], taxcollectors: [[0.27, 0.48], [0.75, 0.32]],
+  moneychanger: [[0.37, 0.42], [0.73, 0.45]], matthew: [[0.25, 0.43], [0.43, 0.46]],
+  balance: [[0.72, 0.3], [0.62, 0.18]], milkmaid: [[0.56, 0.22], [0.38, 0.7]],
+  hunters: [[0.3, 0.6], [0.7, 0.55]], arnolfini: [[0.27, 0.18], [0.55, 0.9]],
+  syndics: [[0.3, 0.38], [0.53, 0.32]], teniers: [[0.32, 0.65], [0.22, 0.66]],
+  qingming: [[0.25, 0.55], [0.5, 0.35]], gayumars: [[0.45, 0.3], [0.45, 0.65]],
+  mitsui: [[0.8, 0.18], [0.42, 0.58]], littlestreet: [[0.78, 0.78], [0.44, 0.78]],
+  meatstall: [[0.25, 0.25], [0.78, 0.12]], kitchen: [[0.25, 0.15], [0.4, 0.25]],
+  proverbs: [[0.08, 0.72], [0.18, 0.8]], games: [[0.67, 0.86], [0.85, 0.5]],
+  luxury: [[0.43, 0.47], [0.2, 0.2]], peeters: [[0.55, 0.45], [0.42, 0.78]],
+  heda: [[0.73, 0.22], [0.88, 0.62]], eggs: [[0.73, 0.25], [0.15, 0.22]],
+  meninas: [[0.48, 0.67], [0.25, 0.6]], grapes: [[0.32, 0.47], [0.55, 0.33]],
+  market: [[0.65, 0.13], [0.73, 0.42]], cheat: [[0.12, 0.42], [0.83, 0.4]],
+  ambassadors: [[0.25, 0.15], [0.83, 0.15]], beaneater: [[0.5, 0.3], [0.15, 0.75]],
+  butcher: [[0.3, 0.3], [0.92, 0.35]], wave: [[0.45, 0.65], [0.68, 0.62]],
+  hiroshige: [[0.55, 0.62], [0.25, 0.55]], ssireum: [[0.58, 0.43], [0.18, 0.52]],
+  jumak: [[0.3, 0.62], [0.62, 0.62]], danopungjeong: [[0.63, 0.27], [0.1, 0.08]],
+  babur: [[0.65, 0.35], [0.3, 0.55]], ravivarma: [[0.52, 0.15], [0.55, 0.24]],
+  tortoise: [[0.48, 0.32], [0.3, 0.9]], nebamunpool: [[0.55, 0.47], [0.7, 0.2]],
+  fierro: [[0.45, 0.35], [0.62, 0.32]], election: [[0.62, 0.38], [0.3, 0.62]],
+  furtraders: [[0.65, 0.33], [0.22, 0.48]], peasantdance: [[0.75, 0.55], [0.35, 0.4]],
+  gleaners: [[0.35, 0.45], [0.92, 0.25]], courtyard: [[0.62, 0.45], [0.25, 0.45]],
+  fishmarket: [[0.8, 0.25], [0.42, 0.22]], wedding: [[0.63, 0.32], [0.55, 0.62]],
+  icarus: [[0.45, 0.55], [0.66, 0.82]], cardsharps: [null, null],
+  athens: [[0.48, 0.42], [0.53, 0.42]], harvesters: [[0.48, 0.78], [0.25, 0.7]],
+  gisze: [[0.62, 0.3], [0.4, 0.55]], goldsmith: [[0.53, 0.43], [0.3, 0.25]],
+  babel: [null, [0.5, 0.5]], carnival: [[0.3, 0.75], [0.65, 0.8]],
+  magi: [[0.4, 0.45], [0.92, 0.55]], census: [[0.15, 0.55], [0.55, 0.45]],
+  hare: [[0.55, 0.45], [0.6, 0.42]],
+};
+/** Where the sitter with this name sits in the painting, if we know. */
+export const seatOf = (id: string, who: string): Seat => {
+  const k = castPair(id).findIndex((s) => s.name === who);
+  return k < 0 ? null : SEATS[id]?.[k] ?? null;
+};
+
 export type Line = { who: Sitter; text: string };
 /** One remark and, usually, an answer from the other sitter. */
 export type Exchange = Line[];

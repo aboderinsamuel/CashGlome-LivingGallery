@@ -20,7 +20,7 @@ export function warmPlate(painting: Painting, ratio = 4 / 5) {
   varnish(painting.id, W, H, ax, ay).catch(() => {});
 }
 
-export function RestorationPlate({ painting, r, seen, ratio = 4 / 5, drift = true, calm, lead = 0.6 }: { painting: Painting; r: Restoration; seen: number; ratio?: number; drift?: boolean; calm?: boolean; /** seconds before the first waiting stroke is painted */ lead?: number }) {
+export function RestorationPlate({ painting, r, seen, ratio = 4 / 5, drift = true, calm, lead = 0.6, mark }: { painting: Painting; r: Restoration; seen: number; ratio?: number; drift?: boolean; calm?: boolean; /** seconds before the first waiting stroke is painted */ lead?: number; /** a place in the full painting (fractions) to ring in gilt: the sitter who is speaking */ mark?: [number, number] | null }) {
   const W = 900, H = Math.round(W / ratio);
   const [fx, fy] = painting.focus.split(' ').map((v) => parseFloat(v));
   const ax = fx < 35 ? 0 : fx > 65 ? 1 : 0.5, ay = fy < 35 ? 0 : fy > 65 ? 1 : 0.5;
@@ -43,6 +43,25 @@ export function RestorationPlate({ painting, r, seen, ratio = 4 / 5, drift = tru
   if (!waiting.current) waiting.current = new Set(fresh);
   const wait = (n: number, k: number) => (waiting.current!.has(n) ? lead + k * step : 0.04);
   const pos = `${ax * 100}% ${ay * 100}%`;
+  // The image is cropped to the plate (object-fit: cover), so a place in the painting moves with the crop.
+  const [aspect, setAspect] = useState(0);
+  // Measure the plate as drawn: some frames stretch it away from `ratio`.
+  const box = useRef<HTMLDivElement>(null);
+  const [drawn, setDrawn] = useState(ratio);
+  useEffect(() => {
+    const el = box.current; if (!el || !mark) return;
+    const fit = () => { if (el.clientHeight) setDrawn(el.clientWidth / el.clientHeight); };
+    fit(); const ro = new ResizeObserver(fit); ro.observe(el);
+    return () => ro.disconnect();
+  }, [mark]);
+  const ring = useMemo(() => {
+    if (!mark || !aspect) return null;
+    let [x, y] = mark;
+    const ratio = drawn;
+    if (aspect > ratio) { const v = ratio / aspect; x = (x - (1 - v) * ax) / v; }
+    else { const v = aspect / ratio; y = (y - (1 - v) * ay) / v; }
+    return x < -0.06 || x > 1.06 || y < -0.06 || y > 1.06 ? null : [x, y]; // cropped away: no ring (a near miss is pulled in)
+  }, [mark, aspect, drawn, ax, ay]);
   const src = artSrc(painting.id, 'md');
   const masked = (mask: string): CSSProperties => ({ objectPosition: pos, WebkitMaskImage: `url(${mask})`, maskImage: `url(${mask})` });
   const sketchImg = (style: CSSProperties, className = '') => sketch
@@ -50,9 +69,9 @@ export function RestorationPlate({ painting, r, seen, ratio = 4 / 5, drift = tru
     : <img src={src} alt="" className={'plate-img plate-standin ' + className} style={style} draggable={false} />;
 
   return (
-    <div className="plate" style={{ aspectRatio: `${ratio}` }} role="img" aria-label={`${painting.title}, ${r.restored} of ${PATCHES} strokes painted`}>
+    <div ref={box} className="plate" style={{ aspectRatio: `${ratio}` }} role="img" aria-label={`${painting.title}, ${r.restored} of ${PATCHES} strokes painted`}>
       <div className={drift && !calm ? 'plate-canvas drift-soft' : 'plate-canvas'}>
-        <img src={src} srcSet={artSet(painting.id)} sizes="(max-width: 860px) 100vw, 40vw" alt="" className="plate-img" style={{ objectPosition: pos }} decoding="async" draggable={false} />
+        <img src={src} srcSet={artSet(painting.id)} sizes="(max-width: 860px) 100vw, 40vw" alt="" className="plate-img" style={{ objectPosition: pos }} decoding="async" draggable={false} onLoad={(e) => { const i = e.currentTarget; if (i.naturalHeight) setAspect(i.naturalWidth / i.naturalHeight); }} ref={(i) => { if (i?.complete && i.naturalHeight && !aspect) setAspect(i.naturalWidth / i.naturalHeight); }} />
         {r.restored < PATCHES && sketchImg(masked(bare))}
         {fresh.map((n, k) => {
           const cell = r.order[n];
@@ -68,6 +87,7 @@ export function RestorationPlate({ painting, r, seen, ratio = 4 / 5, drift = tru
             </div>
           );
         })}
+        {ring && <span key={`${ring[0]}-${ring[1]}`} className="plate-seat" style={{ left: `clamp(26px, ${ring[0] * 100}%, calc(100% - 26px))`, top: `clamp(26px, ${ring[1] * 100}%, calc(100% - 26px))` }} aria-hidden="true" />}
       </div>
     </div>
   );

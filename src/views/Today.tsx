@@ -17,12 +17,12 @@ import { safeToSpend } from '../stage/askPainting';
 import { circleStatus, peopleOf } from '../stage/books';
 import { usePhone } from '../phone/device';
 import { InstallNudge } from '../components/Install';
-import { momentOf, sitterMoment, type Moment } from '../stage/voices';
+import { momentOf, seatOf, sitterMoment, type Moment } from '../stage/voices';
 import './today.css';
 
 /** What a sitter just said about a line, shown beside the miniature. */
 /** What the sitters are saying now: one remark and usually an answer, in speaking order. */
-export interface Voice { lines: { who: string; role: string; text: string }[]; where: string; key: number }
+export interface Voice { lines: { who: string; role: string; text: string }[]; where: string; key: number; moment?: string }
 
 interface Props {
   state: State;
@@ -78,8 +78,10 @@ export function Today({ state, dispatch, voice, onVoiceDone, onFill, onLedger, o
   // Besides answering what you write (`voice`, from App), they notice things on their own (`own`): you
   // arriving, a quiet day, the last stroke. Those are theirs to say, so Today holds them.
   const [own, setOwn] = useState<Voice | null>(null);
-  const talk = voice ?? own;
-  const hush = () => { if (voice) onVoiceDone(); else setOwn(null); };
+  // The last stroke outranks everything: the farewell is said even if a reply to the line is on its way.
+  const talk = own?.moment === 'finished' ? own : voice ?? own;
+  useEffect(() => { if (own?.moment === 'finished' && voice) onVoiceDone(); }, [own, voice, onVoiceDone]);
+  const hush = () => { if (talk === voice) onVoiceDone(); else setOwn(null); };
   const [spoken, setSpoken] = useState<number | null>(null);
   const talkKey = talk?.key ?? null;
   useEffect(() => {
@@ -90,6 +92,17 @@ export function Today({ state, dispatch, voice, onVoiceDone, onFill, onLedger, o
   }, [talkKey]); // eslint-disable-line react-hooks/exhaustive-deps
   // Leaving Today ends the remark: coming back later never finds an old one waiting.
   useEffect(() => () => onVoiceDone(), []); // eslint-disable-line react-hooks/exhaustive-deps
+  // On a phone the answer takes the first speaker's place after a beat (see talkBlock).
+  const [beat, setBeat] = useState(0);
+  useEffect(() => {
+    setBeat(0);
+    if (spoken === null || (talk?.lines.length ?? 0) < 2) return;
+    const t = setTimeout(() => setBeat(1), phone ? 4500 : 1500); // desktop: when the answer appears
+    return () => clearTimeout(t);
+  }, [spoken]); // eslint-disable-line react-hooks/exhaustive-deps
+  // The one speaking is ringed in gilt where they sit in the painting.
+  const speaker = talk && spoken === talk.key ? talk.lines[Math.min(beat, talk.lines.length - 1)]?.who : undefined;
+  const seat = useMemo(() => (speaker ? seatOf(painting.id, speaker) : null), [speaker, painting.id]);
   const hushRef = useRef(hush); hushRef.current = hush;
   useEffect(() => {
     if (spoken === null) return;
@@ -100,7 +113,7 @@ export function Today({ state, dispatch, voice, onVoiceDone, onFill, onLedger, o
   const say = (moment: Moment, keepIt: boolean) => {
     const at = Date.now();
     const lines = sitterMoment(painting.id, moment, at >> 10);
-    setOwn({ lines: lines.map((l) => ({ who: l.who.name, role: l.who.role, text: l.text })), where: 'Written on this device', key: at });
+    setOwn({ lines: lines.map((l) => ({ who: l.who.name, role: l.who.role, text: l.text })), where: 'Written on this device', key: at, moment });
     if (keepIt) dispatch({ type: 'overheard', month, heard: { at, painting: painting.id, lines: lines.map((l) => ({ who: l.who.name, text: l.text })), moment } });
   };
   // Arriving: once per part of the day, a word of welcome; after three or more days away, a kinder one.
@@ -141,7 +154,18 @@ export function Today({ state, dispatch, voice, onVoiceDone, onFill, onLedger, o
               // The second sitter answers a beat later, the way people in a room do.
               <motion.div key={talk.key} className="td-voice-fold" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.4, ease: [0.2, 0.7, 0.2, 1] }}>
                 <button className="td-voice" role="status" onClick={hush} title="Tap to put away">
-                  {talk.lines.map((l, i) => (
+                  {phone ? (
+                    // A phone has room for one voice at a time: the sitters take turns in the same slip, so it
+                    // stays one line tall and the money under it stays in view.
+                    <AnimatePresence mode="wait" initial={false}>
+                      {talk.lines.slice(beat, beat + 1).map((l) => (
+                        <motion.div key={beat} className={'td-say' + (beat ? ' answer turn' : '')} initial={state.settings.calm ? false : { opacity: 0, x: beat ? 10 : 0 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.35 }}>
+                          <div className="who">{l.who}<span>{l.role}</span></div>
+                          <p>“{l.text}”</p>
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
+                  ) : talk.lines.map((l, i) => (
                     <motion.div key={i} className={'td-say' + (i ? ' answer' : '')} initial={state.settings.calm ? false : { opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i ? 1.5 : 0, duration: 0.45 }}>
                       <div className="who">{l.who}<span>{l.role}</span></div>
                       <p>“{l.text}”</p>
@@ -163,9 +187,9 @@ export function Today({ state, dispatch, voice, onVoiceDone, onFill, onLedger, o
         {/* The painting is the hero; the money hangs beside it like its label. */}
         <figure className="td-art">
           <button className="td-plate" onClick={onPainting} aria-label={`${painting.title}. Open this month's chapter`}>
-            <RestorationPlate painting={painting} r={r} seen={shownSeen} ratio={phone ? 3 / 2 : 4 / 5} drift={false} calm={state.settings.calm} lead={0.3} />
+            <RestorationPlate painting={painting} r={r} seen={shownSeen} ratio={phone ? 3 / 2 : 4 / 5} drift={false} calm={state.settings.calm} lead={0.3} mark={seat} />
           </button>
-          <figcaption className="td-label-card">
+          <figcaption className={"td-label-card" + (phone && talk && spoken === talk.key ? " speaking" : "")}>
             <i>{painting.title}</i>
             <span>{painting.artist}, {painting.year}</span>
             <span className="td-patches" aria-label={r.complete ? 'Finished' : `${r.restored} of ${PATCHES} strokes painted`}>

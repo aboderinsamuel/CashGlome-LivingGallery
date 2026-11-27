@@ -149,6 +149,10 @@
   .td-voice .where { font-size: 10.5px; margin-top: 4px; }
   .td-voice p { font-size: 15px; line-height: 1.35; margin: 2px 0 0; }
   .td-say + .td-say { margin-top: 5px; padding-left: 12px; }
+  .td-say.turn { min-height: 2.9em; }
 }
 @keyframes td-varnish { 0%, 100% { background-position: 0 0; } 50% { background-position: 100% 0; } }
 @media (prefers-reduced-motion: reduce) { .td-plate .plate { animation: none; } }
+/* On a phone the label gives its place to the sitters while they speak, then comes back. */
+@media (max-width: 860px) { .td-label-card.speaking { display: none; } }
+:root[data-phone] .td-label-card.speaking { display: none; }
