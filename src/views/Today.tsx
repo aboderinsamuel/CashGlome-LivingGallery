@@ -1,7 +1,7 @@
 // Today: the money first. What is safe to spend, what today cost, what is coming, who owes whom.
 // The month's painting is the hero, the money hangs beside it like a museum label; every line lifts a patch.
 import { AnimatePresence, motion } from 'framer-motion';
-import { useEffect, useMemo, useState, type Dispatch } from 'react';
+import { useEffect, useMemo, useRef, useState, type Dispatch } from 'react';
 import { computeStats } from '../lib/analytics';
 import { paintingOf, PATCHES, restorationOf } from '../lib/art';
 import { cat } from '../lib/categories';
@@ -17,10 +17,12 @@ import { safeToSpend } from '../stage/askPainting';
 import { circleStatus, peopleOf } from '../stage/books';
 import { usePhone } from '../phone/device';
 import { InstallNudge } from '../components/Install';
+import { momentOf, sitterMoment, type Moment } from '../stage/voices';
 import './today.css';
 
 /** What a sitter just said about a line, shown beside the miniature. */
-export interface Voice { who: string; role: string; text: string; where: string; key: number }
+/** What the sitters are saying now: one remark and usually an answer, in speaking order. */
+export interface Voice { lines: { who: string; role: string; text: string }[]; where: string; key: number }
 
 interface Props {
   state: State;
@@ -71,15 +73,86 @@ export function Today({ state, dispatch, voice, onVoiceDone, onFill, onLedger, o
     return () => clearTimeout(t);
   }, [r.restored, seen, shownSeen, month, dispatch]);
   useEffect(() => { if (seen > shownSeen && r.restored === seen) { const t = setTimeout(() => setShownSeen(seen), 2500); return () => clearTimeout(t); } }, [seen, shownSeen, r.restored]);
-  useEffect(() => { if (!voice) return; const t = setTimeout(onVoiceDone, 12_000); return () => clearTimeout(t); }, [voice, onVoiceDone]);
+  // The sitters speak once the new strokes have finished painting, never over them. Two lines take 11 s,
+  // one takes 8; a tap puts them away sooner.
+  // Besides answering what you write (`voice`, from App), they notice things on their own (`own`): you
+  // arriving, a quiet day, the last stroke. Those are theirs to say, so Today holds them.
+  const [own, setOwn] = useState<Voice | null>(null);
+  const talk = voice ?? own;
+  const hush = () => { if (voice) onVoiceDone(); else setOwn(null); };
+  const [spoken, setSpoken] = useState<number | null>(null);
+  const talkKey = talk?.key ?? null;
+  useEffect(() => {
+    if (talkKey === null) { setSpoken(null); return; }
+    const wait = state.settings.calm ? 0 : revealTime(Math.max(0, r.restored - shownSeen)) * 1000;
+    const t = setTimeout(() => setSpoken(talkKey), wait);
+    return () => clearTimeout(t);
+  }, [talkKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Leaving Today ends the remark: coming back later never finds an old one waiting.
+  useEffect(() => () => onVoiceDone(), []); // eslint-disable-line react-hooks/exhaustive-deps
+  const hushRef = useRef(hush); hushRef.current = hush;
+  useEffect(() => {
+    if (spoken === null) return;
+    const t = setTimeout(() => hushRef.current(), (talk?.lines.length ?? 1) > 1 ? 11_000 : 8000);
+    return () => clearTimeout(t);
+  }, [spoken]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const say = (moment: Moment, keepIt: boolean) => {
+    const at = Date.now();
+    const lines = sitterMoment(painting.id, moment, at >> 10);
+    setOwn({ lines: lines.map((l) => ({ who: l.who.name, role: l.who.role, text: l.text })), where: 'Written on this device', key: at });
+    if (keepIt) dispatch({ type: 'overheard', month, heard: { at, painting: painting.id, lines: lines.map((l) => ({ who: l.who.name, text: l.text })), moment } });
+  };
+  // Arriving: once per part of the day, a word of welcome; after three or more days away, a kinder one.
+  useEffect(() => {
+    if (fresh || voice) return;
+    const last = state.entries.reduce((m, e) => (e.date > m ? e.date : m), '');
+    const away = !!last && Math.round((Date.parse(today) - Date.parse(last)) / 86_400_000) >= 3;
+    const moment: Moment = away ? 'away' : momentOf(now.getHours());
+    const mark = `cg-greeted-${today}-${moment}`;
+    try { if (sessionStorage.getItem(mark) || localStorage.getItem(mark)) return; } catch { return; }
+    const t = setTimeout(() => {
+      try { sessionStorage.setItem(mark, '1'); localStorage.setItem(mark, '1'); } catch { /* private window: greet anyway */ }
+      say(moment, away);
+    }, 1400);
+    return () => clearTimeout(t);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // The last stroke: the sitters notice they are finished.
+  const wasComplete = useRef(r.complete);
+  useEffect(() => {
+    if (r.complete && !wasComplete.current) { onVoiceDone(); say('finished', true); }
+    wasComplete.current = r.complete;
+  }, [r.complete]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const greeting = part(now.getHours());
   const quietToday = (state.quiet ?? []).includes(today);
   const evening = now.getHours() >= 17 || now.getHours() < 4;
-  const setQuiet = (on: boolean) => dispatch({ type: 'quiet', date: today, on });
+  const setQuiet = (on: boolean) => { dispatch({ type: 'quiet', date: today, on }); if (on) { onVoiceDone(); say('quiet', true); } };
   const first = state.profile.name?.split(' ')[0];
 
   const days = safe ? Math.max(1, Math.round(safe.free / Math.max(1, safe.perDay))) : 0;
+
+  // On a phone the sitters speak under the painting's label; on a wide screen, in the wide column under the
+  // greeting, where there is room for a conversation and the floating notice never reaches.
+  const talkBlock = (
+          <AnimatePresence>
+            {talk && spoken === talk.key && (
+              // Unfolds like a slip of paper in the page, so it pushes nothing out of reach and covers nothing.
+              // The second sitter answers a beat later, the way people in a room do.
+              <motion.div key={talk.key} className="td-voice-fold" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.4, ease: [0.2, 0.7, 0.2, 1] }}>
+                <button className="td-voice" role="status" onClick={hush} title="Tap to put away">
+                  {talk.lines.map((l, i) => (
+                    <motion.div key={i} className={'td-say' + (i ? ' answer' : '')} initial={state.settings.calm ? false : { opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i ? 1.5 : 0, duration: 0.45 }}>
+                      <div className="who">{l.who}<span>{l.role}</span></div>
+                      <p>“{l.text}”</p>
+                    </motion.div>
+                  ))}
+                  <div className="where">{talk.where}</div>
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+  );
 
   return (
     <div className="page td-page">
@@ -101,15 +174,7 @@ export function Today({ state, dispatch, voice, onVoiceDone, onFill, onLedger, o
             <span className="td-count">{r.complete ? (phone ? 'Finished' : 'Finished. It hangs in your Gallery.') : phone ? `${r.restored} of ${PATCHES} painted` : `${r.restored} of ${PATCHES} painted · one per line`}</span>
             <button className="td-link" onClick={onPainting}>Open the chapter<Icon.right size={12} /></button>
           </figcaption>
-          <AnimatePresence>
-            {voice && (
-              <motion.div key={voice.key} className="td-voice" role="status" initial={{ opacity: 0, y: -6, scaleY: 0.6 }} animate={{ opacity: 1, y: 0, scaleY: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.45 }}>
-                <div className="who">{voice.who}<span>{voice.role}</span></div>
-                <p>“{voice.text}”</p>
-                <div className="where">{voice.where}</div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {phone && talkBlock}
         </figure>
 
         <div className="td-money">
@@ -118,6 +183,7 @@ export function Today({ state, dispatch, voice, onVoiceDone, onFill, onLedger, o
             <h1>{fresh ? <>Your money, <i>painted</i>.</> : <>Good <i>{greeting}</i>{first ? `, ${first}` : ''}.</>}</h1>
             {fresh && <p className="td-lede">Write what you spent or earned, the way you’d say it. Every line paints a stroke of the painting.</p>}
           </header>
+          {!phone && talkBlock}
 
           {safe ? (
             <section className="td-hero" aria-label="Safe to spend">

@@ -16,6 +16,8 @@ interface Props {
   aiOn: boolean;
   busy: boolean;
   notice: Notice | null;
+  /** The notice has been seen: its time ran out, or it was tapped, swiped or Escaped away. */
+  onNoticeDone?: () => void;
   /** basis: the chips the overrides were made on (Florin's reading, or the rules' while Florin was still reading). */
   onSubmit: (text: string, overrides: Record<number, Partial<Parsed>>, basis?: 'florin' | 'rules') => void;
   onCamera: (file?: Blob) => void;
@@ -35,7 +37,7 @@ interface Props {
 
 const touch = typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches;
 
-export const Composer = forwardRef<ComposerHandle, Props>(function Composer({ currency, aiOn, busy, notice, onSubmit, onCamera, onAsk, usuals = [], onRepeat, above, onRemember, idle, onFocusChange }, ref) {
+export const Composer = forwardRef<ComposerHandle, Props>(function Composer({ currency, aiOn, busy, notice, onNoticeDone, onSubmit, onCamera, onAsk, usuals = [], onRepeat, above, onRemember, idle, onFocusChange }, ref) {
   const [focused, setFocused] = useState(false);
   const [text, setText] = useState('');
   const [over, setOver] = useState<Record<number, Partial<Parsed>>>({});
@@ -93,14 +95,37 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer({ cu
   const listening = voice !== 'off';
   const placeholder = busy ? (aiOn ? 'Florin is reading…' : 'Reading…') : voice === 'starting' ? 'Getting ready…' : voice === 'on' ? 'Listening…' : 'What did today cost?';
   const shown = note ? { text: note } : notice;
+  const visible = !!shown && !text && !listening;
+  // A notice is a glance, not a wall: about 4.5 s, 6 s when it offers Undo or an action. A finger or pointer
+  // resting on it holds it; tap, swipe or Escape puts it away at once.
+  const [held, setHeld] = useState(false);
+  const done = () => { setHeld(false); if (note) setNote(null); else onNoticeDone?.(); };
+  const doneRef = useRef(done); doneRef.current = done;
+  const offers = !!notice && (!!notice.undo || !!notice.action);
+  useEffect(() => {
+    if (!notice || note || held) return;
+    const t = setTimeout(() => doneRef.current(), offers ? 6000 : 4500);
+    return () => clearTimeout(t);
+  }, [notice, note, held, offers]);
+  useEffect(() => {
+    if (!visible) return;
+    const k = (e: KeyboardEvent) => { if (e.key === 'Escape') doneRef.current(); };
+    window.addEventListener('keydown', k);
+    return () => window.removeEventListener('keydown', k);
+  }, [visible]);
 
   return (
     <div className="composer-wrap">
       {above}
       <AnimatePresence mode="popLayout">
-        {shown && !text && !listening && (
-          <motion.div key={note ? 'note' : 'n'} className="notice glass" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 6 }} transition={{ type: 'spring', stiffness: 420, damping: 32 }}>
-            {'art' in shown && shown.art && <img src={shown.art} alt="" className="notice-art" onError={(e) => { e.currentTarget.style.display = 'none'; }} />}
+        {shown && visible && (
+          <motion.div key={note ? 'note' : 'n'} className="notice glass" role="status"
+            initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 6, transition: { duration: 0.18 } }} transition={{ type: 'spring', stiffness: 420, damping: 32 }}
+            drag="x" dragSnapToOrigin dragElastic={0.6} onDragEnd={(_, i) => { if (Math.abs(i.offset.x) > 60 || Math.abs(i.velocity.x) > 400) done(); }}
+            onPointerEnter={() => setHeld(true)} onPointerLeave={() => setHeld(false)}
+            onClick={(e) => { if (!(e.target as HTMLElement).closest('button, a')) done(); }}
+            title="Tap or swipe to put away">
+            {'art' in shown && shown.art && <img src={shown.art} alt="" className="notice-art" draggable={false} onError={(e) => { e.currentTarget.style.display = 'none'; }} />}
             <span>{shown.text}</span>
             {'action' in shown && shown.action && <button className="notice-undo notice-do" onClick={shown.action.run}>{shown.action.label}</button>}
             {'undo' in shown && shown.undo && <button className="notice-undo" onClick={shown.undo}>Undo</button>}

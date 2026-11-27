@@ -88,11 +88,15 @@
 .td-seals .seal { width: 28px; height: 28px; flex: none; border-radius: 50%; display: grid; place-items: center; font: 600 13px var(--serif); }
 .td-people .initial { width: 30px; height: 30px; flex: none; border-radius: 50%; display: grid; place-items: center; font: italic 500 15px var(--serif); }
 
-.td-voice { margin-top: 16px; padding: 12px 14px; border-radius: 3px; background: #F1E7D2; color: #2A2016; box-shadow: var(--shadow-1); transform-origin: top; }
+.td-voice-fold { overflow: hidden; }
+.td-voice { display: block; width: 100%; text-align: left; border: 0; font: inherit; cursor: pointer; margin: 14px 0 20px; padding: 12px 14px; border-radius: 3px; background: #F1E7D2; color: #2A2016; box-shadow: var(--shadow-1); transform-origin: top; }
 .td-voice .who { font: 600 11px var(--ui); letter-spacing: .08em; text-transform: uppercase; color: #8E2A20; }
 .td-voice .who span { font: italic 400 12px var(--serif); text-transform: none; letter-spacing: 0; color: #7A6A52; margin-left: 6px; }
 .td-voice p { font: italic 400 16px/1.4 var(--serif); margin: 6px 0; }
 .td-voice .where { font: 400 11.5px var(--ui); color: #7A6A52; }
+/* A conversation, not a caption: the answer sits a step in, its speaker in lapis, joined by a gilt hairline. */
+.td-say + .td-say { margin-top: 6px; padding-left: 14px; border-left: 1px solid rgba(176, 138, 58, 0.55); }
+.td-say.answer .who { color: #2B4A8B; }
 
 @media (prefers-reduced-motion: reduce) { .td-plate, .td-patches b { transition: none; } }
 
@@ -140,8 +144,11 @@
   .td-empty-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; }
   .td-empty-row .td-empty { margin: 0; }
   .td-quiet { flex: none; font: 600 13px/1 var(--grot) !important; height: 36px; }
-  /* Under the money, clear of the "Added" notice that rises above the writing box. */
-  .td-voice { position: fixed; left: 12px; right: 12px; top: calc(env(safe-area-inset-top) + 300px); bottom: auto; z-index: 30; margin: 0; }
+  /* In the page under the painting's label: it unfolds there and folds away, covering nothing. */
+  .td-voice { margin: 8px 0 0; padding: 8px 12px; }
+  .td-voice .where { font-size: 10.5px; margin-top: 4px; }
+  .td-voice p { font-size: 15px; line-height: 1.35; margin: 2px 0 0; }
+  .td-say + .td-say { margin-top: 5px; padding-left: 12px; }
 }
 @keyframes td-varnish { 0%, 100% { background-position: 0 0; } 50% { background-position: 100% 0; } }
 @media (prefers-reduced-motion: reduce) { .td-plate .plate { animation: none; } }

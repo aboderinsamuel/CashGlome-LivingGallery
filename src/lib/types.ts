@@ -112,7 +112,12 @@ export interface State {
   /** The person's own categories (money in and money out), and built-in ones they've hidden. */
   categories?: import('./categories').Category[];
   hiddenCategories?: string[];
+  /** What the sitters said to each other, per month (YYYY-MM): the month's conversation, kept with its chapter. */
+  overheard?: Record<string, Heard[]>;
 }
+
+/** One exchange between the sitters. `at` also identifies it, so Gemini's fresher wording replaces the first. */
+export interface Heard { at: number; painting: string; lines: { who: string; text: string }[]; where?: string; moment?: string }
 
 /** A rotating savings circle: everyone pays in each round, and one member takes the whole pot in turn. */
 export interface Circle {
