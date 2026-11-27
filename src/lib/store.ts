@@ -1,5 +1,5 @@
 import { useEffect, useReducer } from 'react';
-import { applyCategories } from './categories';
+import { applyCategories, tintCategories } from './categories';
 import { monthOf, todayISO, uid } from './format';
 import type { Entry, Goal, Memory, Parsed, RoutineMark, Settings, State } from './types';
 
@@ -58,6 +58,7 @@ export type Action =
   | { type: 'removeGoal'; id: string }
   | { type: 'seenBadges'; ids: string[] }
   | { type: 'seenRestored'; month: string; n: number }
+  | { type: 'overheard'; month: string; heard: import('./types').Heard }
   | { type: 'house'; calling: import('./houses').Calling } | { type: 'quiet'; date: string; on: boolean }
   | { type: 'cash'; pocket: NonNullable<State['cash']>[number] }
   | { type: 'removeCash'; id: string }
@@ -138,6 +139,11 @@ export function reducer(s: State, a: Action): State {
       return { ...s, routineLog: log };
     }
     case 'seenBadges': return { ...s, seenBadges: Array.from(new Set([...s.seenBadges, ...a.ids])) };
+    case 'overheard': {
+      const was = s.overheard?.[a.month] ?? [];
+      const list = [...was.filter((h) => h.at !== a.heard.at), a.heard].sort((x, y) => x.at - y.at).slice(-60);
+      return { ...s, overheard: { ...s.overheard, [a.month]: list } };
+    }
     case 'seenRestored': return { ...s, seenRestored: { ...s.seenRestored, [a.month]: a.n } };
     case 'quiet': { const q = new Set(s.quiet ?? []); if (a.on) q.add(a.date); else q.delete(a.date); return { ...s, quiet: [...q].sort() }; }
     case 'cash': return { ...s, cash: [...(s.cash ?? []).filter((p) => p.id !== a.pocket.id), a.pocket].slice(-20) };
@@ -179,6 +185,7 @@ export function reducer(s: State, a: Action): State {
 export function useGlomeStore() {
   const [state, dispatch] = useReducer(reducer, undefined, load);
   // Your own categories join the shared list before anything below reads it.
+  tintCategories(state.settings.palette ?? 'classic');
   applyCategories(state.categories, state.hiddenCategories);
   useEffect(() => {
     const t = setTimeout(() => {

@@ -166,3 +166,10 @@
 .widget.w-open:hover .w-foot { color: #FFF8EC; }
 .widget.w-open:hover .w-foot svg { transform: translateX(2px); }
 .w-foot svg { transition: transform .18s; }
+/* The sitter who is speaking: a gilt ring breathing over their place in the painting. */
+.plate-seat { position: absolute; width: clamp(28px, 14%, 46px); aspect-ratio: 1; translate: -50% -50%; border-radius: 50%; pointer-events: none;
+  border: 2px solid #E8C878; box-shadow: 0 0 0 1.5px rgba(36, 24, 12, 0.75), 0 0 16px 3px rgba(216, 181, 101, 0.6), inset 0 0 0 1.5px rgba(36, 24, 12, 0.6);
+  animation: plate-seat-in 0.7s cubic-bezier(.2, .8, .2, 1) both, plate-seat-breathe 2.6s ease-in-out 0.7s infinite; }
+@keyframes plate-seat-in { from { opacity: 0; transform: scale(1.8); } to { opacity: 1; transform: scale(1); } }
+@keyframes plate-seat-breathe { 50% { transform: scale(1.1); opacity: 0.8; } }
+@media (prefers-reduced-motion: reduce) { .plate-seat { animation: none; } }

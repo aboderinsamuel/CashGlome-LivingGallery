@@ -29,7 +29,7 @@ import { LedgerReports, PeoplePage } from './stage/Accounts';
 import { Today, type Voice } from './views/Today';
 import { AskRoom, loadTurns, type AskTurn } from './views/AskRoom';
 import { brainConfigured, readLineInTime, sitterSays, warmUp } from './stage/brain';
-import { sitterLine } from './stage/voices';
+import { sitterLine, type Exchange } from './stage/voices';
 import { mentionsCircle, readCircle } from './stage/books';
 import { PAINTINGS } from './lib/art';
 import { Collection } from './views/Collection';
@@ -76,7 +76,12 @@ export default function App() {
   const [edition, setEdition] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [notice, setNotice] = useState<Notice | null>(null);
+  // One notice at a time. setNotice replaces the one showing (null dismisses it); queueNotice waits its turn,
+  // so a follow-up (a sticker, an offer) never stretches the time the space above the bar stays covered.
+  const [notices, setNotices] = useState<Notice[]>([]);
+  const notice = notices[0] ?? null;
+  const setNotice = useCallback((n: Notice | null) => setNotices((q) => (n ? [n, ...q.slice(1)] : q.slice(1))), []);
+  const queueNotice = useCallback((n: Notice) => setNotices((q) => [...q, n].slice(0, 3)), []);
   const [capture, setCapture] = useState<{ file: Blob | null; attach?: Entry } | null>(null);
   const [statement, setStatement] = useState<{ file: File | null } | null>(null);
   const openStatement = useCallback(() => setStatement({ file: null }), []);
@@ -110,10 +115,13 @@ export default function App() {
   const [candle, setCandle] = useState(evening);
   useEffect(() => { const t = setInterval(() => setCandle(evening()), 60_000); return () => clearInterval(t); }, []);
   const theme = state.settings.theme === 'auto' || !state.settings.theme ? (candle ? 'dark' : 'light') : state.settings.theme;
+  const palette = state.settings.palette ?? 'classic';
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'dark' ? '#17120C' : '#EEE6D6');
-  }, [theme, phone]);
+    document.documentElement.dataset.palette = palette;
+    const bar = palette === 'sugar' ? (theme === 'dark' ? '#150A1B' : '#FFF4EF') : (theme === 'dark' ? '#17120C' : '#EEE6D6');
+    document.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.setAttribute('content', bar));
+  }, [theme, palette, phone]);
   useEffect(() => setSound(state.settings.sound), [state.settings.sound]);
   // Back from Spotify's sign-in page (web): finish linking, then show the Music pane.
   useEffect(() => { finishSpotifyLink().then((ok) => ok && setMusic(true)).catch(() => setMusic(true)); }, []);
@@ -149,11 +157,13 @@ export default function App() {
     if (!fresh.length) return;
     dispatch({ type: 'seenBadges', ids: fresh.map((b) => b.id) });
     if (grew > 0 && grew < 10 && state.profile.onboarded) {
-      setTimeout(() => { setNotice({ text: <>New sticker for the book: <b>{fresh[0].name}</b>{fresh.length > 1 ? ` and ${fresh.length - 1} more` : ''}. <button className="notice-undo" style={{ display: 'inline' }} onClick={() => setView('collection')}>See it</button></> }); sfx.badge(); }, 4600);
+      setTimeout(() => { queueNotice({ text: <>New sticker for the book: <b>{fresh[0].name}</b>{fresh.length > 1 ? ` and ${fresh.length - 1} more` : ''}. <button className="notice-undo" style={{ display: 'inline' }} onClick={() => setView('collection')}>See it</button></> }); sfx.badge(); }, 4600);
     }
   }, [badges]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => { if (!notice) return; const t = setTimeout(() => setNotice(null), 7000); return () => clearTimeout(t); }, [notice]);
+  // The notice's own timer lives in the Composer, where it can pause while a finger or pointer is on it.
+  // The sitter's line ends on the clock, wherever you are: it can never wait off-screen and come back stale.
+  useEffect(() => { if (!voice) return; const t = setTimeout(clearVoice, Math.max(0, voice.key + 16_000 - Date.now())); return () => clearTimeout(t); }, [voice, clearVoice]);
 
   // ——— Evening reminder, only on a day nothing has been written ———
   useEffect(() => {
@@ -243,17 +253,32 @@ export default function App() {
       </>,
       undo: () => { ids.forEach((id) => dispatch({ type: 'remove', id })); setNotice(null); },
     });
-    // The month's sitter answers what you wrote, beside the miniature on Today.
+    // The month's sitters talk about what you wrote, beside the painting on Today, and the month keeps it.
     if (opts.line) {
       const said = sitterLine(painting.id, entries, next, entries[0].id.charCodeAt(0) + entries.length);
-      const where = opts.where === 'cloud' ? 'Read with Gemini, in the cloud' : opts.where === 'device' ? 'Read by Gemini Nano, on this device' : 'Read on this device';
       const key = Date.now();
-      setVoice({ who: said.who.name, role: said.who.role, text: said.text, where, key });
+      const keep = (lines: Exchange, where: string, fresh: boolean) => {
+        // Gemini's wording replaces the device's only while that same exchange is still showing.
+        const v = { lines: lines.map((l) => ({ who: l.who.name, role: l.who.role, text: l.text })), where, key };
+        setVoice((x) => (fresh ? v : x && x.key === key ? v : x));
+        dispatch({ type: 'overheard', month: m0, heard: { at: key, painting: painting.id, lines: lines.map((l) => ({ who: l.who.name, text: l.text })), where, moment: 'line' } });
+      };
+      // While Gemini is writing, hold the device's own lines back a moment, so the words rarely change mid-read.
+      let out = false;
+      const own = setTimeout(() => { out = true; keep(said, 'Written on this device', true); }, brainConfigured && navigator.onLine ? 1800 : 0);
       if (brainConfigured) {
         const p = PAINTINGS[painting.id];
+        const [a, b] = [said[0].who, said[1]?.who];
         const kinds = Array.from(new Set(entries.map((e) => cat(e.category).name.toLowerCase())));
-        Promise.race([sitterSays({ name: said.who.name, role: said.who.role, painting: p.title, artist: p.artist, year: p.year }, opts.line, kinds, 'steady'), new Promise<null>((r) => setTimeout(() => r(null), 4500))])
-          .then((v) => { if (v) setVoice((x) => (x && x.key === key ? { ...x, text: v.text } : x)); }).catch(() => {});
+        Promise.race([sitterSays({ name: a.name, role: a.role, other: b, painting: p.title, artist: p.artist, year: p.year }, opts.line, kinds, 'steady'), new Promise<null>((r) => setTimeout(() => r(null), 4500))])
+          .then((v) => {
+            if (!v) return;
+            const lines = v.lines.map((text, i) => ({ who: i === 0 ? a : (b ?? a), text }));
+            const first = !out;
+            if (first) { clearTimeout(own); out = true; }
+            else if (Date.now() - key > 4000) return; // already being read: leave the words alone
+            keep(lines, v.where === 'device' ? 'Gemini Nano, on this device' : 'Gemini, in the cloud', first);
+          }).catch(() => {});
       }
     }
   }, [state.entries, state.month, cur, dispatch, phone]);
@@ -263,7 +288,7 @@ export default function App() {
     const offer = recurringOffer(latest.current, just);
     if (!offer) return;
     markOffered(offer.label);
-    setTimeout(() => setNotice({
+    setTimeout(() => queueNotice({
       text: <>You’ve written <b>{offer.label}</b> a few times. Let it write itself {daysPhrase(offer.days)}?</>,
       action: { label: 'Yes', run: () => {
         const m = routineFrom(offer);
@@ -532,7 +557,7 @@ export default function App() {
       onAsk={() => { askAbout(TOUR_QUESTION); setTour(3); }}
       onEndTour={() => setTour(null)} onTour={() => { setView('today'); setTour(0); }} onLeave={leaveExample} />
   ) : null;
-  const composerProps = { currency: cur, aiOn: brainConfigured, busy, notice, onSubmit: submit, onCamera: (file?: Blob) => setCapture({ file: file ?? null }), onAsk: askAbout, onRemember: remember };
+  const composerProps = { currency: cur, aiOn: brainConfigured, busy, notice, onNoticeDone: () => setNotice(null), onSubmit: submit, onCamera: (file?: Blob) => setCapture({ file: file ?? null }), onAsk: askAbout, onRemember: remember };
 
   const appWindow = (
     <div className="app">
@@ -640,7 +665,7 @@ export default function App() {
       { label: 'Chapter', kbd: kbd('5'), checked: view === 'chapter', action: goView('chapter') },
       { label: 'Gallery', checked: view === 'collection', action: goView('collection') },
       'sep',
-      ...(['auto', 'light', 'dark'] as const).map((t) => ({ label: t === 'auto' ? 'By the hour' : t === 'light' ? 'Parchment' : 'Candlelight', checked: (state.settings.theme ?? 'auto') === t, action: () => dispatch({ type: 'settings', patch: { theme: t } }) })),
+      ...(['auto', 'light', 'dark'] as const).map((t) => ({ label: t === 'auto' ? 'By the hour' : t === 'light' ? (palette === 'sugar' ? 'Sugar' : 'Parchment') : (palette === 'sugar' ? 'Velvet' : 'Candlelight'), checked: (state.settings.theme ?? 'auto') === t, action: () => dispatch({ type: 'settings', patch: { theme: t } }) })),
     ] },
     { title: 'Chapter', items: [
       { label: 'Previous month', kbd: kbd('['), action: () => setMonth(shiftMonth(state.month, -1)) },

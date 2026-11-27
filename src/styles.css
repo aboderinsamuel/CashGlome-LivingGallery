@@ -245,3 +245,14 @@ input[type='number']::-webkit-inner-spin-button, input[type='number']::-webkit-o
 /* Long ledgers: days off screen are not laid out or painted until you scroll to them. */
 .day-group { content-visibility: auto; contain-intrinsic-size: auto 260px; }
 .sheet-done { display: none; }
+
+/* ——— Overheard: the sitters' conversation, kept in the chapter like letters in a ledger ——— */
+.overheard .oh-list { list-style: none; margin: 0 0 18px; padding: 0; display: grid; gap: 0; }
+.oh-item { padding: 16px 0; border-top: 1px solid var(--hair, rgba(120, 100, 70, 0.25)); }
+.oh-item:last-child { border-bottom: 1px solid var(--hair, rgba(120, 100, 70, 0.25)); }
+.oh-when { font: 600 11px var(--ui); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 8px; }
+.oh-line { margin: 0; font: italic 400 17px/1.45 var(--serif); color: var(--ink); max-width: 62ch; }
+.oh-line b { font: 600 11px var(--ui); font-style: normal; letter-spacing: .06em; text-transform: uppercase; color: var(--vermilion, #B5412B); margin-right: 8px; }
+.oh-line.answer { margin-top: 6px; padding-left: 14px; border-left: 1px solid rgba(176, 138, 58, 0.55); }
+.oh-line.answer b { color: var(--lapis, #2B4A8B); }
+@media (max-width: 520px) { .oh-line { font-size: 15.5px; } .oh-line b { display: block; margin: 0 0 2px; } }

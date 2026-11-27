@@ -1,49 +1,245 @@
-// The sitters' lines. Dry, warm, never a scold: they laugh with you. These are the device's own lines,
-// used offline and while the on-device model warms up; when a model is available it writes fresh ones in
-// the same voice (see brain.ts).
+// The sitters. Every painting in the library has two of them, and they talk: one remarks on what you
+// wrote, the other answers, the way people standing in the same room do. Dry, warm, never a scold: they
+// laugh with you. These are the device's own exchanges, used offline and while Gemini is still writing;
+// when a model is available it writes fresh ones in the same voices (see sitterSays in brain.ts).
+// The replies never lean on he or she, so any pair of sitters can say any line.
 import type { Entry } from '../lib/types';
 
 export interface Sitter { name: string; role: string }
-export const CASTS: Record<string, Sitter[]> = {
-  moneylender: [{ name: 'The Moneylender', role: 'weighing coins' }, { name: 'His wife', role: 'not really reading' }],
-  taxcollectors: [{ name: 'The older collector', role: 'counting' }, { name: 'The younger one', role: 'grinning' }],
-  moneychanger: [{ name: 'The Money Changer', role: 'at his scales' }, { name: 'His wife', role: 'keeping the book' }],
-  matthew: [{ name: 'Matthew', role: 'at the counting table' }],
-  balance: [{ name: 'The woman at the window', role: 'holding the balance' }],
-  milkmaid: [{ name: 'The milkmaid', role: 'pouring slowly' }],
-  hunters: [{ name: 'The hunters', role: 'home with very little' }],
-  arnolfini: [{ name: 'Giovanni Arnolfini', role: 'raising a hand' }],
-  syndics: [{ name: 'The syndics', role: 'checking the accounts' }],
-  teniers: [{ name: 'The Archduke', role: 'showing off his collection' }],
-  qingming: [{ name: 'The tea-house keeper', role: 'by the Rainbow Bridge' }, { name: 'The boatman', role: 'shouting over the river' }],
-  gayumars: [{ name: 'King Gayumars', role: 'on his mountain throne' }],
-  mitsui: [{ name: 'The shop clerk', role: 'up on the roof' }],
+type Cast = [Sitter, Sitter];
+const c = (a: string, ar: string, b: string, br: string): Cast => [{ name: a, role: ar }, { name: b, role: br }];
+
+export const CASTS: Record<string, Cast> = {
+  moneylender: c('The Moneylender', 'weighing coins', 'His wife', 'not really reading'),
+  taxcollectors: c('The older collector', 'counting', 'The younger one', 'grinning'),
+  moneychanger: c('The Money Changer', 'at his scales', 'His wife', 'keeping the book'),
+  matthew: c('Matthew', 'at the counting table', 'The boy beside him', 'still counting'),
+  balance: c('The woman at the window', 'holding the balance', 'The painting behind her', 'weighing heavier things'),
+  milkmaid: c('The milkmaid', 'pouring slowly', 'The bread basket', 'waiting its turn'),
+  hunters: c('The hunters', 'home with very little', 'The skaters', 'down on the pond'),
+  arnolfini: c('Giovanni Arnolfini', 'raising a hand', 'The little dog', 'unimpressed'),
+  syndics: c('The syndics', 'checking the accounts', 'The servant at the back', 'hat off, listening'),
+  teniers: c('The Archduke', 'showing off his collection', 'Teniers', 'keeping the inventory'),
+  qingming: c('The tea-house keeper', 'by the Rainbow Bridge', 'The boatman', 'shouting over the river'),
+  gayumars: c('King Gayumars', 'on his mountain throne', 'The courtiers', 'in leopard skins'),
+  mitsui: c('The shop clerk', 'up on the roof', 'Mount Fuji', 'far off, unbothered'),
+  littlestreet: c('The woman in the doorway', 'sewing', 'The maid in the alley', 'at the water barrel'),
+  meatstall: c('The stall-keeper', 'weighing the meat', 'The pretzels', 'hanging about'),
+  kitchen: c('The cook', 'up to her elbows in plenty', 'The kitchen boy', 'eyeing the pies'),
+  proverbs: c('The man banging his head on a wall', 'trying again', 'The woman tying the devil to a pillow', 'firmly'),
+  games: c('The hoop-rollers', 'already running', 'The children on stilts', 'looking down on everyone'),
+  luxury: c('The woman of the house', 'fast asleep', 'The monkey', 'stopping the clock'),
+  peeters: c('The cheeses', 'stacked high', 'The cherries', 'a little showy'),
+  heda: c('The gilt cup', 'knocked over, gracefully', 'The lemon', 'half peeled'),
+  eggs: c('The old woman', 'frying eggs', 'The boy with the melon', 'carrying the flask'),
+  meninas: c('The Infanta', 'in the middle of it all', 'Velázquez', 'at his easel'),
+  grapes: c('The boy with the grapes', 'mid-bunch', 'The boy with the melon', 'not sharing'),
+  market: c('The maid', 'home from market', 'The loaves', 'still warm'),
+  cheat: c('The cheat', 'with an ace behind the back', 'The young man', 'about to find out'),
+  ambassadors: c('Jean de Dinteville', 'in fur', 'Georges de Selve', 'the bishop, listening'),
+  beaneater: c('The beaneater', 'mid-spoonful', 'The onion', 'waiting'),
+  butcher: c('The butcher', 'at the scales', 'The guard', 'finding his purse'),
+  wave: c('The boatmen', 'holding on', 'Mount Fuji', 'very small, very calm'),
+  hiroshige: c('The people on the bridge', 'running from the rain', 'The raftsman', 'poling through it'),
+  ssireum: c('The wrestler on top', 'nearly there', 'The yeot seller', 'selling to the crowd'),
+  jumak: c('The tavern keeper', 'ladling soup', 'The traveller', 'paying up'),
+  danopungjeong: c('The woman on the swing', 'mid-air', 'The two young monks', 'peeking from the rocks'),
+  babur: c('Emperor Babur', 'laying out the garden', 'The head gardener', 'measuring twice'),
+  ravivarma: c('The mother', 'pointing to the gate', 'The child', 'waiting for Papa'),
+  tortoise: c('The tortoise trainer', 'patient as ever', 'The tortoises', 'in no hurry'),
+  nebamunpool: c('The fish', 'in Nebamun’s pool', 'The date palm', 'shading everyone'),
+  fierro: c('The manjar blanco seller', 'with her tray', 'The sweet', 'very popular'),
+  election: c('The voter', 'taking the oath', 'The man with the cards', 'canvassing'),
+  furtraders: c('The trader', 'paddling downriver', 'The animal at the bow', 'nobody is sure what it is'),
+  peasantdance: c('The dancers', 'already late', 'The bagpiper', 'puffing away'),
+  gleaners: c('The gleaners', 'bent to the stubble', 'The overseer', 'far off on horseback'),
+  courtyard: c('The maid', 'with the child', 'The woman in the passage', 'looking out'),
+  fishmarket: c('The fishwife', 'behind the catch', 'The young buyer', 'counting coins'),
+  wedding: c('The bride', 'under her paper crown', 'The pie carriers', 'using a door as a tray'),
+  icarus: c('The ploughman', 'not looking up', 'Icarus', 'mostly legs now'),
+  cardsharps: c('The cardsharp', 'checking the signals', 'The young player', 'trusting'),
+  athens: c('Plato', 'pointing up', 'Aristotle', 'pointing level'),
+  harvesters: c('The man under the pear tree', 'asleep', 'The reapers', 'at lunch'),
+  gisze: c('Georg Gisze', 'opening a letter', 'The carnations', 'in a glass vase'),
+  goldsmith: c('The goldsmith', 'weighing a ring', 'The couple', 'about to be married'),
+  babel: c('The king', 'inspecting the works', 'The stonemasons', 'kneeling, for now'),
+  carnival: c('Carnival', 'astride a barrel', 'Lent', 'with a plate of herrings'),
+  magi: c('Cosimo de’ Medici', 'the banker, kneeling', 'Botticelli', 'at the edge, looking at you'),
+  census: c('The innkeeper', 'taking names', 'The children', 'skating on the ice'),
+  hare: c('The young hare', 'sitting very still', 'The window in its eye', 'reflecting'),
 };
-export const castOf = (id: string): Sitter => (CASTS[id] ?? [{ name: 'The gallery guard', role: 'keeping an eye on things' }])[0];
-const second = (id: string): Sitter => (CASTS[id]?.[1] ?? castOf(id));
 
-type Line = { who: Sitter; text: string };
+const GUARD: Cast = c('The gallery guard', 'keeping an eye on things', 'The visitor beside you', 'reading the label');
+export const castPair = (id: string): Cast => CASTS[id] ?? GUARD;
+export const castOf = (id: string): Sitter => castPair(id)[0];
+
+/** Where each sitter is in the full painting, as fractions of its width and height (A first, then B).
+ *  Read off each image by eye; null where the figure isn't in our crop of the work. */
+type Seat = [number, number] | null;
+const SEATS: Record<string, [Seat, Seat]> = {
+  moneylender: [[0.38, 0.36], [0.67, 0.41]], taxcollectors: [[0.27, 0.48], [0.75, 0.32]],
+  moneychanger: [[0.37, 0.42], [0.73, 0.45]], matthew: [[0.25, 0.43], [0.43, 0.46]],
+  balance: [[0.72, 0.3], [0.62, 0.18]], milkmaid: [[0.56, 0.22], [0.38, 0.7]],
+  hunters: [[0.3, 0.6], [0.7, 0.55]], arnolfini: [[0.27, 0.18], [0.55, 0.9]],
+  syndics: [[0.3, 0.38], [0.53, 0.32]], teniers: [[0.32, 0.65], [0.22, 0.66]],
+  qingming: [[0.25, 0.55], [0.5, 0.35]], gayumars: [[0.45, 0.3], [0.45, 0.65]],
+  mitsui: [[0.8, 0.18], [0.42, 0.58]], littlestreet: [[0.78, 0.78], [0.44, 0.78]],
+  meatstall: [[0.25, 0.25], [0.78, 0.12]], kitchen: [[0.25, 0.15], [0.4, 0.25]],
+  proverbs: [[0.08, 0.72], [0.18, 0.8]], games: [[0.67, 0.86], [0.85, 0.5]],
+  luxury: [[0.43, 0.47], [0.2, 0.2]], peeters: [[0.55, 0.45], [0.42, 0.78]],
+  heda: [[0.73, 0.22], [0.88, 0.62]], eggs: [[0.73, 0.25], [0.15, 0.22]],
+  meninas: [[0.48, 0.67], [0.25, 0.6]], grapes: [[0.32, 0.47], [0.55, 0.33]],
+  market: [[0.65, 0.13], [0.73, 0.42]], cheat: [[0.12, 0.42], [0.83, 0.4]],
+  ambassadors: [[0.25, 0.15], [0.83, 0.15]], beaneater: [[0.5, 0.3], [0.15, 0.75]],
+  butcher: [[0.3, 0.3], [0.92, 0.35]], wave: [[0.45, 0.65], [0.68, 0.62]],
+  hiroshige: [[0.55, 0.62], [0.25, 0.55]], ssireum: [[0.58, 0.43], [0.18, 0.52]],
+  jumak: [[0.3, 0.62], [0.62, 0.62]], danopungjeong: [[0.63, 0.27], [0.1, 0.08]],
+  babur: [[0.65, 0.35], [0.3, 0.55]], ravivarma: [[0.52, 0.15], [0.55, 0.24]],
+  tortoise: [[0.48, 0.32], [0.3, 0.9]], nebamunpool: [[0.55, 0.47], [0.7, 0.2]],
+  fierro: [[0.45, 0.35], [0.62, 0.32]], election: [[0.62, 0.38], [0.3, 0.62]],
+  furtraders: [[0.65, 0.33], [0.22, 0.48]], peasantdance: [[0.75, 0.55], [0.35, 0.4]],
+  gleaners: [[0.35, 0.45], [0.92, 0.25]], courtyard: [[0.62, 0.45], [0.25, 0.45]],
+  fishmarket: [[0.8, 0.25], [0.42, 0.22]], wedding: [[0.63, 0.32], [0.55, 0.62]],
+  icarus: [[0.45, 0.55], [0.66, 0.82]], cardsharps: [null, null],
+  athens: [[0.48, 0.42], [0.53, 0.42]], harvesters: [[0.48, 0.78], [0.25, 0.7]],
+  gisze: [[0.62, 0.3], [0.4, 0.55]], goldsmith: [[0.53, 0.43], [0.3, 0.25]],
+  babel: [null, [0.5, 0.5]], carnival: [[0.3, 0.75], [0.65, 0.8]],
+  magi: [[0.4, 0.45], [0.92, 0.55]], census: [[0.15, 0.55], [0.55, 0.45]],
+  hare: [[0.55, 0.45], [0.6, 0.42]],
+};
+/** Where the sitter with this name sits in the painting, if we know. */
+export const seatOf = (id: string, who: string): Seat => {
+  const k = castPair(id).findIndex((s) => s.name === who);
+  return k < 0 ? null : SEATS[id]?.[k] ?? null;
+};
+
+export type Line = { who: Sitter; text: string };
+/** One remark and, usually, an answer from the other sitter. */
+export type Exchange = Line[];
+/** [who speaks first: 'a' or 'b', the first line, the other's answer] */
+type Pair = ['a' | 'b', string, string];
+
 const pick = <T,>(xs: T[], seed: number) => xs[Math.abs(seed) % xs.length];
+const play = (painting: string, [first, line, reply]: Pair): Exchange => {
+  const [a, b] = castPair(painting);
+  const one = first === 'a' ? a : b, two = first === 'a' ? b : a;
+  return [{ who: one, text: line }, { who: two, text: reply }];
+};
 
-/** A line for what was just written. `seed` keeps the choice steady for the same lines. */
-export function sitterLine(painting: string, kept: Entry[], all: Entry[], seed: number): Line {
-  const a = castOf(painting), b = second(painting);
+const SAID: Record<string, Pair[]> = {
+  first: [
+    ['b', 'Our first page together. Write it like you mean it.', 'A fresh ledger. They don’t open one of those for just anybody.'],
+    ['b', 'A new book. I always like the first page best.', 'You say that about every book. You mean it every time.'],
+    ['a', 'There. Now the painting knows you.', 'And we’ll be very discreet about it.'],
+  ],
+  both: [
+    ['b', 'Paid, and still you counted the lunch. Restraint.', 'I’m not used to it. I’m writing that down too.'],
+    ['a', 'Money in and money out on the same line. You’d make a fine banker.', 'Don’t encourage this. A stool will be offered next.'],
+    ['b', 'In with one hand, out with the other.', 'That is the whole trade, really. Five hundred years and it hasn’t changed.'],
+  ],
+  in: [
+    ['a', 'Now that is a sound I know. Let me weigh it.', 'Everything gets weighed in here. Even compliments.'],
+    ['a', 'Pay day. The gold in the frame is for you.', 'I was never offered the frame.'],
+    ['a', 'Good coin. I’ll pretend not to be impressed.', 'Look at those hands. Impressed.'],
+  ],
+  night: [
+    ['b', 'Writing by candlelight. So was everyone worth reading.', 'Mind the wax on the ledger.'],
+    ['b', 'Late, but written. That’s what counts.', 'Counting is my job, but yes.'],
+    ['a', 'The candle’s low. Your book isn’t.', 'Go to bed. We’ll keep the page open.'],
+  ],
+  rides: [['b', 'Two rides today. Your feet send their thanks.', 'Somewhere a driver is very fond of you.']],
+  feasts: [['b', 'Third meal out today. I’ll have what you’re having.', 'Still Life with Several Lunches. I’d hang it.']],
+  roof: [
+    ['a', 'Rent. Nobody paints it, everybody pays it.', 'The roof thanks you quietly. Roofs are like that.'],
+    ['a', 'The dull ones are paid. Those are the brave lines.', 'Brave, and nobody claps. We’ll clap.'],
+  ],
+  giving: [
+    ['b', 'Given away. The best money in the book.', 'I’d argue, but you’re right.'],
+    ['b', 'Somebody’s day just got lighter.', 'And the book got a little warmer.'],
+  ],
+  food: [
+    ['b', 'Food for the house. That’s the kind I like to see.', 'A full basket weighs well.'],
+    ['a', 'Groceries. The quiet backbone of every month.', 'Bread first, frames later. Wise.'],
+  ],
+  saved: [
+    ['a', 'Put aside. I’ll keep it warm.', 'You’ll look at it every day, you mean.'],
+    ['a', 'Saved. You’re starting to sound like me.', 'Don’t worry. You’re much better company.'],
+  ],
+  wager: [['b', 'A wager. Fortune is a fickle sitter.', 'Written down, at least. That’s the clever part.']],
+  meal: [
+    ['b', 'Lunch. Painted properly, as all lunches should be.', 'A good meal is never wasted money. Mostly.'],
+    ['a', 'A meal out. The best still lifes are eaten.', 'And the best painters were always hungry.'],
+  ],
+  new: [
+    ['b', 'Something new. I’d like to see it in the light.', 'The question is whether you’ll still love it on Tuesday.'],
+    ['a', 'Bought. Every fine room starts with one fine thing.', 'And then a second. And then a cabinet.'],
+  ],
+  plain: [
+    ['a', 'Written. That’s the hardest part done.', 'And the painting moved. Did you see?'],
+    ['a', 'Another line in the book.', 'A little more of us, every time.'],
+    ['a', 'Noted, weighed, and kept.', 'You make that sound like a poem.'],
+  ],
+};
+
+/** What the sitters say about what was just written. `seed` keeps the choice steady for the same lines. */
+export function sitterLine(painting: string, kept: Entry[], all: Entry[], seed: number): Exchange {
   const ins = kept.filter((e) => e.dir === 'in'), outs = kept.filter((e) => e.dir === 'out');
   const today = all.filter((e) => e.date === kept[0]?.date && e.dir === 'out');
   const has = (...ids: string[]) => outs.some((e) => ids.includes(e.category));
   const h = new Date().getHours();
-  if (all.length === kept.length) return { who: b, text: pick(['Our first page together. Write it like you mean it.', 'A new book. I always like the first page best.', 'There. Now the painting knows you.'], seed) };
-  if (ins.length && outs.length) return { who: b, text: pick(['Paid, and still you counted the lunch. Restraint. I’m not used to it.', 'Money in and money out on the same line. You’d make a fine banker.', 'In with one hand, out with the other. That is the whole trade, really.'], seed) };
-  if (ins.length) return { who: a, text: pick(['Now that is a sound I know. Let me weigh it.', 'Pay day. The gold in the frame is for you.', 'Good coin. I’ll pretend not to be impressed.'], seed) };
-  if (h >= 22 || h < 4) return { who: b, text: pick(['Writing by candlelight. So was everyone worth reading.', 'Late, but written. That’s what counts.', 'The candle’s low. Your book isn’t.'], seed) };
-  if (has('transport') && today.filter((e) => e.category === 'transport').length >= 2) return { who: b, text: pick(['Two rides today. Your feet send their thanks.', 'Somewhere a driver is very fond of you.'], seed) };
-  if (has('dining') && today.filter((e) => e.category === 'dining').length >= 3) return { who: b, text: pick(['Third meal out today. I’ll have what you’re having.', 'Still Life with Several Lunches. I’d hang it.'], seed) };
-  if (has('rent', 'bills')) return { who: a, text: pick(['The dull ones are paid. Those are the brave lines.', 'Rent. Nobody paints it, everybody pays it.', 'Bills settled. The roof thanks you quietly.'], seed) };
-  if (has('giving')) return { who: b, text: pick(['Given away. The best money in the book.', 'Somebody’s day just got lighter.'], seed) };
-  if (has('groceries')) return { who: b, text: pick(['Food for the house. That’s the kind I like to see.', 'A full basket. The milkmaid next door approves.'], seed) };
-  if (has('savings')) return { who: a, text: pick(['Put aside. I’ll keep it warm.', 'Saved. You’re starting to sound like me.'], seed) };
-  if (has('betting')) return { who: b, text: pick(['A wager. The Cardsharps down the hall send their regards.', 'Fortune is a fickle sitter. Written down, at least.'], seed) };
-  if (has('dining')) return { who: b, text: pick(['Lunch. Painted properly, as all lunches should be.', 'A good meal is never wasted money. Mostly.'], seed) };
-  if (has('shopping', 'tech')) return { who: b, text: pick(['Something new. I’d like to see it in the light.', 'Bought. The question is whether you’ll still love it on Tuesday.'], seed) };
-  return { who: a, text: pick(['Written. That’s the hardest part done.', 'Another line in the book. The painting moves.', 'Noted, weighed, and kept.'], seed) };
+  const kind =
+    all.length === kept.length ? 'first'
+    : ins.length && outs.length ? 'both'
+    : ins.length ? 'in'
+    : h >= 22 || h < 4 ? 'night'
+    : has('transport') && today.filter((e) => e.category === 'transport').length >= 2 ? 'rides'
+    : has('dining') && today.filter((e) => e.category === 'dining').length >= 3 ? 'feasts'
+    : has('rent', 'bills') ? 'roof'
+    : has('giving') ? 'giving'
+    : has('groceries') ? 'food'
+    : has('savings') ? 'saved'
+    : has('betting') ? 'wager'
+    : has('dining') ? 'meal'
+    : has('shopping', 'tech') ? 'new'
+    : 'plain';
+  return play(painting, pick(SAID[kind], seed));
+}
+
+// ——— When nobody asked: the sitters notice you arrive, a quiet day, and the last stroke ———
+
+const MOMENTS: Record<string, Pair[]> = {
+  morning: [
+    ['a', 'Morning. The light’s good for counting.', 'One line, and we’ll take it from there.'],
+    ['b', 'You’re early. We’ve only just been dusted.', 'Speak for yourself. I was up at dawn.'],
+  ],
+  afternoon: [
+    ['b', 'Afternoon. We kept your place.', 'Nothing moved. Well, almost nothing.'],
+    ['a', 'Back again. Good. The ledger was getting lonely.', 'Ledgers don’t get lonely. Mostly.'],
+  ],
+  evening: [
+    ['b', 'Evening. The candles are lit.', 'What did today cost? One line is plenty.'],
+    ['a', 'The day’s nearly counted.', 'Nearly. There’s always one more lunch.'],
+  ],
+  night: [
+    ['a', 'Up late. So are we, it seems.', 'Nobody sleeps in here. It’s a painting.'],
+  ],
+  // Back after days away: never a scold. Missing a day costs nothing.
+  away: [
+    ['b', 'There you are. Missing days cost nothing here.', 'The book waited. Books are good at that.'],
+    ['a', 'Welcome back. We kept the colours where you left them.', 'And didn’t touch the ledger. Mostly.'],
+  ],
+  quiet: [
+    ['b', 'A quiet day. Those are the ones I like.', 'Nothing spent is still a line. I’ve weighed it.'],
+    ['a', 'Nothing today? Then nothing it is, written down.', 'The emptiest pages are the calmest.'],
+  ],
+  finished: [
+    ['a', 'That’s the last stroke. We’re in full colour.', 'Hang us somewhere nice. We earned it together.'],
+    ['b', 'Finished. Look at us.', 'Thirty lines, and all that old varnish gone.'],
+  ],
+};
+
+export type Moment = 'morning' | 'afternoon' | 'evening' | 'night' | 'away' | 'quiet' | 'finished';
+export const momentOf = (hour: number): Moment => (hour >= 22 || hour < 5 ? 'night' : hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : 'evening');
+export function sitterMoment(painting: string, moment: Moment, seed: number): Exchange {
+  return play(painting, pick(MOMENTS[moment], seed));
 }

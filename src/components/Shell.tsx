@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react';
+import { useLayoutEffect, useRef, type ReactNode } from 'react';
+import { useReducedMotionConfig } from 'framer-motion';
 import { Icon } from './Icons';
 import { monthLabel } from '../lib/format';
 import { artSrc, NATIVE_TITLE, PAINTINGS } from '../lib/art';
@@ -163,12 +164,49 @@ export function TabBar({ view, setView, className = 'tabbar glass' }: { view: Vi
   );
 }
 
+/** Where the room sign's brush stroke last sat, so the next one can glide from there even when the page is rebuilt.
+ *  A second run for the same room within a moment (React re-running the effect) reuses the earlier starting point. */
+type Spot = { x: number; w: number };
+let lastStroke: { room: string; at: number; spot: Spot; from: Spot | null } | null = null;
+function Stroke({ room }: { room: string }) {
+  const ref = useRef<SVGSVGElement>(null);
+  const calm = useReducedMotionConfig();
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.getAnimations().forEach((a) => a.cancel());
+    const r = el.getBoundingClientRect();
+    const now = performance.now();
+    const again = lastStroke && lastStroke.room === room && now - lastStroke.at < 150;
+    const from = again ? lastStroke!.from : lastStroke?.spot ?? null;
+    lastStroke = { room, at: now, spot: { x: r.left, w: r.width }, from };
+    if (calm || !from || r.width < 1 || (Math.abs(from.x - r.left) < 1 && Math.abs(from.w - r.width) < 1)) return;
+    el.animate(
+      [{ transform: `translateX(${from.x - r.left}px) scaleX(${from.w / r.width})` }, { transform: 'none' }],
+      { duration: 420, easing: 'cubic-bezier(.22, 1.4, .36, 1)' },
+    );
+  }, [calm, room]);
+  return (
+    <svg ref={ref} className="ch-stroke" viewBox="0 0 100 12" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M1.5 7.2C18 4.4 41 3.9 63 5c13 .6 25 1.4 35.5.4l-.4 3.3c-12 1.2-25 .3-38.5.2-20-.1-40 1.7-57.8 1.5z" />
+    </svg>
+  );
+}
+
 /** The Chapter's three rooms, and two ways to look at the month. */
 export function ChapterTabs({ view, setView, onEdition, phone }: { view: View; setView: (v: View) => void; onEdition: () => void; onLiving?: () => void; phone?: boolean }) {
-  const T = ({ v, label }: { v: View; label: string }) => <button role="tab" aria-selected={view === v} className={view === v ? 'on' : ''} onClick={() => setView(v)}>{label}</button>;
+  const rooms: [View, string][] = [['chapter', 'This month'], ['shelf', 'Past chapters'], ...(phone ? ([['collection', 'Gallery'], ['play', 'Play']] as [View, string][]) : [])];
   return (
     <div className="ch-tabs">
-      <div className="ch-seg" role="tablist" aria-label="Chapter"><T v="chapter" label="This month" /><T v="shelf" label="Past chapters" />{phone && <><T v="collection" label="Gallery" /><T v="play" label="Play" /></>}</div>
+      {/* Room signs: the room you're in is underlined by one brush stroke, which glides when you move. */}
+      <div className="ch-seg" role="tablist" aria-label="Chapter">
+        {rooms.map(([v, label]) => (
+          <button key={v} role="tab" aria-selected={view === v} className={view === v ? 'on' : ''} onClick={() => setView(v)}>
+            <span>{label}</span>
+            {view === v && <Stroke room={v} />}
+          </button>
+        ))}
+      </div>
       {(view === 'chapter' || view === 'shelf') && <div className="ch-acts">
         <button onClick={onEdition} title="Your month as a short slideshow, to watch or share"><Icon.play size={12} />Month in review</button>
       </div>}

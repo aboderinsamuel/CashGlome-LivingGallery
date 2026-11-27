@@ -305,32 +305,28 @@ export function readLineInTime(text: string, currency: string): Promise<LineRead
   return Promise.race([readLineOnce(text, currency), late]).finally(() => clearTimeout(timer));
 }
 
-export interface Persona { name: string; role: string; painting: string; artist: string; year: string }
+export interface Persona { name: string; role: string; painting: string; artist: string; year: string; other?: { name: string; role: string } }
 
 /**
- * A line from a sitter in the painting. On the device it may see the person's own words; the cloud only
- * ever sees the kinds of things bought (never sums, never the line itself).
+ * The sitters talk: one remarks on what was written, the other answers. On the device the model may see the
+ * person's own words; the cloud only ever sees the kinds of things bought (never sums, never the line itself).
+ * Returns one or two lines in speaking order.
  */
-export async function sitterSays(p: Persona, line: string, kinds: string[], hint: string): Promise<{ text: string; where: Where } | null> {
+export async function sitterSays(p: Persona, line: string, kinds: string[], hint: string): Promise<{ lines: string[]; where: Where } | null> {
   const m = await load();
   if (!m) return null;
-  const voice = `You are ${p.name}, ${p.role}, a figure in "${p.painting}" by ${p.artist} (${p.year}). The person in front of your painting keeps a money diary and just wrote a line. Answer with ONE short line, at most 18 words, in character: dry, warm and a little funny, the way a friend teases. Never scold, never give financial advice, never mention prices or sums, no emoji, no exclamation marks. Answer in the language the person wrote in. Mood of their week: ${hint}.`;
-  const clean = (s: string) => isEcho(s) ? '' : s.replace(/^["“'\s]+|["”'\s]+$/g, '').replace(/!/g, '.').split('\n')[0].slice(0, 160);
-  const here = async () => { const t = clean((await m.device.generateContent(`${voice}\n\nThey wrote: "${line}"\nYour line:`)).response.text()); return t ? { text: t, where: 'device' as Where } : null; };
-  const there = async () => { const t = clean((await m.cloud.generateContent(`${voice}\n\nThey wrote about: ${kinds.join(', ')}.\nYour line:`)).response.text()); return t ? { text: t, where: 'cloud' as Where } : null; };
+  const b = p.other ?? { name: 'a visitor', role: 'standing nearby' };
+  const voice = `"${p.painting}" by ${p.artist} (${p.year}) hangs in a money diary. Two figures in it talk to each other about the line the person just wrote: ${p.name} (${p.role}) and ${b.name} (${b.role}). Write exactly two lines. Line 1 is what ${p.name} says. Line 2 is ${b.name} answering ${p.name}. Each line at most 16 words, in character: dry, warm and a little funny, the way old friends tease. Never scold or tease about whether the money was well spent, never give financial advice, never mention prices or sums, you are told only the kind of thing they bought, so never name a particular dish, drink or object (say "lunch" or "the market", not "garlic bread"), no emoji, no exclamation marks, no names before the lines, no quotation marks. Answer in the language the person wrote in. Mood of their week: ${hint}.`;
+  // Models like to label lines ("Line 1:", "The Moneylender:", "- "); the labels go, the words stay.
+  const tidy = (s: string) => s.replace(/^\s*(line\s*\d+\s*[:.)-]|[-*\d.)]+\s|(\S+\s){0,4}\S+:\s)/i, '').replace(/^["“'\s]+|["”'\s]+$/g, '').replace(/!/g, '.').slice(0, 160);
+  const clean = (s: string) => (isEcho(s) ? [] : s.split('\n').map(tidy).filter((x) => x.length > 2).slice(0, 2));
+  const here = async () => { const t = clean((await m.device.generateContent(`${voice}\n\nThey wrote: "${line}"\nThe two lines:`)).response.text()); return t.length ? { lines: t, where: 'device' as Where } : null; };
+  const there = async () => { const t = clean((await m.cloud.generateContent(`${voice}\n\nThey wrote about: ${kinds.join(', ')}.\nThe two lines:`)).response.text()); return t.length ? { lines: t, where: 'cloud' as Where } : null; };
   if (quickOnline()) return hybrid(here, there);
   try {
-    if (deviceFirst()) {
-      const r = await onDevice(m.device.generateContent(`${voice}\n\nThey wrote: "${line}"\nYour line:`));
-      const t = clean(r.response.text());
-      if (t) return { text: t, where: 'device' };
-    }
+    if (deviceFirst()) { const r = await onDevice(here()); if (r) return r; }
   } catch (e) { console.warn('[brain] device voice', e); }
-  try {
-    const r = await m.cloud.generateContent(`${voice}\n\nThey wrote about: ${kinds.join(', ')}.\nYour line:`);
-    const t = clean(r.response.text());
-    return t ? { text: t, where: 'cloud' } : null;
-  } catch (e) { console.warn('[brain] cloud voice', e); return null; }
+  try { return await there(); } catch (e) { console.warn('[brain] cloud voice', e); return null; }
 }
 
 export interface PlannedSearch { from?: string; to?: string; dir?: 'in' | 'out' | 'any'; categories?: string[]; search?: string[]; group_by?: string; sort?: string; title?: string }

@@ -72,6 +72,8 @@ export interface Settings {
   sound: boolean;
   calm: boolean;
   theme: 'auto' | 'light' | 'dark';
+  /** Sugar & Velvet (the default), or the original Parchment & Candlelight. */
+  palette?: 'sugar' | 'classic';
   wallpaper: string; // painting id, or 'season'
   reminder: { on: boolean; time: string };
   /** Questions the app can't count itself may go to Florin: undefined until the person decides. */
@@ -112,7 +114,12 @@ export interface State {
   /** The person's own categories (money in and money out), and built-in ones they've hidden. */
   categories?: import('./categories').Category[];
   hiddenCategories?: string[];
+  /** What the sitters said to each other, per month (YYYY-MM): the month's conversation, kept with its chapter. */
+  overheard?: Record<string, Heard[]>;
 }
+
+/** One exchange between the sitters. `at` also identifies it, so Gemini's fresher wording replaces the first. */
+export interface Heard { at: number; painting: string; lines: { who: string; text: string }[]; where?: string; moment?: string }
 
 /** A rotating savings circle: everyone pays in each round, and one member takes the whole pot in turn. */
 export interface Circle {

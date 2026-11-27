@@ -645,3 +645,39 @@
 .sb-done { align-self: stretch; justify-content: center; height: 34px; }
 .sb-body { overflow-y: auto; padding: 22px 28px 30px; min-width: 0; }
 .sb-title { margin: 0 0 18px; font: 400 28px/1.1 var(--serif); letter-spacing: -.015em; color: var(--ink); }
+
+/* ——— The Chapter's rooms as signs on the wall: the room you're in is underlined by one brush stroke, which glides when you move ——— */
+.ch-seg, :root[data-phone] .ch-seg, .ph-main .ch-seg { display: flex !important; align-items: flex-end; gap: 24px; padding: 0 !important; background: none !important; border-radius: 0 !important; box-shadow: inset 0 -1px 0 var(--line) !important; }
+.ch-seg button, .ph-main .ch-seg button { position: relative; flex: none !important; height: 44px !important; padding: 0 1px 8px !important; border-radius: 0 !important; background: none !important; box-shadow: none !important; font: 400 18px/1 var(--serif) !important; letter-spacing: -.01em !important; color: var(--ink-3) !important; white-space: nowrap; transition: color .2s, transform .12s; -webkit-tap-highlight-color: transparent; }
+.ch-seg button:hover { color: var(--ink-2) !important; }
+.ch-seg button.on { color: var(--ink) !important; background: none !important; box-shadow: none !important; }
+.ch-seg button:active { transform: scale(.95); }
+.ch-stroke { position: absolute; left: -5px; bottom: 1px; width: calc(100% + 10px); height: 9px; overflow: visible; fill: var(--sanguine); pointer-events: none; }
+.ph-main .ch-seg { justify-content: space-between; gap: 0; }
+.ph-main .ch-seg button { font-size: 16.5px !important; }
+/* Month in review: a small ticket, the play mark in a sanguine coin. */
+.ch-acts button, .ph-main .ch-acts button { width: auto !important; flex: none !important; height: 34px !important; padding: 0 14px 0 6px !important; gap: 8px !important; border-radius: 17px !important; font: 600 13px var(--grot) !important; }
+.ch-acts button svg { width: 22px; height: 22px; padding: 6px; box-sizing: border-box; border-radius: 50%; background: var(--sanguine); color: var(--paper) !important; }
+.ph-main .ch-acts { width: auto !important; }
+.ph-main .ch-tabs { gap: 12px; padding-bottom: 16px; }
+
+/* ——— Your book: the open page is a raised card with a ribbon at the edge, and it glides to the page you pick ——— */
+.sheet { position: relative; }
+.sb-side .side-item { position: relative; isolation: isolate; flex: none; height: 32px; color: var(--ink-2); background: none !important; transition: color .15s; }
+.sb-side .side-item:hover { color: var(--ink); }
+.sb-side .side-item.on { color: var(--ink); font-weight: 600; }
+.sb-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sb-tint { transition: transform .25s cubic-bezier(.3, 1.6, .5, 1); }
+.sb-side .side-item:hover .sb-tint { transform: translateY(-1px) rotate(-6deg); }
+.sb-sel { position: absolute; inset: 0; z-index: -1; border-radius: 11px; background: var(--card); box-shadow: 0 0 0 1px var(--chip-edge), 0 2px 0 var(--chip-edge), 0 10px 18px -14px rgba(60, 40, 10, .55); }
+.sb-sel::before { content: ''; position: absolute; left: -10px; top: 8px; bottom: 8px; width: 3px; border-radius: 0 3px 3px 0; background: var(--sanguine); }
+/* Close: a round X in the top corner, as well as Done. */
+.sheet-x { position: absolute; top: 14px; right: 14px; z-index: 3; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; color: var(--ink-2); background: var(--fill); transition: background .15s, color .15s, transform .12s; }
+.sheet-x:hover { background: var(--fill-2); color: var(--ink); }
+.sheet-x:active { transform: scale(.9); }
+.sb-head .sheet-x { position: static; flex: none; width: 40px; height: 40px; }
+.sb-title { padding-right: 44px; }
+.sb-side > *, .sb-done { flex-shrink: 0; }
+.sb-done { min-height: 36px; }
+@media (max-width: 860px) { .sheet-nav.sb-side { padding-right: 58px !important; } .sb-sel::before { display: none; } }
+.ch-stroke { transform-origin: 0 50%; }

@@ -15,6 +15,8 @@ import { spotifyCallbackWindow } from './lib/spotify';
 import './lib/install';
 // Folio, the design language, goes last so it sits over every view's own styles.
 import './folio.css';
+// Sugar by day, Velvet by night: the default palette, laid over Folio.
+import './sugar.css';
 
 // The Spotify sign-in window comes back here: it hands the answer to the tab that opened it, and the app isn't drawn.
 if (!spotifyCallbackWindow()) {

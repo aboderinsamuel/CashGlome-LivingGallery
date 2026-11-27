@@ -3,9 +3,9 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { cat } from '../lib/categories';
 import { chapterOf, computeStats, momentsOf, projection, recurringOf, type Stats } from '../lib/analytics';
 import { dayCardOf, paintingOf, restorationOf, PATCHES, type Restoration } from '../lib/art';
-import { ex, money, monthLabel, shiftMonth, todayISO } from '../lib/format';
+import { dateInWords, ex, money, monthLabel, shiftMonth, todayISO } from '../lib/format';
 import { useInView, useStages } from '../lib/inview';
-import type { State } from '../lib/types';
+import type { Heard, State } from '../lib/types';
 import type { Action } from '../lib/store';
 import { Sticker } from '../components/Stickers';
 import { Icon } from '../components/Icons';
@@ -137,6 +137,9 @@ export function Chapter({ state, dispatch, onOpenCategory, onEdition, onWrite, o
 
       {/* ——— Today ——— */}
       {part === 'story' && s.isCurrent && <Today state={state} r={r} calm={calm} onWrite={onWrite} />}
+
+      {/* ——— What the sitters said to each other this month ——— */}
+      {part === 'story' && <Overheard heard={state.overheard?.[state.month] ?? []} title={painting.title} />}
 
       {/* ——— Figures ——— */}
       {part === 'numbers' && !empty && (
@@ -415,6 +418,34 @@ function Moments({ state, s }: { state: State; s: Stats }) {
           </motion.div>
         ))}
       </div>
+    </section>
+  );
+}
+
+/** The month's conversation: every exchange the sitters had, newest first, kept with the chapter. */
+function Overheard({ heard, title }: { heard: Heard[]; title: string }) {
+  const [all, setAll] = useState(false);
+  if (!heard.length) return null;
+  const list = [...heard].reverse();
+  const shown = all ? list : list.slice(0, 4);
+  const when = (at: number) => dateInWords(new Date(at));
+  return (
+    <section className="section overheard">
+      <motion.div className="section-head" {...reveal}>
+        <h2 className="h2">Over<em>heard</em></h2>
+        <p className="body-serif">What the people in {title} said to each other about your month. They talk when you write, and sometimes when you don’t.</p>
+      </motion.div>
+      <ol className="oh-list">
+        {shown.map((h) => (
+          <motion.li key={h.at} {...reveal} className="oh-item">
+            <div className="oh-when">{when(h.at)}</div>
+            {h.lines.map((l, i) => (
+              <p key={i} className={'oh-line' + (i ? ' answer' : '')}><b>{l.who}</b> “{l.text}”</p>
+            ))}
+          </motion.li>
+        ))}
+      </ol>
+      {list.length > 4 && <button className="btn" onClick={() => setAll((x) => !x)}>{all ? 'Fewer' : `All ${list.length} exchanges`}</button>}
     </section>
   );
 }
