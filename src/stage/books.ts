@@ -31,7 +31,8 @@ export function peopleOf(entries: Entry[]): PersonLedger[] {
   for (const e of [...entries].sort((a, b) => (a.date < b.date ? -1 : 1))) {
     const t = ' ' + (e.text || e.label).toLowerCase().replace(/[₦$£€¥₹]?\s?\d[\d,.]*\s*[km]?\b/g, ' ') + ' ';
     let m: RegExpMatchArray | null;
-    if ((m = t.match(/\b(?:lent|lend|loaned|borrow(?:ed)?)\s+(\p{L}+)(?!\s+from)/u)) && !/\bborrow(?:ed)?\s+\p{L}+\s+from\b|\bi borrowed\b|\bborrowed from\b/u.test(t) && e.dir === 'out') add(nameAt(m[1]), e.amount, e);
+    // "lent Ada 5k", "I borrowed my friend 6k" (lending, in many Englishes): only on money that went out.
+    if ((m = t.match(/\b(?:lent|lend|loaned|borrow(?:ed)?)\s+(?:(?:a|an|my|the|our)\s+)?(\p{L}+)\b(?!\s+from)/u)) && !/\bborrow(?:ed)?\s+\p{L}+\s+from\b|\bborrowed from\b/u.test(t) && e.dir === 'out') add(nameAt(m[1]), e.amount, e);
     else if ((m = t.match(/\bborrowed?\s+(?:\p{L}+\s+)?from\s+(\p{L}+)/u)) || (m = t.match(/\b(\p{L}+)\s+(?:lent|loaned|borrowed)\s+me\b/u))) add(nameAt(m[1]), -e.amount, e);
     else if ((m = t.match(/\b(\p{L}+)\s+(?:paid|sent|gave)\s+(?:me\s+)?back\b/u)) || (m = t.match(/\b(\p{L}+)\s+(?:repaid|returned)\b/u))) add(nameAt(m[1]), -e.amount, e);
     else if ((m = t.match(/\b(?:paid|repaid|returned|sent)\s+(\p{L}+)\s+back\b/u)) || (m = t.match(/\b(?:paid back|repaid|returned)\s+(\p{L}+)/u))) add(nameAt(m[1]), e.amount, e);
