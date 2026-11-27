@@ -190,12 +190,14 @@ function Reminder({ state, dispatch }: { state: State; dispatch: (a: Action) => 
 
 function Appearance({ state, dispatch }: { state: State; dispatch: (a: Action) => void }) {
   const t = state.settings.theme ?? 'auto';
-  const Swatch = ({ id, label, bg, fg }: { id: 'auto' | 'light' | 'dark'; label: string; bg: string; fg: string }) => (
+  const pal = state.settings.palette ?? 'sugar';
+  const sugar = pal === 'sugar';
+  const Swatch = ({ id, label, bg, fg, pop = '#B5412B' }: { id: 'auto' | 'light' | 'dark'; label: string; bg: string; fg: string; pop?: string }) => (
     <button onClick={() => dispatch({ type: 'settings', patch: { theme: id } })} style={{ display: 'grid', gap: 8, justifyItems: 'center' }}>
       <span style={{ width: 92, height: 60, borderRadius: 10, background: bg, border: t === id ? '2.5px solid var(--accent)' : '1px solid var(--line)', padding: 8, display: 'grid', gap: 4, alignContent: 'start', boxShadow: 'var(--shadow-1)' }}>
         <span style={{ height: 5, width: '60%', borderRadius: 3, background: fg, opacity: 0.8 }} />
         <span style={{ height: 4, width: '80%', borderRadius: 2, background: fg, opacity: 0.3 }} />
-        <span style={{ height: 14, width: '40%', borderRadius: 4, background: '#B5412B', marginTop: 4 }} />
+        <span style={{ height: 14, width: '40%', borderRadius: 7, background: pop, marginTop: 4 }} />
       </span>
       <span style={{ fontSize: 12, fontWeight: t === id ? 600 : 400 }}>{label}</span>
     </button>
@@ -205,9 +207,26 @@ function Appearance({ state, dispatch }: { state: State; dispatch: (a: Action) =
       <Group>
         <Row label="Appearance">
           <div style={{ display: 'flex', gap: 14 }}>
-            <Swatch id="auto" label="By the hour" bg="linear-gradient(135deg,#EEE6D6 50%,#17120C 50%)" fg="#888" />
-            <Swatch id="light" label="Parchment" bg="#EEE6D6" fg="#2A2016" />
-            <Swatch id="dark" label="Candlelight" bg="#17120C" fg="#EFE5D0" />
+            {sugar ? (
+              <>
+                <Swatch id="auto" label="By the hour" bg="linear-gradient(135deg,#FFF4EF 50%,#150A1B 50%)" fg="#888" pop="#EE4B85" />
+                <Swatch id="light" label="Sugar" bg="#FFF4EF" fg="#2A1330" pop="#EE4B85" />
+                <Swatch id="dark" label="Velvet" bg="#150A1B" fg="#FFF0F6" pop="#FF6FA3" />
+              </>
+            ) : (
+              <>
+                <Swatch id="auto" label="By the hour" bg="linear-gradient(135deg,#EEE6D6 50%,#17120C 50%)" fg="#888" />
+                <Swatch id="light" label="Parchment" bg="#EEE6D6" fg="#2A2016" />
+                <Swatch id="dark" label="Candlelight" bg="#17120C" fg="#EFE5D0" />
+              </>
+            )}
+          </div>
+        </Row>
+        <Row label="Palette" sub={sugar ? 'Sweet pigments: rose madder, Naples yellow, verdigris.' : 'The quiet original: parchment, gold leaf and candlelight.'}>
+          <div className="seg" role="radiogroup" aria-label="Palette" style={{ display: 'inline-flex', padding: 3, gap: 2 }}>
+            {([['sugar', 'Sugar & Velvet'], ['classic', 'Parchment']] as const).map(([id, label]) => (
+              <button key={id} role="radio" aria-checked={pal === id} className={pal === id ? 'on' : ''} onClick={() => dispatch({ type: 'settings', patch: { palette: id } })} style={{ padding: '7px 14px', fontSize: 13, fontWeight: pal === id ? 600 : 500 }}>{label}</button>
+            ))}
           </div>
         </Row>
       </Group>

@@ -34,7 +34,15 @@ Write, See, Ask.
 
 - Read the existing CSS first and extract the real tokens (colours,
   fonts, spacing, radii). Treat them as the design system.
-- Parchment base (#EEE6D6), Old Master paintings as the heroes: Bruegel
+- Palette: "Sugar by day, Velvet by night" is the default (src/sugar.css):
+  the Renaissance with a Rococo sweet tooth, Gen Z playful but never
+  cheap. Blush dotted paper (#FFF4EF) / aubergine velvet (#150A1B),
+  mulberry ink, and candy pigments, each with a fill, a soft wash and a
+  deeper ink shade for small text: rose madder, Naples yellow (butter),
+  verdigris (mint), smalt (lavender). Stickers with white die-cut edges,
+  jelly-bean pills, outlined chat bubbles, bouncy presses. The original
+  Parchment (#EEE6D6) & Candlelight stay as a choosable palette.
+- Old Master paintings are the heroes: Bruegel
   (The Harvesters, Hunters in the Snow, Peasant Wedding, Tower of
   Babel), van Eyck (Arnolfini Portrait), Matsys (The Moneylender and
   His Wife), Caravaggio (The Calling of Saint Matthew), and many others.
@@ -46,8 +54,8 @@ Write, See, Ask.
 - Serif headlines with one italic word ("Your money, painted."),
   museum-label captions (artist, title, year), dates in words
   ("Tuesday, the tenth of November"), a calm and kind voice.
-- Colour comes from the paintings: ochre, umber, lapis, vermilion, gold
-  leaf. Never neon, never red/green guilt charts, no stock gradients,
+- Colour comes from real pigments: rose madder, Naples yellow,
+  verdigris, smalt, ochre, lapis, vermilion, gold leaf. Never neon, never red/green guilt charts, no stock gradients,
   no emoji as icons, no generic card grids.
 - Motion feels physical: varnish lifting, brush strokes, paper, gilt.
 

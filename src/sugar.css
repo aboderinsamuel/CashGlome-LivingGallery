@@ -1,0 +1,280 @@
+/* Sugar by day, Velvet by night: the Renaissance with a Rococo sweet tooth.
+   Every colour is a real old pigment turned up to candy: rose madder, Naples yellow, verdigris, smalt, mulberry ink.
+   Laid over folio.css when the palette is 'sugar' (the default). Parchment & Candlelight stay as they were,
+   chosen in Your book → Appearance. Small text never uses the bright fills: it uses the deeper *-ink shades. */
+
+/* ——— Tokens ——— */
+:root[data-palette='sugar'][data-theme='light'] {
+  --paper: #FFF4EF;
+  --paper-2: #FDE8E6;
+  --sage: #F6E3EA;
+  --card: #FFFFFF;
+  --ink: #2A1330;
+  --ink-2: rgba(42, 19, 48, 0.74);
+  --ink-3: rgba(42, 19, 48, 0.56);
+  --ink-4: rgba(42, 19, 48, 0.16);
+  --line: rgba(42, 19, 48, 0.1);
+  --fill: rgba(42, 19, 48, 0.05);
+  --fill-2: rgba(42, 19, 48, 0.09);
+
+  /* The candy pigments: a bright fill, a soft wash, and an ink shade for text. */
+  --rose: #EE4B85;      --rose-soft: #FFDCE8;   --rose-ink: #C21D5E;
+  --butter: #FFD15C;    --butter-soft: #FFF0C2; --butter-ink: #8A5600;
+  --mint: #5FD0AE;      --mint-soft: #D3F4E9;   --mint-ink: #0B7356;
+  --smalt: #8B7BFF;     --smalt-soft: #E7E2FF;  --smalt-ink: #5444D6;
+  --peach: #FFA57A;     --peach-soft: #FFE3D3;
+  --sticker: #FFFFFF;
+  --dot: rgba(238, 75, 133, 0.17);
+  --plum-shadow: rgba(120, 30, 80, 0.32);
+
+  /* The old names, re-pigmented, so every view that already uses them turns sweet. */
+  --gold: #9A5F00;
+  --gold-2: var(--butter);
+  --lapis: var(--smalt-ink);
+  --vermilion: var(--rose-ink);
+  --sanguine: var(--rose-ink);
+  --ochre: #D9900F;
+  --umber: #5A3A55;
+  --accent: var(--rose-ink);
+  --accent-ink: #FFFFFF;
+  --accent-soft: var(--rose-soft);
+  --green: var(--mint-ink);
+  --green-soft: var(--mint-soft);
+  --rust: var(--rose-ink);
+  --stamp: #2A1330;
+  --stamp-ink: #FFF4EF;
+  --stamp-edge: var(--rose);
+  --wax: var(--rose);
+  --wax-edge: #B8245C;
+  --wax-ink: #FFFFFF;
+  --leaf: var(--rose);
+  --leaf-ink: #FFFFFF;
+  --metal: #F5C04A;
+  --metal-ink: #5A3A00;
+  --metal-line: rgba(90, 58, 0, 0.5);
+  --chip-edge: rgba(42, 19, 48, 0.14);
+  --laid: transparent;
+  --glass: rgba(255, 250, 248, 0.72);
+  --glass-strong: rgba(255, 250, 248, 0.9);
+  --glass-stroke: rgba(42, 19, 48, 0.08);
+  --glass-hi: rgba(255, 255, 255, 0.9);
+  --hair: rgba(42, 19, 48, 0.12);
+  --hair-hi: rgba(255, 255, 255, 0.8);
+  --field: rgba(42, 19, 48, 0.045);
+  --shadow-1: 0 1px 2px rgba(120, 30, 80, 0.06), 0 8px 22px -10px rgba(120, 30, 80, 0.2);
+  --shadow-2: 0 2px 6px rgba(120, 30, 80, 0.06), 0 26px 60px -20px rgba(120, 30, 80, 0.36);
+  --pop-shadow: 0 0 0 0.5px rgba(42, 19, 48, 0.08), 0 10px 30px -6px rgba(120, 30, 80, 0.2), 0 40px 80px -30px rgba(120, 30, 80, 0.3);
+  color-scheme: light;
+}
+:root[data-palette='sugar'][data-theme='dark'] {
+  --paper: #150A1B;
+  --paper-2: #1D1026;
+  --sage: #2E1A3B;
+  --card: #251431;
+  --ink: #FFF0F6;
+  --ink-2: rgba(255, 240, 246, 0.78);
+  --ink-3: rgba(255, 240, 246, 0.56);
+  --ink-4: rgba(255, 240, 246, 0.16);
+  --line: rgba(255, 240, 246, 0.1);
+  --fill: rgba(255, 240, 246, 0.06);
+  --fill-2: rgba(255, 240, 246, 0.11);
+
+  --rose: #FF6FA3;      --rose-soft: #5C1F4A;   --rose-ink: #FF8DB7;
+  --butter: #FFD15C;    --butter-soft: #4D3A12; --butter-ink: #FFD15C;
+  --mint: #7FE3C4;      --mint-soft: #134A3C;   --mint-ink: #8DEBCD;
+  --smalt: #A89BFF;     --smalt-soft: #352A6E;  --smalt-ink: #B9AEFF;
+  --peach: #FFB08A;     --peach-soft: #43241A;
+  --sticker: #FBE9F1;
+  --dot: rgba(255, 111, 163, 0.13);
+  --plum-shadow: rgba(0, 0, 0, 0.6);
+
+  --gold: #FFD15C;
+  --gold-2: #FFE08C;
+  --lapis: var(--smalt-ink);
+  --vermilion: var(--rose);
+  --sanguine: var(--rose);
+  --ochre: #FFC14D;
+  --umber: #C9A6C0;
+  --accent: var(--rose-ink);
+  --accent-ink: #1A0B20;
+  --accent-soft: rgba(255, 111, 163, 0.16);
+  --green: var(--mint-ink);
+  --green-soft: var(--mint-soft);
+  --rust: var(--rose);
+  --stamp: #FFF0F6;
+  --stamp-ink: #1A0B20;
+  --stamp-edge: var(--rose);
+  --wax: var(--rose);
+  --wax-edge: #A81F55;
+  --wax-ink: #1A0B20;
+  --leaf: var(--rose);
+  --leaf-ink: #1A0B20;
+  --metal: #F5C04A;
+  --metal-ink: #3A2400;
+  --metal-line: rgba(58, 36, 0, 0.6);
+  --chip-edge: rgba(255, 240, 246, 0.16);
+  --laid: transparent;
+  --glass: rgba(37, 20, 49, 0.72);
+  --glass-strong: rgba(37, 20, 49, 0.9);
+  --glass-stroke: rgba(255, 240, 246, 0.09);
+  --glass-hi: rgba(255, 255, 255, 0.08);
+  --hair: rgba(255, 240, 246, 0.12);
+  --hair-hi: rgba(255, 255, 255, 0.1);
+  --field: rgba(255, 240, 246, 0.06);
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -8px rgba(0, 0, 0, 0.5);
+  --shadow-2: 0 2px 6px rgba(0, 0, 0, 0.3), 0 30px 70px -20px rgba(0, 0, 0, 0.7);
+  --pop-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.6), 0 10px 30px -6px rgba(0, 0, 0, 0.5), 0 40px 80px -30px rgba(0, 0, 0, 0.7);
+  color-scheme: dark;
+}
+
+/* ——— Paper: a sketchbook, dotted, not laid ——— */
+:root[data-palette='sugar'] .app, :root[data-palette='sugar'] .ph-app, :root[data-palette='sugar'] body {
+  background-color: var(--paper);
+  background-image: radial-gradient(var(--dot) 1.1px, transparent 1.4px);
+  background-size: 18px 18px;
+}
+:root[data-palette='sugar'] .edge { background: linear-gradient(var(--paper) 35%, transparent); }
+
+/* ——— The stamp, the wax, the chips: candy you can press ——— */
+:root[data-palette='sugar'] :is(.stamp, .btn.primary, .btn.gold, .btn.ink, .ph-btn.gilt, .cats-new, .cats-btns .gilt, .acc-add button, .sheet-done, .notice-do) {
+  box-shadow: 0 3px 0 var(--stamp-edge), 0 12px 20px -14px var(--plum-shadow) !important;
+}
+:root[data-palette='sugar'] :is(.wax, .send, .ar-box button) {
+  border-radius: 999px !important;
+  box-shadow: 0 2px 0 var(--wax-edge), inset 0 2px 0 rgba(255, 255, 255, 0.35) !important;
+}
+:root[data-palette='sugar'] :is(.wax, .send, .ar-box button):not(:disabled):active { transform: translateY(2px) scale(0.92) !important; box-shadow: 0 0 0 var(--wax-edge) !important; }
+:root[data-palette='sugar'] .send:disabled { box-shadow: none !important; }
+
+/* Chips are jelly beans: no edges, a soft wash of one pigment each, in turn. */
+:root[data-palette='sugar'] :is(.chip, .ph-chip, .td-chips button, .ch-acts button) {
+  border: 0 !important; border-radius: 999px !important; box-shadow: none !important;
+  background: var(--rose-soft) !important; color: var(--ink) !important;
+  transition: transform 140ms cubic-bezier(.3, 1.6, .5, 1) !important;
+}
+:root[data-palette='sugar'] :is(.ph-chip, .td-chips button, .ch-acts button):nth-child(4n+2) { background: var(--mint-soft) !important; }
+:root[data-palette='sugar'] :is(.ph-chip, .td-chips button, .ch-acts button):nth-child(4n+3) { background: var(--butter-soft) !important; }
+:root[data-palette='sugar'] :is(.ph-chip, .td-chips button, .ch-acts button):nth-child(4n+4) { background: var(--smalt-soft) !important; }
+:root[data-palette='sugar'] :is(.chip, .ph-chip, .td-chips button, .ch-acts button):not(:disabled):active { transform: scale(0.94) !important; box-shadow: none !important; }
+:root[data-palette='sugar'] .ph-chip { font-weight: 600; }
+:root[data-palette='sugar'] .ph-chip:not(.usual) { font-weight: 400; color: var(--ink) !important; }
+:root[data-palette='sugar'] :is(.ch-acts, .td-chips) button svg { color: var(--rose-ink) !important; }
+
+/* Segmented controls: a white bean on a soft tray. */
+:root[data-palette='sugar'] :is(.seg, .ch-seg, .cats-seg) { border-radius: 999px !important; }
+:root[data-palette='sugar'] :is(.seg, .ch-seg, .cats-seg) button.on { border-radius: 999px !important; box-shadow: 0 2px 6px -2px var(--plum-shadow) !important; }
+
+/* ——— Phone: top bar and the floating tab bar ——— */
+:root[data-palette='sugar'] :is(.ph-music, .ph-book) {
+  background: var(--card) !important; border: 0 !important; border-radius: 999px !important;
+  box-shadow: 0 0 0 1.5px var(--ink), 0 3px 0 var(--ink) !important;
+}
+:root[data-palette='sugar'] .ph-music svg { color: var(--rose-ink) !important; }
+:root[data-palette='sugar'] .ph-top { background-color: transparent; }
+:root[data-palette='sugar'] .ph-app[data-scrolled] .ph-top { background-color: color-mix(in srgb, var(--paper) 90%, transparent); }
+:root[data-palette='sugar'] .ph-book-face { background: var(--butter) !important; color: #2A1330 !important; box-shadow: none !important; }
+:root[data-palette='sugar'] :is(.ph-music, .ph-book):not(:disabled):active { transform: translateY(2px); box-shadow: 0 0 0 1.5px var(--ink), 0 1px 0 var(--ink) !important; }
+
+:root[data-palette='sugar'] .ph-tabs {
+  height: 60px; margin: 2px 12px calc(8px + env(safe-area-inset-bottom)); padding: 0 4px;
+  border: 0; border-radius: 26px; background: var(--card);
+  box-shadow: 0 0 0 1px var(--line), 0 14px 30px -16px var(--plum-shadow);
+}
+:root[data-palette='sugar'] .ph-tabs button { color: var(--ink-3); }
+:root[data-palette='sugar'] .ph-tabs button.on { color: var(--rose-ink) !important; }
+:root[data-palette='sugar'] .ph-tabs button.on::after { display: none !important; }
+:root[data-palette='sugar'] .ph-tabs button svg { transition: background-color .25s ease, color .25s ease, transform .35s cubic-bezier(.3, 1.6, .5, 1); }
+:root[data-palette='sugar'] .ph-tabs button.on svg { background: var(--rose-soft) !important; color: var(--rose-ink) !important; transform: translateY(-1px) scale(1.04); }
+
+/* ——— The writing bar: a fat pill with a sticker's outline; send is a rose jelly bean ——— */
+:root[data-palette='sugar'] .composer {
+  background: var(--card) !important; border: 0 !important;
+  box-shadow: 0 0 0 1.5px var(--ink), 0 4px 0 var(--ink) !important;
+  transition: box-shadow .2s ease !important;
+}
+:root[data-palette='sugar'] .composer:focus-within { box-shadow: 0 0 0 2px var(--rose), 0 4px 0 var(--rose) !important; }
+:root[data-palette='sugar'] .composer.listening { box-shadow: 0 0 0 2px var(--rose), 0 4px 0 var(--rose), 0 0 0 8px var(--rose-soft) !important; }
+:root[data-palette='sugar'] .cmp-input { caret-color: var(--rose) !important; }
+
+/* Notices: a white card that floats, not a glass smear. */
+:root[data-palette='sugar'] .notice { background: var(--card) !important; border: 0 !important; box-shadow: 0 0 0 1px var(--line), 0 14px 30px -14px var(--plum-shadow) !important; }
+:root[data-palette='sugar'] .notice-undo { color: var(--rose-ink) !important; }
+
+/* ——— Desktop: the sidebar ——— */
+:root[data-palette='sugar'] .side-item.place.on { background: var(--rose-soft) !important; color: var(--rose-ink) !important; border-radius: 999px !important; }
+:root[data-palette='sugar'] .side-item.place.on::before { display: none; }
+:root[data-palette='sugar'] .side-item.place { border-radius: 999px !important; }
+:root[data-palette='sugar'] .side-item .count.new { background: var(--rose); color: #fff; }
+
+/* ——— Today ——— */
+/* The glow behind the painting: blush and butter instead of candle-gold. */
+:root[data-palette='sugar'] .td-light {
+  background:
+    radial-gradient(520px 420px at 22% 36%, color-mix(in srgb, var(--rose) 13%, transparent), transparent 72%),
+    radial-gradient(420px 360px at 70% 18%, color-mix(in srgb, var(--butter) 16%, transparent), transparent 75%);
+}
+:root[data-palette='sugar'] .td-light::after { display: none; }
+
+/* The date: a butter sticker, stuck on a little crooked. */
+:root[data-palette='sugar'] .td-kicker {
+  display: inline-block; padding: 5px 11px 4px; border-radius: 999px; transform: rotate(-1.6deg);
+  background: var(--butter); color: #2A1330 !important; font-size: 10.5px; letter-spacing: .08em;
+  box-shadow: 0 2px 0 rgba(42, 19, 48, 0.18);
+}
+:root[data-palette='sugar'] :is(.td-head h1 i, .td-h h2 i, .display em, .h2 em, .book-title i) { color: var(--rose) !important; }
+
+/* The painting: a die-cut sticker with a white edge, slightly tilted; it straightens when you reach for it. */
+:root[data-palette='sugar'] .td-plate {
+  padding: 7px; border-radius: 20px; background: var(--sticker) !important;
+  box-shadow: 0 0 0 1px var(--chip-edge), 0 26px 46px -22px var(--plum-shadow) !important;
+  transform: rotate(-1.2deg); transition: transform .45s cubic-bezier(.3, 1.5, .5, 1), box-shadow .3s ease;
+}
+:root[data-palette='sugar'] .td-plate:hover { transform: rotate(0deg) translateY(-3px) scale(1.01); }
+:root[data-palette='sugar'] .td-plate:active { transform: rotate(0deg) scale(0.985); opacity: 1; }
+:root[data-palette='sugar'] .td-plate > :first-child { border-radius: 14px; box-shadow: none; }
+:root[data-palette='sugar'] .td-plate .plate { border-radius: 14px; box-shadow: none; background: linear-gradient(120deg, var(--rose-soft), var(--butter-soft) 45%, var(--rose-soft) 60%, var(--smalt-soft)); background-size: 300% 100%; }
+@container (max-width: 760px) { :root[data-palette='sugar'] .td-plate { padding: 5px; border-radius: 14px; } :root[data-palette='sugar'] .td-plate .plate, :root[data-palette='sugar'] .td-plate > :first-child { border-radius: 10px; } }
+
+/* Thirty strokes as a string of candy beads. */
+:root[data-palette='sugar'] .td-patches { gap: 3px; }
+:root[data-palette='sugar'] .td-patches b { height: 8px; border-radius: 99px; background: var(--fill-2); }
+:root[data-palette='sugar'] .td-patches b.on:nth-child(4n+1) { background: var(--rose); }
+:root[data-palette='sugar'] .td-patches b.on:nth-child(4n+2) { background: var(--butter); }
+:root[data-palette='sugar'] .td-patches b.on:nth-child(4n+3) { background: var(--mint); }
+:root[data-palette='sugar'] .td-patches b.on:nth-child(4n+4) { background: var(--smalt); }
+:root[data-palette='sugar'] :is(.td-count, .td-label-card .td-count) { color: var(--rose-ink) !important; font-weight: 600; }
+
+/* The money: big, with a highlighter swipe under it. */
+:root[data-palette='sugar'] .td-big {
+  width: fit-content; padding: 0 .08em; border-radius: .06em;
+  background: linear-gradient(transparent 56%, var(--butter) 56%, var(--butter) 90%, transparent 90%);
+}
+:root[data-palette='sugar'][data-theme='dark'] .td-big { background: linear-gradient(transparent 58%, color-mix(in srgb, var(--rose) 78%, var(--paper)) 58%, color-mix(in srgb, var(--rose) 78%, var(--paper)) 90%, transparent 90%); }
+:root[data-palette='sugar'] .td-label { color: var(--ink-3); }
+:root[data-palette='sugar'] :is(.td-link, .ph-link) { color: var(--rose-ink) !important; font-weight: 600; background-image: linear-gradient(var(--rose), var(--rose)) !important; }
+:root[data-palette='sugar'] .td-page .a.in { color: var(--mint-ink); }
+
+/* The sitters: a chat bubble with a sticker outline. */
+:root[data-palette='sugar'] .td-voice {
+  background: var(--card); color: var(--ink); border-radius: 22px 22px 22px 6px; padding: 12px 16px;
+  box-shadow: 0 0 0 1.5px var(--ink), 0 4px 0 var(--ink);
+}
+:root[data-palette='sugar'] .td-voice .who { color: var(--rose-ink); }
+:root[data-palette='sugar'] .td-voice .who span, :root[data-palette='sugar'] .td-voice .where { color: var(--ink-3); }
+:root[data-palette='sugar'] .td-say + .td-say { border-left: 2px solid var(--smalt); }
+:root[data-palette='sugar'] .td-say.answer .who { color: var(--smalt-ink); }
+
+/* The one speaking: a white sticker ring with a rose glow. */
+:root[data-palette='sugar'] .plate-seat { border: 2.5px solid #FFFFFF; box-shadow: 0 0 0 1.5px var(--rose), 0 0 18px 4px color-mix(in srgb, var(--rose) 55%, transparent); }
+
+/* Rows on the ledger page. */
+:root[data-palette='sugar'] .td-rows li button { border-radius: 14px; }
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-palette='sugar'] .td-plate { transform: none; transition: none; }
+  :root[data-palette='sugar'] .ph-tabs button svg { transition: none; transform: none; }
+}
+
+/* The slip that unfolds the bubble clips: give the sticker outline and its drop room inside it. */
+:root[data-palette='sugar'] .td-voice-fold { padding: 2px 2px 6px; margin: 0 -2px; }
+:root[data-palette='sugar'] .td-voice { margin-top: 10px; margin-bottom: 12px; }

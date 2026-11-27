@@ -115,10 +115,13 @@ export default function App() {
   const [candle, setCandle] = useState(evening);
   useEffect(() => { const t = setInterval(() => setCandle(evening()), 60_000); return () => clearInterval(t); }, []);
   const theme = state.settings.theme === 'auto' || !state.settings.theme ? (candle ? 'dark' : 'light') : state.settings.theme;
+  const palette = state.settings.palette ?? 'sugar';
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'dark' ? '#17120C' : '#EEE6D6');
-  }, [theme, phone]);
+    document.documentElement.dataset.palette = palette;
+    const bar = palette === 'sugar' ? (theme === 'dark' ? '#150A1B' : '#FFF4EF') : (theme === 'dark' ? '#17120C' : '#EEE6D6');
+    document.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.setAttribute('content', bar));
+  }, [theme, palette, phone]);
   useEffect(() => setSound(state.settings.sound), [state.settings.sound]);
   // Back from Spotify's sign-in page (web): finish linking, then show the Music pane.
   useEffect(() => { finishSpotifyLink().then((ok) => ok && setMusic(true)).catch(() => setMusic(true)); }, []);
@@ -662,7 +665,7 @@ export default function App() {
       { label: 'Chapter', kbd: kbd('5'), checked: view === 'chapter', action: goView('chapter') },
       { label: 'Gallery', checked: view === 'collection', action: goView('collection') },
       'sep',
-      ...(['auto', 'light', 'dark'] as const).map((t) => ({ label: t === 'auto' ? 'By the hour' : t === 'light' ? 'Parchment' : 'Candlelight', checked: (state.settings.theme ?? 'auto') === t, action: () => dispatch({ type: 'settings', patch: { theme: t } }) })),
+      ...(['auto', 'light', 'dark'] as const).map((t) => ({ label: t === 'auto' ? 'By the hour' : t === 'light' ? (palette === 'sugar' ? 'Sugar' : 'Parchment') : (palette === 'sugar' ? 'Velvet' : 'Candlelight'), checked: (state.settings.theme ?? 'auto') === t, action: () => dispatch({ type: 'settings', patch: { theme: t } }) })),
     ] },
     { title: 'Chapter', items: [
       { label: 'Previous month', kbd: kbd('['), action: () => setMonth(shiftMonth(state.month, -1)) },

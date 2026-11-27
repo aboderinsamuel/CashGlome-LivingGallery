@@ -72,6 +72,8 @@ export interface Settings {
   sound: boolean;
   calm: boolean;
   theme: 'auto' | 'light' | 'dark';
+  /** Sugar & Velvet (the default), or the original Parchment & Candlelight. */
+  palette?: 'sugar' | 'classic';
   wallpaper: string; // painting id, or 'season'
   reminder: { on: boolean; time: string };
   /** Questions the app can't count itself may go to Florin: undefined until the person decides. */
