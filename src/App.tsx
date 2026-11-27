@@ -115,7 +115,7 @@ export default function App() {
   const [candle, setCandle] = useState(evening);
   useEffect(() => { const t = setInterval(() => setCandle(evening()), 60_000); return () => clearInterval(t); }, []);
   const theme = state.settings.theme === 'auto' || !state.settings.theme ? (candle ? 'dark' : 'light') : state.settings.theme;
-  const palette = state.settings.palette ?? 'sugar';
+  const palette = state.settings.palette ?? 'classic';
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
     document.documentElement.dataset.palette = palette;

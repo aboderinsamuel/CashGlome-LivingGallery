@@ -1,5 +1,5 @@
 import { useEffect, useReducer } from 'react';
-import { applyCategories } from './categories';
+import { applyCategories, tintCategories } from './categories';
 import { monthOf, todayISO, uid } from './format';
 import type { Entry, Goal, Memory, Parsed, RoutineMark, Settings, State } from './types';
 
@@ -185,6 +185,7 @@ export function reducer(s: State, a: Action): State {
 export function useGlomeStore() {
   const [state, dispatch] = useReducer(reducer, undefined, load);
   // Your own categories join the shared list before anything below reads it.
+  tintCategories(state.settings.palette ?? 'classic');
   applyCategories(state.categories, state.hiddenCategories);
   useEffect(() => {
     const t = setTimeout(() => {

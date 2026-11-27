@@ -87,14 +87,35 @@ export const PIGMENTS: { name: string; color: string; ink: string }[] = [
 ];
 
 const BUILT_IN = CATEGORIES.slice();
+/** The same categories in Sugar & Velvet: each pigment turned up to candy, keeping its hue, ink chosen for contrast. */
+const D = '#2A1330', W = '#FFFFFF';
+const SUGAR: Record<string, [string, string]> = {
+  dining: ['#FF7A59', D], groceries: ['#8FD694', D], transport: ['#FFD15C', D], travel: ['#8EC5FF', D],
+  bills: ['#FFE3B3', D], rent: ['#FFB4A2', D], subscriptions: ['#C66BFF', D], shopping: ['#FF5CA8', D],
+  tech: ['#5B5BD6', W], fun: ['#FF9ECF', D], betting: ['#2A1330', W], health: ['#7FE3C4', D],
+  selfcare: ['#FFC2D9', D], education: ['#4FB8C9', D], giving: ['#FFB347', D], savings: ['#34B38A', D],
+  debt: ['#B9A9CC', D], business: ['#E8C28E', D], other: ['#E9DDE6', D],
+  salary: ['#6C5CE7', W], trade: ['#2EC4A0', D], craft: ['#FF7A59', D], blessing: ['#FF9ECF', D],
+  harvest: ['#C8E06B', D], refund: ['#8EC5FF', D], windfall: ['#FFD15C', D],
+};
+let tone: 'sugar' | 'classic' = 'classic';
 let applied = '';
+/** Sets which palette the built-in categories are painted in. Call before drawing; cheap when unchanged. */
+export function tintCategories(p: 'sugar' | 'classic') {
+  if (p === tone) return;
+  tone = p;
+  const key = applied; applied = '';
+  const [custom, hidden] = key ? (JSON.parse(key) as [Category[], string[]]) : [[], []];
+  applyCategories(custom, hidden);
+}
 /** Brings the person's own categories and hidden ones into the shared list, in place, so every reader sees them. */
 export function applyCategories(custom: Category[] = [], hidden: string[] = []) {
   const key = JSON.stringify([custom, hidden]);
   if (key === applied) return;
   applied = key;
   const hide = new Set(hidden);
-  const next = [...BUILT_IN.map((c) => ({ ...c, hidden: hide.has(c.id) || undefined })), ...custom.map((c) => ({ ...c, custom: true, hidden: hide.has(c.id) || undefined }))];
+  const tinted = (c: Category): Category => (tone === 'sugar' && SUGAR[c.id] ? { ...c, color: SUGAR[c.id][0], ink: SUGAR[c.id][1] } : c);
+  const next = [...BUILT_IN.map((c) => ({ ...tinted(c), hidden: hide.has(c.id) || undefined })), ...custom.map((c) => ({ ...c, custom: true, hidden: hide.has(c.id) || undefined }))];
   // Within each direction: your own first, then the built-in ones, and the catch-alls
   // ("Everything else", "Other income") last.
   const rank = (c: Category) => (c.id === 'other' || c.id === 'windfall' ? 2 : c.custom ? 0 : 1);

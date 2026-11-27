@@ -32,7 +32,7 @@ const PANES: { id: Pane; label: string; sub: string; icon: ReactNode; tint: stri
 // Backup & account appears only where this copy has a sync service to back up to.
 const SHOWN = PANES.filter((p) => p.id !== 'account' || cloudConfigured);
 const GROUPS = [...new Set(SHOWN.map((p) => p.group))];
-const Tint = ({ p }: { p: (typeof PANES)[number] }) => <span className="sb-tint" style={{ background: p.tint }}>{p.icon}</span>;
+const Tint = ({ p }: { p: (typeof PANES)[number] }) => <span className="sb-tint" data-pane={p.id} style={{ background: p.tint }}>{p.icon}</span>;
 
 /**
  * Your book. On a computer: the groups down the side, the page beside them. On a phone: the groups as one list,
@@ -58,7 +58,7 @@ export function SettingsSheet({ state, dispatch, close, initial, onOpenMusic }: 
             {listing
               ? <div className="book-title">Your <i>book</i></div>
               : <button className="sb-back" onClick={() => { setListing(true); body.current?.scrollTo(0, 0); }}><Icon.left size={18} />Your book</button>}
-            <button className="sheet-done" onClick={close}>Done</button>
+            <button className="sheet-x" onClick={close} aria-label="Close Your book" title="Close"><Icon.close size={18} /></button>
           </header>
         ) : (
           <nav className="sheet-nav sb-side">
@@ -68,7 +68,8 @@ export function SettingsSheet({ state, dispatch, close, initial, onOpenMusic }: 
                 <div className="side-label">{g}</div>
                 {SHOWN.filter((p) => p.group === g).map((p) => (
                   <button key={p.id} className={'side-item' + (pane === p.id ? ' on' : '')} onClick={() => go(p.id)} aria-current={pane === p.id ? 'page' : undefined}>
-                    <Tint p={p} />{p.label}
+                    {pane === p.id && <motion.span layoutId="sb-sel" className="sb-sel" transition={{ type: 'spring', stiffness: 460, damping: 36 }} />}
+                    <Tint p={p} /><span className="sb-label">{p.label}</span>
                   </button>
                 ))}
               </div>
@@ -77,6 +78,7 @@ export function SettingsSheet({ state, dispatch, close, initial, onOpenMusic }: 
             <button className="btn sb-done" onClick={close}>Done</button>
           </nav>
         )}
+        {!phone && <button className="sheet-x" onClick={close} aria-label="Close Your book" title="Close (Esc)"><Icon.close size={18} /></button>}
         <div ref={body} className="sb-body">
           {phone && listing ? (
             GROUPS.map((g) => (
@@ -190,7 +192,7 @@ function Reminder({ state, dispatch }: { state: State; dispatch: (a: Action) => 
 
 function Appearance({ state, dispatch }: { state: State; dispatch: (a: Action) => void }) {
   const t = state.settings.theme ?? 'auto';
-  const pal = state.settings.palette ?? 'sugar';
+  const pal = state.settings.palette ?? 'classic';
   const sugar = pal === 'sugar';
   const Swatch = ({ id, label, bg, fg, pop = '#B5412B' }: { id: 'auto' | 'light' | 'dark'; label: string; bg: string; fg: string; pop?: string }) => (
     <button onClick={() => dispatch({ type: 'settings', patch: { theme: id } })} style={{ display: 'grid', gap: 8, justifyItems: 'center' }}>
@@ -224,7 +226,7 @@ function Appearance({ state, dispatch }: { state: State; dispatch: (a: Action) =
         </Row>
         <Row label="Palette" sub={sugar ? 'Sweet pigments: rose madder, Naples yellow, verdigris.' : 'The quiet original: parchment, gold leaf and candlelight.'}>
           <div className="seg" role="radiogroup" aria-label="Palette" style={{ display: 'inline-flex', padding: 3, gap: 2 }}>
-            {([['sugar', 'Sugar & Velvet'], ['classic', 'Parchment']] as const).map(([id, label]) => (
+            {([['classic', 'Parchment'], ['sugar', 'Sugar & Velvet']] as const).map(([id, label]) => (
               <button key={id} role="radio" aria-checked={pal === id} className={pal === id ? 'on' : ''} onClick={() => dispatch({ type: 'settings', patch: { palette: id } })} style={{ padding: '7px 14px', fontSize: 13, fontWeight: pal === id ? 600 : 500 }}>{label}</button>
             ))}
           </div>

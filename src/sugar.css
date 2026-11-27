@@ -1,6 +1,6 @@
 /* Sugar by day, Velvet by night: the Renaissance with a Rococo sweet tooth.
    Every colour is a real old pigment turned up to candy: rose madder, Naples yellow, verdigris, smalt, mulberry ink.
-   Laid over folio.css when the palette is 'sugar' (the default). Parchment & Candlelight stay as they were,
+   Laid over folio.css when the palette is 'sugar'. Parchment & Candlelight are the default,
    chosen in Your book → Appearance. Small text never uses the bright fills: it uses the deeper *-ink shades. */
 
 /* ——— Tokens ——— */
@@ -28,7 +28,7 @@
   --plum-shadow: rgba(120, 30, 80, 0.32);
 
   /* The old names, re-pigmented, so every view that already uses them turns sweet. */
-  --gold: #9A5F00;
+  --gold: #B35C00;
   --gold-2: var(--butter);
   --lapis: var(--smalt-ink);
   --vermilion: var(--rose-ink);
@@ -158,11 +158,11 @@
 :root[data-palette='sugar'] :is(.chip, .ph-chip, .td-chips button, .ch-acts button):not(:disabled):active { transform: scale(0.94) !important; box-shadow: none !important; }
 :root[data-palette='sugar'] .ph-chip { font-weight: 600; }
 :root[data-palette='sugar'] .ph-chip:not(.usual) { font-weight: 400; color: var(--ink) !important; }
-:root[data-palette='sugar'] :is(.ch-acts, .td-chips) button svg { color: var(--rose-ink) !important; }
+:root[data-palette='sugar'] .td-chips button svg { color: var(--rose-ink) !important; }
 
 /* Segmented controls: a white bean on a soft tray. */
-:root[data-palette='sugar'] :is(.seg, .ch-seg, .cats-seg) { border-radius: 999px !important; }
-:root[data-palette='sugar'] :is(.seg, .ch-seg, .cats-seg) button.on { border-radius: 999px !important; box-shadow: 0 2px 6px -2px var(--plum-shadow) !important; }
+:root[data-palette='sugar'] :is(.seg, .cats-seg) { border-radius: 999px !important; }
+:root[data-palette='sugar'] :is(.seg, .cats-seg) button.on { border-radius: 999px !important; box-shadow: 0 2px 6px -2px var(--plum-shadow) !important; }
 
 /* ——— Phone: top bar and the floating tab bar ——— */
 :root[data-palette='sugar'] :is(.ph-music, .ph-book) {
@@ -278,3 +278,128 @@
 /* The slip that unfolds the bubble clips: give the sticker outline and its drop room inside it. */
 :root[data-palette='sugar'] .td-voice-fold { padding: 2px 2px 6px; margin: 0 -2px; }
 :root[data-palette='sugar'] .td-voice { margin-top: 10px; margin-bottom: 12px; }
+
+/* ═══════════════ Phase 2: every other room ═══════════════ */
+
+/* ——— Paintings everywhere: the die-cut sticker frame, not a gilt slip ——— */
+:root[data-palette='sugar'] .ph-plate {
+  background: var(--sticker) !important; border-radius: 18px;
+  box-shadow: 0 0 0 1px var(--chip-edge), 0 22px 40px -22px var(--plum-shadow) !important;
+}
+:root[data-palette='sugar'] .ph-plate .plate { inset: 6px; border-radius: 13px; box-shadow: none; }
+:root[data-palette='sugar'] .ph-kicker em { color: var(--rose-ink); }
+:root[data-palette='sugar'] .ph-title em { color: var(--rose); }
+:root[data-palette='sugar'] .acc-vig img { border-radius: 16px; box-shadow: 0 0 0 6px var(--sticker), 0 0 0 7px var(--chip-edge), 0 22px 40px -22px var(--plum-shadow) !important; }
+
+/* ——— Ask: your question in a rose bubble, Florin's answer on a white card ——— */
+:root[data-palette='sugar'] .ar-face { box-shadow: 0 0 0 3px var(--sticker), 0 0 0 4.5px var(--rose), var(--shadow-1); }
+:root[data-palette='sugar'] .ar-head h1 i { color: var(--rose); }
+:root[data-palette='sugar'] .ar-ideas button { border: 0 !important; border-radius: 999px !important; box-shadow: none !important; background: var(--rose-soft) !important; padding: 10px 16px; transition: transform 140ms cubic-bezier(.3, 1.6, .5, 1) !important; }
+:root[data-palette='sugar'] .ar-ideas button:nth-child(4n+2) { background: var(--mint-soft) !important; }
+:root[data-palette='sugar'] .ar-ideas button:nth-child(4n+3) { background: var(--butter-soft) !important; }
+:root[data-palette='sugar'] .ar-ideas button:nth-child(4n+4) { background: var(--smalt-soft) !important; }
+:root[data-palette='sugar'] .ar-ideas button:active { transform: scale(0.95) !important; box-shadow: none !important; opacity: 1; }
+:root[data-palette='sugar'] .ar-q { background: var(--rose-ink) !important; color: #FFFFFF !important; border-radius: 20px 20px 6px 20px; }
+:root[data-palette='sugar'][data-theme='dark'] .ar-q { background: var(--rose) !important; color: #1A0B20 !important; }
+:root[data-palette='sugar'] .ar-a { background: var(--card) !important; color: var(--ink) !important; border-radius: 6px 20px 20px 20px; box-shadow: 0 0 0 1.5px var(--ink), 0 4px 0 var(--ink) !important; }
+:root[data-palette='sugar'] .ar-who { color: var(--rose-ink); }
+:root[data-palette='sugar'] :is(.ar-wait, .ar-seal) { color: var(--ink-3); }
+:root[data-palette='sugar'] .ar-work-btn { color: var(--rose-ink); }
+:root[data-palette='sugar'] .ar-work { background: var(--fill); border-radius: 14px; }
+:root[data-palette='sugar'] .ar-work dl div { border-bottom-color: var(--line); }
+:root[data-palette='sugar'] :is(.ar-work dl div.sub, .ar-work li) { color: var(--ink-2); }
+:root[data-palette='sugar'] .ar-box { border: 0 !important; border-radius: 999px; box-shadow: 0 0 0 1.5px var(--ink), 0 4px 0 var(--ink) !important; }
+:root[data-palette='sugar'] .ar-box:focus-within { box-shadow: 0 0 0 2px var(--rose), 0 4px 0 var(--rose) !important; }
+:root[data-palette='sugar'] .ph-page .ar-box { box-shadow: 0 0 0 1.5px var(--ink), 0 4px 0 var(--ink), 0 -10px 16px 4px var(--paper) !important; }
+
+/* ——— People: examples as jelly beans ——— */
+:root[data-palette='sugar'] .acc-ex { border: 0; background: var(--rose-soft); padding: 8px 14px; transition: transform 140ms cubic-bezier(.3, 1.6, .5, 1); }
+:root[data-palette='sugar'] .acc-ex:nth-child(4n+2) { background: var(--mint-soft); }
+:root[data-palette='sugar'] .acc-ex:nth-child(4n+3) { background: var(--butter-soft); }
+:root[data-palette='sugar'] .acc-ex:nth-child(4n+4) { background: var(--smalt-soft); }
+:root[data-palette='sugar'] .acc-ex:active { transform: scale(0.95); opacity: 1; }
+
+/* ——— Past chapters: each one a candy-coloured clothbound book ——— */
+:root[data-palette='sugar'] .bound { background: radial-gradient(ellipse at 30% 20%, #9A2E6E, #5A1442 75%); box-shadow: inset 8px 0 0 rgba(0, 0, 0, .22), inset 9px 0 0 rgba(255, 255, 255, .25), 0 26px 40px -24px var(--plum-shadow); }
+:root[data-palette='sugar'] :nth-child(4n+2) > .bound { background: radial-gradient(ellipse at 30% 20%, #4B3BC0, #2A1F7A 75%); }
+:root[data-palette='sugar'] :nth-child(4n+3) > .bound { background: radial-gradient(ellipse at 30% 20%, #157F6A, #0B4D40 75%); }
+:root[data-palette='sugar'] :nth-child(4n+4) > .bound { background: radial-gradient(ellipse at 30% 20%, #C0562E, #7A2E14 75%); }
+:root[data-palette='sugar'] .bound-plate { border-radius: 10px; box-shadow: 0 0 0 4px rgba(255, 255, 255, .92), 0 8px 16px rgba(0, 0, 0, .35); }
+
+/* ——— The gallery: finished paintings keep their gilt (it is earned), on a velvet wall ——— */
+:root[data-palette='sugar'] .salon {
+  background: #2A1330;
+  background-image: radial-gradient(ellipse at 50% 0%, rgba(255, 111, 163, .22), transparent 60%), radial-gradient(rgba(255, 255, 255, .06) 1px, transparent 1.4px);
+  background-size: auto, 18px 18px;
+}
+
+/* ——— Play ——— */
+:root[data-palette='sugar'] .pl-hero { background: #2A1330; color: #FFF0F6; box-shadow: 0 4px 0 var(--rose), 0 30px 60px -30px var(--plum-shadow) !important; }
+:root[data-palette='sugar'] .pl-hero:hover { box-shadow: 0 6px 0 var(--rose), 0 36px 70px -30px var(--plum-shadow) !important; }
+:root[data-palette='sugar'] .pl-k { color: var(--butter); }
+:root[data-palette='sugar'] .pl-hero-t b { color: #FFF0F6; }
+:root[data-palette='sugar'] .pl-hero-t i { color: rgba(255, 240, 246, .75); }
+:root[data-palette='sugar'] .pl-cta { background: var(--butter); color: #2A1330; box-shadow: 0 3px 0 #C99A1E; }
+:root[data-palette='sugar'] .pl-door .pl-cta { background: var(--ink); color: var(--paper); box-shadow: 0 3px 0 var(--rose); }
+:root[data-palette='sugar'] .pl-how li::before { background: var(--rose); color: #FFFFFF; }
+
+/* ——— Your book (settings): candy tiles, rose switches ——— */
+:root[data-palette='sugar'] .sb-tint { border-radius: 9px; }
+:root[data-palette='sugar'] .sb-tint[data-pane='general'] { background: #FF7A59 !important; }
+:root[data-palette='sugar'] .sb-tint[data-pane='categories'] { background: #F5B300 !important; }
+:root[data-palette='sugar'] .sb-tint[data-pane='routines'] { background: #2EB892 !important; }
+:root[data-palette='sugar'] .sb-tint[data-pane='music'] { background: #EE4B85 !important; }
+:root[data-palette='sugar'] .sb-tint[data-pane='appearance'] { background: #FF9ECF !important; }
+:root[data-palette='sugar'] .sb-tint[data-pane='florin'] { background: #6C5CE7 !important; }
+:root[data-palette='sugar'] .sb-tint[data-pane='account'] { background: #4FA3E8 !important; }
+:root[data-palette='sugar'] .sb-tint[data-pane='data'] { background: #8E6BB8 !important; }
+:root[data-palette='sugar'] .sb-tint[data-pane='about'] { background: #C08A6E !important; }
+:root[data-palette='sugar'] .set-toggle[aria-checked='true'] { background: var(--rose) !important; }
+:root[data-palette='sugar'] .set-group > div:first-child { border-radius: 18px !important; }
+:root[data-palette='sugar'] :is(.sb-done, .sheet .btn:not(.primary), .panel .btn:not(.primary)) { border-radius: 999px; box-shadow: 0 0 0 1.5px var(--ink), 0 3px 0 var(--ink) !important; background: var(--card) !important; }
+
+/* ——— The currency picker and its glass ——— */
+:root[data-palette='sugar'] .cglass { color: var(--ink); background: var(--card); border: 0; border-radius: 999px; -webkit-backdrop-filter: none; backdrop-filter: none;
+  box-shadow: 0 0 0 1.5px var(--ink), 0 3px 0 var(--ink); }
+:root[data-palette='sugar'] .cglass::before { display: none; }
+:root[data-palette='sugar'] .cglass:hover, :root[data-palette='sugar'] .cglass.open { box-shadow: 0 0 0 2px var(--rose), 0 3px 0 var(--rose); }
+:root[data-palette='sugar'] .cglass-c { color: var(--ink-3); }
+:root[data-palette='sugar'] .cglass > svg:last-child, :root[data-palette='sugar'] .cpick-row svg { color: var(--rose-ink); }
+:root[data-palette='sugar'] .cpick-panel { background: var(--card); -webkit-backdrop-filter: none; backdrop-filter: none; border: 0; color: var(--ink);
+  box-shadow: 0 0 0 1px var(--line), 0 34px 70px -26px var(--plum-shadow); }
+:root[data-palette='sugar'] :is(.cpick-sec, .cpick-done) { color: var(--rose-ink); }
+:root[data-palette='sugar'] .cpick-row { color: var(--ink); }
+:root[data-palette='sugar'] .cpick-row.at { background: var(--rose-soft); box-shadow: none; }
+:root[data-palette='sugar'] .cpick-row .c { color: var(--ink-3); }
+:root[data-palette='sugar'] .cpick-search { color: var(--ink-3); border-color: var(--line); }
+:root[data-palette='sugar'] .cpick-search input { color: var(--ink); }
+
+/* ——— First run: the cover. Always Sugar, whatever the hour, so the first look is the sweet one ——— */
+:root[data-palette='sugar'] .ob2 {
+  --ink: #2A1330; --ink-2: rgba(42, 19, 48, .78); --ink-3: rgba(42, 19, 48, .6); --gilt: #C21D5E; --verm: #EE4B85; --bone: #FFF4EF;
+  --ink-4: rgba(42, 19, 48, .16); --card: #FFFFFF; --paper: #FFF4EF; --line: rgba(42, 19, 48, .1); --fill: rgba(42, 19, 48, .05);
+  --rose: #EE4B85; --rose-ink: #C21D5E; --rose-soft: #FFDCE8; --plum-shadow: rgba(120, 30, 80, .32); color-scheme: light;
+  background-color: #FFF4EF; background-image: radial-gradient(rgba(238, 75, 133, .17) 1.1px, transparent 1.4px); background-size: 18px 18px;
+}
+/* Where the painting meets the page: a ribbon of the four candy pigments, not gold leaf. */
+:root[data-palette='sugar'] .ob2-art::after { height: 6px; background: linear-gradient(90deg, #EE4B85 0 25%, #FFD15C 25% 50%, #5FD0AE 50% 75%, #8B7BFF 75%); }
+@media (min-width: 900px) { :root[data-palette='sugar'] .ob2-art::after { width: 6px; height: auto; background: linear-gradient(180deg, #EE4B85 0 25%, #FFD15C 25% 50%, #5FD0AE 50% 75%, #8B7BFF 75%); } }
+:root[data-palette='sugar'] .ob2-date { display: inline-block; justify-self: center; padding: 5px 11px 4px; border-radius: 999px; transform: rotate(-1.6deg); background: #FFD15C; color: #2A1330; box-shadow: 0 2px 0 rgba(42, 19, 48, .18); }
+@media (min-width: 900px) { :root[data-palette='sugar'] .ob2-date { justify-self: start; } }
+:root[data-palette='sugar'] .ob2-slip { background: #FFFFFF; border: 0; border-radius: 999px; box-shadow: 0 0 0 1.5px #2A1330, 0 4px 0 #2A1330; }
+:root[data-palette='sugar'] .ob2-slip:focus-within { box-shadow: 0 0 0 2px #EE4B85, 0 4px 0 #EE4B85, 0 0 0 9px rgba(238, 75, 133, .14); }
+:root[data-palette='sugar'] .ob2-slip.rec { box-shadow: 0 0 0 2px #EE4B85, 0 4px 0 #EE4B85; }
+:root[data-palette='sugar'] .ob2-slip input::placeholder { color: rgba(42, 19, 48, .45); }
+:root[data-palette='sugar'] .ob2-say b { color: #C21D5E; }
+:root[data-palette='sugar'] .ob2-swipe::after { background: #EE4B85; box-shadow: 0 0 8px rgba(238, 75, 133, .6); }
+:root[data-palette='sugar'] .ob2-read.in b { color: #0B7356; }
+:root[data-palette='sugar'] .ob2-example { text-decoration-color: #EE4B85; text-decoration-thickness: 2px; }
+:root[data-palette='sugar'] .ob2-quiet button { text-decoration-color: rgba(42, 19, 48, .3); }
+
+/* ——— Room signs and Your book in Sugar ——— */
+:root[data-palette='sugar'] .ch-acts button svg { background: var(--rose); color: #fff !important; }
+:root[data-palette='sugar'] .ch-seg button.on { font-style: normal; }
+:root[data-palette='sugar'] .sb-sel { border-radius: 999px; background: var(--card); box-shadow: 0 0 0 1.5px var(--ink), 0 3px 0 var(--ink); }
+:root[data-palette='sugar'] .sb-sel::before { display: none; }
+:root[data-palette='sugar'] .sheet-x { background: var(--card); color: var(--ink); box-shadow: 0 0 0 1.5px var(--ink), 0 3px 0 var(--ink); }
+:root[data-palette='sugar'] .sheet-x:active { transform: translateY(2px) scale(.94); box-shadow: 0 0 0 1.5px var(--ink), 0 1px 0 var(--ink); }

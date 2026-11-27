@@ -34,14 +34,15 @@ Write, See, Ask.
 
 - Read the existing CSS first and extract the real tokens (colours,
   fonts, spacing, radii). Treat them as the design system.
-- Palette: "Sugar by day, Velvet by night" is the default (src/sugar.css):
-  the Renaissance with a Rococo sweet tooth, Gen Z playful but never
-  cheap. Blush dotted paper (#FFF4EF) / aubergine velvet (#150A1B),
-  mulberry ink, and candy pigments, each with a fill, a soft wash and a
-  deeper ink shade for small text: rose madder, Naples yellow (butter),
-  verdigris (mint), smalt (lavender). Stickers with white die-cut edges,
-  jelly-bean pills, outlined chat bubbles, bouncy presses. The original
-  Parchment (#EEE6D6) & Candlelight stay as a choosable palette.
+- Palette: Parchment (#EEE6D6) by day and Candlelight (#17120C) by
+  night are the default. "Sugar by day, Velvet by night" (src/sugar.css)
+  is a choosable second palette: the Renaissance with a Rococo sweet
+  tooth, Gen Z playful but never cheap. Blush dotted paper (#FFF4EF) /
+  aubergine velvet (#150A1B), mulberry ink, and candy pigments, each
+  with a fill, a soft wash and a deeper ink shade for small text: rose
+  madder, Naples yellow (butter), verdigris (mint), smalt (lavender).
+  Stickers with white die-cut edges, jelly-bean pills, outlined chat
+  bubbles, bouncy presses.
 - Old Master paintings are the heroes: Bruegel
   (The Harvesters, Hunters in the Snow, Peasant Wedding, Tower of
   Babel), van Eyck (Arnolfini Portrait), Matsys (The Moneylender and
